@@ -387,6 +387,135 @@ def analyze_gaps(
 
 
 # --------------------------------------------------------------------------- #
+# resample — 1s base -> coarser timeframe (spec §1)
+# --------------------------------------------------------------------------- #
+
+_RESAMPLE_PRICE_AGG = [
+    agg
+    for side in _SIDES
+    for agg in (
+        pl.col(f"{side}_open").first().alias(f"{side}_open"),
+        pl.col(f"{side}_high").max().alias(f"{side}_high"),
+        pl.col(f"{side}_low").min().alias(f"{side}_low"),
+        pl.col(f"{side}_close").last().alias(f"{side}_close"),
+        pl.col(f"{side}_volume").sum().alias(f"{side}_volume"),
+    )
+]
+
+_RESAMPLE_COLUMNS = [
+    "timestamp", "close_time",
+    *(f"{s}_{f}" for s in _SIDES for f in (*_OHLC, "volume")),
+    "n_ticks",
+]
+
+
+def resample(df: pl.DataFrame, timeframe: str, *, fill_gaps: bool = True) -> pl.DataFrame:
+    """Aggregate 1s bid/ask data to a coarser timeframe ('5m', '15m', '1h', '4h', ...).
+
+    Buckets are label=left, closed=left: the bucket labelled HH:MM:00 covers
+    [HH:MM:00, HH:MM:00 + timeframe). Bid and ask OHLC are aggregated
+    *separately* (open=first, high=max, low=min, close=last per side); volume is
+    summed per side; `n_ticks` counts the 1s rows in the bucket (0 == a filled
+    flat candle).
+
+    Every output bar carries `close_time` = bucket_start + `timeframe`, derived
+    from the actual argument via `offset_by` — never a hardcoded +5m. Treating a
+    1h bar as "closed" 5 minutes after it opened would be a lookahead bug.
+
+    The trailing partial bucket is dropped: any bucket whose `close_time` lands
+    after `(last 1s timestamp + 1s)` never actually finished (a 1s bar labelled
+    HH:MM:59 covers [59, 60), so real coverage runs 1s past the last label).
+
+    Expects `df` sorted by timestamp and already validated (see `validate_1s`).
+
+    ----------------------------------------------------------------------------
+    Sparse-data policy (`fill_gaps`, default True)
+    ----------------------------------------------------------------------------
+    The 1s feed is sparse — a quiet 5-minute window (3 a.m., thin holiday
+    session) can contain zero ticks, and `group_by_dynamic` then emits no bar
+    for it. With `fill_gaps=True` those interior windows are printed as flat
+    carry-forward candles (O=H=L=C = previous close, volume 0, n_ticks 0),
+    TradingView-style — EXCEPT across a gap of >= WEEKEND_MIN_SECONDS (12h),
+    which is left as a genuine hole.
+
+    Why fill interior gaps: a strategy addresses bars positionally ("SMA of the
+    last 20 5-min bars"). If the 3 a.m. empty window is silently missing, "20
+    bars ago" slides to a different wall-clock distance each call, and two
+    strategies on different timeframes stop lining up. A flat bar keeps the
+    index honest and barely moves an SMA (a few repeated closes).
+
+    Why NOT fill weekends/holidays: those gaps are 48h+. Filling a 5-min series
+    across a weekend injects ~576 identical Friday-close bars; an SMA(50) is then
+    entirely stale Friday data for the first ~4 hours of Monday — the line goes
+    flat and a crossover fires the instant real ticks resume. The market did not
+    exist over the weekend; the honest shape is a discontinuity, which is exactly
+    what TradingView shows for FX (no weekend candles). The 12h threshold is the
+    same WEEKEND_MIN_SECONDS `analyze_gaps` uses, so "real session break" has one
+    definition.
+
+    `fill_gaps=False` returns only the buckets that actually had ticks — useful
+    for debugging or comparing against an externally-resampled series.
+    """
+    if df.is_empty():
+        return df.head(0).select(
+            [pl.col(c) for c in _RESAMPLE_COLUMNS if c in df.columns]
+        )
+
+    bars = (
+        df.group_by_dynamic("timestamp", every=timeframe, closed="left", label="left")
+          .agg(*_RESAMPLE_PRICE_AGG, pl.len().alias("n_ticks"))
+    )
+
+    if fill_gaps and bars.height > 1:
+        grid = pl.select(
+            timestamp=pl.datetime_range(
+                bars["timestamp"].min(),
+                bars["timestamp"].max(),
+                interval=timeframe,
+                time_zone="UTC",
+                eager=True,
+            )
+        )
+        bars = (
+            grid.join(bars, on="timestamp", how="left")
+                .sort("timestamp")
+                .with_columns(
+                    _prev_real=pl.when(pl.col("n_ticks").is_not_null())
+                                 .then(pl.col("timestamp")).forward_fill(),
+                    _next_real=pl.when(pl.col("n_ticks").is_not_null())
+                                 .then(pl.col("timestamp")).backward_fill(),
+                )
+                # drop synthetic buckets that sit inside a real session break
+                .filter(
+                    pl.col("n_ticks").is_not_null()
+                    | ((pl.col("_next_real") - pl.col("_prev_real")).dt.total_seconds()
+                       < WEEKEND_MIN_SECONDS)
+                )
+                .with_columns(
+                    _bid_ffill=pl.col("bid_close").forward_fill(),
+                    _ask_ffill=pl.col("ask_close").forward_fill(),
+                )
+                .with_columns(
+                    *(
+                        pl.col(f"{side}_{f}").fill_null(pl.col(f"_{side}_ffill"))
+                        for side in _SIDES for f in _OHLC
+                    ),
+                    *(pl.col(f"{side}_volume").fill_null(0.0) for side in _SIDES),
+                    n_ticks=pl.col("n_ticks").fill_null(0),
+                )
+                .drop("_prev_real", "_next_real", "_bid_ffill", "_ask_ffill")
+        )
+
+    cutoff = df["timestamp"].max() + timedelta(seconds=1)
+    return (
+        bars.with_columns(close_time=pl.col("timestamp").dt.offset_by(timeframe))
+            .filter(pl.col("close_time") <= cutoff)
+            .select(_RESAMPLE_COLUMNS)
+            .sort("timestamp")
+    )
+
+
+# --------------------------------------------------------------------------- #
 # FxData — orchestrates load + normalize + validate + gap report
 # --------------------------------------------------------------------------- #
 

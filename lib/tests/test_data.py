@@ -19,6 +19,7 @@ from lib.data import (
     fx_holidays,
     load_1s_data,
     normalize_1s,
+    resample,
     validate_1s,
 )
 
@@ -254,3 +255,87 @@ def test_normalize_sorts_and_counts_dupes():
     out, n_dropped = normalize_1s(df)
     assert n_dropped == 1
     assert out["timestamp"].to_list() == sorted(out["timestamp"].to_list())
+
+
+# --------------------------------------------------------------------------- #
+# resample (spec §1 / §6)
+# --------------------------------------------------------------------------- #
+
+def ticks(specs: list[tuple]) -> pl.DataFrame:
+    """specs: list of (datetime, bid, ask)."""
+    return frame([bar(ts, bid=b, ask=a) for ts, b, a in specs]).sort("timestamp")
+
+
+def test_resample_ohlc_bid_and_ask_correct():
+    df = ticks([
+        (T(h=12, mi=0, s=0),  1.10, 1.1002),
+        (T(h=12, mi=0, s=30), 1.12, 1.1203),   # highs
+        (T(h=12, mi=1, s=0),  1.09, 1.0902),   # lows
+        (T(h=12, mi=4, s=59), 1.11, 1.1105),   # closes
+        (T(h=12, mi=5, s=0),  1.20, 1.2002),   # 2nd bucket
+        (T(h=12, mi=9, s=59), 1.21, 1.2103),
+    ])
+    b0 = resample(df, "5m").row(0, named=True)
+    assert (b0["bid_open"], b0["bid_high"], b0["bid_low"], b0["bid_close"]) == (1.10, 1.12, 1.09, 1.11)
+    assert (b0["ask_open"], b0["ask_high"], b0["ask_low"], b0["ask_close"]) == (1.1002, 1.1203, 1.0902, 1.1105)
+    assert b0["bid_volume"] == 4.0 and b0["ask_volume"] == 4.0
+    assert b0["n_ticks"] == 4
+
+
+def test_resample_drops_trailing_partial_bucket():
+    base = [(T(h=12, mi=0, s=0), 1.10, 1.1002), (T(h=12, mi=3, s=0), 1.11, 1.1102)]
+    # data ends mid-bucket -> [12:00, 12:05) never finished -> dropped
+    assert resample(ticks(base), "5m").height == 0
+    # data ends exactly on the boundary (12:04:59 covers [59, 60) -> 12:05:00) -> kept
+    out = resample(ticks(base + [(T(h=12, mi=4, s=59), 1.12, 1.1202)]), "5m")
+    assert out.height == 1
+    assert out.row(0, named=True)["timestamp"] == T(h=12, mi=0, s=0)
+
+
+def test_resample_close_time_is_generalized_per_timeframe():
+    specs = [(T(h=12), 1.10, 1.1002)]
+    specs += [(T(h=12 + i // 60, mi=i % 60, s=0), 1.10, 1.1002) for i in range(1, 120)]
+    specs += [(T(h=13, mi=59, s=59), 1.10, 1.1002)]
+    df = ticks(specs)
+    for tf, secs in (("5m", 300), ("1h", 3600)):
+        out = resample(df, tf, fill_gaps=False)
+        assert out.height > 0
+        deltas = (out["close_time"] - out["timestamp"]).dt.total_seconds().unique().to_list()
+        assert deltas == [secs]
+
+
+def test_resample_fills_intrasession_gap_with_flat_candles():
+    df = ticks([
+        (T(h=12, mi=0, s=0),   1.10, 1.1002),
+        (T(h=12, mi=30, s=0),  1.15, 1.1502),
+        (T(h=12, mi=34, s=59), 1.16, 1.1602),
+    ])
+    out = resample(df, "5m")
+    assert out["timestamp"].to_list() == [T(h=12, mi=m, s=0) for m in (0, 5, 10, 15, 20, 25, 30)]
+    flat = out.filter(pl.col("n_ticks") == 0)
+    assert flat.height == 5
+    r = flat.row(0, named=True)
+    assert r["bid_open"] == r["bid_high"] == r["bid_low"] == r["bid_close"] == 1.10
+    assert r["ask_open"] == r["ask_high"] == r["ask_low"] == r["ask_close"] == 1.1002
+    assert r["bid_volume"] == 0.0 and r["ask_volume"] == 0.0
+
+
+def test_resample_does_not_fill_a_weekend_gap():
+    df = ticks([
+        (T(d=7, h=20, s=0),        1.10, 1.1002),   # Friday 2024-06-07
+        (T(d=9, h=21, s=0),        1.11, 1.1102),   # Sunday 2024-06-09 (~49h later)
+        (T(d=9, h=21, mi=4, s=59), 1.12, 1.1202),
+    ])
+    out = resample(df, "5m")
+    assert out.height == 2
+    assert out["n_ticks"].to_list() == [1, 2]
+
+
+def test_resample_fill_gaps_false_returns_only_real_buckets():
+    df = ticks([
+        (T(h=12, mi=0, s=0),   1.10, 1.1002),
+        (T(h=12, mi=30, s=0),  1.15, 1.1502),
+        (T(h=12, mi=34, s=59), 1.16, 1.1602),
+    ])
+    out = resample(df, "5m", fill_gaps=False)
+    assert out["timestamp"].to_list() == [T(h=12, s=0), T(h=12, mi=30, s=0)]

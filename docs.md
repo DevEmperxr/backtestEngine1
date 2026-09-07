@@ -8,7 +8,7 @@ still shift) · ⏸️ deferred (not this build)
 
 | Module | Purpose | Status |
 |---|---|---|
-| `lib/data.py` | Load + sanity-check 1s data, resample to coarser timeframes | ✅ loader · 📋 `resample()` |
+| `lib/data.py` | Load + sanity-check 1s data, resample to coarser timeframes | ✅ |
 | `lib/engine.py` | `Engine` — run a strategy over the data, produce a trade log | 📋 |
 | `lib/strategies.py` | Concrete `Strategy` subclasses (SMA crossover first) | 📋 |
 | `lib/signals.py` | Pure, composable signal helpers strategies call into | 📋 |
@@ -178,7 +178,7 @@ no dependency, no lookup table), Christmas Eve, Christmas Day, Boxing Day, New
 Year's Eve. Deliberately short — FX is 24/5 and merely *thins* for most national
 holidays rather than closing. Pass an explicit iterable of `date` to override.
 
-### `resample(df, timeframe) -> pl.DataFrame` 📋
+### `resample(df, timeframe, *, fill_gaps=True) -> pl.DataFrame` ✅
 
 Aggregate the 1s base to a coarser timeframe. All coarser timeframes are **derived
 here**, never loaded as separate files.
@@ -189,15 +189,53 @@ bars_1h = resample(df, "1h")
 bars_4h = resample(df, "4h")
 ```
 
+Output columns: `timestamp` (bucket start), `close_time`, `{bid,ask}_{open,high,low,close,volume}`, `n_ticks`.
+
 - Bucket convention: `label=left, closed=left` — a bucket at `HH:MM:00` covers
-  `[HH:MM:00, HH:MM:00 + timeframe)`.
+  `[HH:MM:00, HH:MM:00 + timeframe)`. (`polars.group_by_dynamic`.)
 - Bid **and** ask OHLC preserved separately: `open=first, high=max, low=min,
-  close=last` per side.
-- Each bar also carries its **close time** = `bucket_start + timeframe` (computed
-  from the actual `timeframe`, never a hardcoded +5m — a stale assumption here is
-  a lookahead bug).
-- The trailing **partial bucket is dropped** if the 1s data doesn't end exactly
-  on a timeframe boundary (`bucket_start + timeframe <= max(ts) + 1s`).
+  close=last` per side; volume **summed** per side; `n_ticks` = 1s rows in the
+  bucket (`0` ⇒ a filled flat candle).
+- Each bar carries **`close_time` = `bucket_start + timeframe`**, derived from the
+  actual argument via `offset_by` — never a hardcoded +5m. Treating a 1h bar as
+  closed 5 min after it opened is a lookahead bug.
+- The trailing **partial bucket is dropped**: any bucket whose `close_time` lands
+  after `last_1s_timestamp + 1s` never finished. (The `+1s`: a 1s bar labelled
+  `HH:MM:59` covers `[59, 60)`.)
+
+**Sparse-data policy** (`fill_gaps`, default `True`): the 1s feed is sparse — a
+quiet window can hold zero ticks and `group_by_dynamic` then emits no bar.
+`fill_gaps=True` prints those interior windows as **flat carry-forward candles**
+(`O=H=L=C` = prior close, volume `0`, `n_ticks` `0`), TradingView-style —
+**except** across a gap ≥ 12h (`WEEKEND_MIN_SECONDS`), left as a true hole.
+
+- *Why fill interior gaps:* strategies index bars positionally ("SMA of the last
+  20 bars"). A silently-missing 3 a.m. window makes "20 bars ago" drift in
+  wall-clock time and desyncs strategies on different timeframes. A flat bar
+  keeps the index honest and barely moves an SMA.
+- *Why not fill weekends:* a 48h fill injects ~576 identical Friday-close 5m bars;
+  an SMA(50) is then 100% stale for the first hours of Monday and fires a false
+  crossover when ticks resume. The market didn't exist — the honest shape is a
+  discontinuity, which is what TradingView shows for FX. Same 12h threshold as
+  `analyze_gaps`, so "real session break" has one definition.
+- `fill_gaps=False` returns only buckets that had ticks — for debugging or
+  comparing against an externally-resampled series.
+
+On the real 2024 file: 5m → 74,999 bars (28 filled), 1h/4h → 0 filled (no
+tick-free hour within a session all year).
+
+**Known limitations** (reviewed 2026-09-07 — not bugs, safe for the 2024 file):
+
+1. *The 12h fill threshold cuts both ways.* A gap `< 12h` is flat-filled. On a
+   different dataset — an 8h broker outage, a regional holiday missing from
+   `fx_holidays()` — that would inject dozens–hundreds of stale carry-forward
+   bars quietly. None occur in the 2024 file. `n_ticks == 0` marks every filled
+   bar, so before trusting signals on new data, check
+   `resample(...).filter(pl.col("n_ticks") == 0)` for suspicious runs.
+2. *Empty-input schema mismatch.* The early-return path for an empty `df` yields
+   a frame without the `close_time` / `n_ticks` columns the normal path adds, so
+   a caller selecting those columns crashes only on empty input. One-line fix
+   when convenient; edge case.
 
 ---
 
@@ -380,12 +418,14 @@ print(metrics["summary"])
 pytest lib/tests/
 ```
 
-- **`test_data.py`** ✅ (21 tests) — synthetic-frame tests for every hard check
+- **`test_data.py`** ✅ (27 tests) — synthetic-frame tests for every hard check
   (clean data passes; conflicting duplicate timestamp / broken OHLC / negative
   spread / null / NaN / missing column each raise), the gap classifier (weekend
   size guard, holiday, fabricated mid-week hole), the per-year holiday calendar
-  (Easter computus, auto-derived from data span for an arbitrary year), and that
-  a sub-threshold hole still shows in the report.
+  (Easter computus, auto-derived from data span for an arbitrary year), a
+  sub-threshold hole still shows in the report, and `resample` (bid+ask OHLC on
+  hand-checked rows, trailing-partial-bucket drop/keep, `close_time` per
+  timeframe, flat-candle gap fill, weekend gap left unfilled).
 - **Regression:** SMA(20/50) on resampled 5m bars. Baseline from the prototype was
   **1,691 trades, −346.5 pips, 33.0% win rate** (old same-bar fill approximation).
   Expect **trade count, entry timestamps/prices, and result shape** (small
@@ -395,6 +435,7 @@ pytest lib/tests/
 - **Boolean-dtype regression:** a crossover helper must return real `bool` dtype
   and a sane signal count on a synthetic series — guards the `.shift(1)` →
   `object`-dtype → bitwise-`~` bug that once inflated the signal count 44×.
-- **`resample()` lookahead tests:** (a) trailing partial bucket dropped when the
-  data doesn't end on a boundary; (b) for several `timeframe` values, close time =
-  `bucket_start + timeframe`, not a hardcoded duration.
+- **`resample()` lookahead tests:** ✅ in `test_data.py` — (a) trailing partial
+  bucket dropped when the data doesn't end on a boundary, kept when it does;
+  (b) for 5m and 1h, `close_time == bucket_start + timeframe`, not a hardcoded
+  duration; (c) bid/ask OHLC aggregation checked on a few hand-verifiable rows.
