@@ -45,16 +45,26 @@ timestamp, bid_open, bid_high, bid_low, bid_close, bid_volume,
 
 ## `lib/data.py` — data layer ✅ / 📋
 
-### `FxData` — load and validate ✅
-
-Constructing the object **is** the validation. It runs every check from spec §0.5
-as one vectorized polars pass and raises `DataQualityError` on any hard failure.
-If it returns, the data is good.
+The pipeline is three separable steps — the engine reuses the check step on a
+frame it was handed (spec §2.1) without re-loading:
 
 ```python
-from data import FxData          # if cwd is lib/ ; else: from lib.data import FxData
+read_1s_csv(path)  -> raw pl.DataFrame        # one full read: schema + timestamp parse
+normalize_1s(df)   -> (clean df, n_dropped)   # drop exact-duplicate rows, sort
+validate_1s(df)    -> None | raises           # the hard §0.5 checks
+```
 
-data = FxData("../data/EURUSD_1s_2024.csv")
+### `FxData` — load, validate, gap report ✅
+
+Constructing the object **is** the validation: it runs all three steps plus the
+gap analysis and raises `DataQualityError` on any hard failure. If it returns,
+the data is good.
+
+```python
+from lib.data import FxData        # or `from data import FxData` if cwd is lib/
+
+data = FxData("../data/EURUSD_1s_2024.csv")   # a path...
+data = FxData(existing_polars_df)             # ...or an in-memory DataFrame / LazyFrame
 ```
 
 ```
@@ -65,9 +75,13 @@ FxData: ../data/EURUSD_1s_2024.csv
   inter-bar gap ........ median 1s  p99 19s
   weekend gaps ......... 52
   holiday gaps ......... 8
-  unexplained gaps ..... 0
+  unexplained gaps .... 0  (>= 600s)
+  largest unexpl. gap . 561s (9.3 min) at 2024-05-12 21:06 UTC
   checks .............. PASSED
 ```
+
+The `largest unexpl. gap` line is always printed — a hole just under the
+reporting threshold is never hidden behind the `0`.
 
 **Attributes:**
 
@@ -76,18 +90,18 @@ FxData: ../data/EURUSD_1s_2024.csv
 | `.df` | `pl.DataFrame` | cleaned data, sorted by `timestamp` (`Datetime[us, UTC]`) |
 | `.gaps` | `pl.DataFrame` | one row per reported gap: `start, end, gap_s, gap_h, kind, start_dow` |
 | `.unexplained_gaps` | `pl.DataFrame` | `.gaps` filtered to `kind == "unexplained"` |
-| `.gap_summary` | `dict` | span, median/p99 gap, gap counts by kind |
+| `.gap_summary` | `dict` | span, median/p99 gap, gap counts by kind, largest unexplained gap + start |
 | `.n_exact_duplicate_rows_dropped` | `int` | fully-identical rows removed pre-validation |
 
 **Constructor options:**
 
 ```python
 FxData(
-    csv_path,
+    source,                                   # CSV path | pl.DataFrame | pl.LazyFrame
     timestamp_format="%Y-%m-%d %H:%M:%S%z",   # explicit; %z -> tz-aware UTC
-    holidays=None,                            # iterable[date]; None -> DEFAULT_HOLIDAYS (2024)
-    gap_report_threshold_s=600,               # gaps >= this get reported
-    strict_gaps=False,                        # True -> unexplained gap raises instead of warns
+    holidays=None,                            # iterable[date]; None -> fx_holidays() for the data's year span
+    gap_report_threshold_s=600,               # gaps >= this land in .gaps
+    strict_gaps=False,                        # True -> unexplained gap >= threshold raises
     verbose=True,                             # print the report on construct
 )
 ```
@@ -97,14 +111,14 @@ FxData(
 | check | rule |
 |---|---|
 | schema | all expected columns present |
-| timestamp parse | every row parses with `timestamp_format` |
+| timestamp parse | every row parses with `timestamp_format` (string source only) |
 | exact-duplicate rows | dropped silently, counted (the month-boundary download artifact) |
 | duplicate timestamps | rows sharing a timestamp but with **different** values → raise |
 | nulls | none, any column |
 | NaNs | none, any float column (NaN ≠ null in polars — checked separately) |
 | OHLC consistency | per side: `high ≥ max(open,close,low)`, `low ≤ min(open,close,high)` |
 | negative spread | `ask ≥ bid` on all of O/H/L/C |
-| gaps | every gap is weekend / holiday / explained; else warn (or raise if `strict_gaps`) |
+| gaps | classified weekend / holiday / unexplained; unexplained ≥ threshold → warn (or raise if `strict_gaps`) |
 
 **Use it in a pipeline:**
 
@@ -113,17 +127,56 @@ data = FxData(path, verbose=False, strict_gaps=True)   # raises on ANY anomaly
 df = data.df
 ```
 
-### `load_1s_data(csv_path, **kwargs) -> pl.DataFrame` ✅
+### `load_1s_data(source, **kwargs) -> pl.DataFrame` ✅
 
-Thin wrapper — spec §1's entry point, adapted to the single-file schema. Returns
-just the cleaned frame:
+Spec §1's entry point, adapted to the single-file schema. `source` is a CSV path
+or an already-loaded `pl.DataFrame` / `pl.LazyFrame`. Returns just the cleaned
+frame:
 
 ```python
-from data import load_1s_data
+from lib.data import load_1s_data
 df = load_1s_data("../data/EURUSD_1s_2024.csv")
 ```
 
 Use `FxData` directly when you also want the gap report.
+
+### `validate_1s(df) -> None` ✅ — for the engine
+
+The single source of truth for "is this a valid 1s frame". Raises
+`DataQualityError` or returns `None`. `engine.py` calls this at construction time
+(spec §2.1) instead of re-implementing the checks. The check expressions
+(`ohlc_violation_expr(side)`, `negative_spread_expr()`) are also importable if a
+call site needs the raw boolean mask.
+
+```python
+from lib.data import validate_1s
+validate_1s(df)   # in Engine.__init__, on the frame handed in
+```
+
+### `analyze_gaps(df, *, holidays=None, report_threshold_s=600) -> (summary, gaps)` ✅
+
+Standalone gap classifier (what `FxData` uses internally). A gap is `weekend`
+only if it starts Friday, ends Sat/Sun **and** lasts > 12h; `holiday` if either
+endpoint is a `holidays` date; `unexplained` otherwise. `summary` always carries
+`max_unexplained_gap_s` / `max_unexplained_gap_start` regardless of threshold.
+
+### `fx_holidays(years)` / `easter_sunday(year)` ✅ — holiday calendar, any year
+
+`holidays=None` (the default) auto-derives the calendar from the data's year
+span, so a 2024 file and a 2019–2027 file both get the right dates with no config.
+
+```python
+from lib.data import fx_holidays, easter_sunday
+
+fx_holidays(2027)                 # frozenset of 6 dates for one year
+fx_holidays(range(2019, 2028))    # union across many years
+easter_sunday(2025)               # date(2025, 4, 20) — Good Friday is 2 days earlier
+```
+
+Per year: New Year's Day, **Good Friday** (computed via the Gregorian computus —
+no dependency, no lookup table), Christmas Eve, Christmas Day, Boxing Day, New
+Year's Eve. Deliberately short — FX is 24/5 and merely *thins* for most national
+holidays rather than closing. Pass an explicit iterable of `date` to override.
 
 ### `resample(df, timeframe) -> pl.DataFrame` 📋
 
@@ -160,9 +213,10 @@ trades = engine.backtest(strategy)     # -> pl.DataFrame trade log
 metrics = engine.evaluate(trades, starting_balance=10_000, lot_size=0.1)
 ```
 
-`Engine` does **not** load data — hand it an already-cleaned frame (it re-runs the
-§0.5 checks at construction and fails loudly if you didn't). It needs the 1s base
-alongside the signal-timeframe bars for fill resolution.
+`Engine` does **not** load data — hand it an already-cleaned frame. At
+construction it calls `data.validate_1s()` on what it was given and fails loudly
+if you didn't clean it upstream. It needs the 1s base alongside the
+signal-timeframe bars for fill resolution.
 
 ### Timing model (enforced by the engine, spec §0.1–0.2)
 
@@ -302,9 +356,9 @@ region-style signal rendering from explicit per-strategy column lists. See spec 
 ## End-to-end (once the engine lands)
 
 ```python
-from data import load_1s_data, resample
-from engine import Engine
-from strategies import SmaCrossoverStrategy
+from lib.data import load_1s_data, resample
+from lib.engine import Engine
+from lib.strategies import SmaCrossoverStrategy
 
 df       = load_1s_data("../data/EURUSD_1s_2024.csv")
 bars_5m  = resample(df, "5m")
@@ -326,6 +380,12 @@ print(metrics["summary"])
 pytest lib/tests/
 ```
 
+- **`test_data.py`** ✅ (21 tests) — synthetic-frame tests for every hard check
+  (clean data passes; conflicting duplicate timestamp / broken OHLC / negative
+  spread / null / NaN / missing column each raise), the gap classifier (weekend
+  size guard, holiday, fabricated mid-week hole), the per-year holiday calendar
+  (Easter computus, auto-derived from data span for an arbitrary year), and that
+  a sub-threshold hole still shows in the report.
 - **Regression:** SMA(20/50) on resampled 5m bars. Baseline from the prototype was
   **1,691 trades, −346.5 pips, 33.0% win rate** (old same-bar fill approximation).
   Expect **trade count, entry timestamps/prices, and result shape** (small
