@@ -9,7 +9,7 @@ still shift) · ⏸️ deferred (not this build)
 | Module | Purpose | Status |
 |---|---|---|
 | `lib/data.py` | Load + sanity-check 1s data, resample to coarser timeframes | ✅ |
-| `lib/engine.py` | `Strategy` ABC · `Engine` — run a strategy, produce a trade log | ✅ `Strategy` · 📋 `Engine` |
+| `lib/engine.py` | `Strategy` ABC · `Engine` · `_resolve_exit` 1s SL/TP walk | ✅ `Strategy`, `_resolve_exit` · 🚧 `Engine` (5a: entries) |
 | `lib/strategies.py` | Concrete `Strategy` subclasses (SMA crossover first) | 📋 |
 | `lib/signals.py` | Pure, composable signal helpers strategies call into | 📋 |
 | `lib/evaluate.py` | Normal + adversarial performance metrics | 📋 |
@@ -276,20 +276,38 @@ class Strategy(ABC):
 `Strategy(...)` directly raises `TypeError` (abstract). SL/TP/timeframe are
 constructor params because they *define* a strategy variant — not engine-run args.
 
-### `Engine` 📋
+### `Engine` — 🚧 pass 5a (construction + entry timing)
 
 ```python
-from engine import Engine
+from lib.engine import Engine
 
-engine = Engine(bars_5m, base_1s=df)   # signal-timeframe bars + 1s base for fills
+engine = Engine(signal_df, base_1s)    # resampled bars + the 1s base
 trades = engine.backtest(strategy)     # -> pl.DataFrame trade log
-metrics = engine.evaluate(trades, starting_balance=10_000, lot_size=0.1)
+# metrics = engine.evaluate(trades, ...)   # 📋 later
 ```
 
-`Engine` does **not** load data — hand it an already-cleaned frame. At
-construction it calls `data.validate_1s()` on what it was given and fails loudly
-if you didn't clean it upstream. It needs the 1s base alongside the
-signal-timeframe bars for fill resolution.
+`Engine` does **not** load data — hand it frames cleaned upstream
+(`load_1s_data` / `resample`).
+
+- **`__init__(signal_df, base_1s)`** — calls `data.validate_1s(base_1s)` (fails
+  loudly with `DataQualityError` if the 1s base wasn't cleaned) and stores it for
+  5b's fill walk. Checks `signal_df` has `timestamp`, `close_time` and the 8
+  `{bid,ask}_{open,high,low,close}` columns and is timestamp-sorted, else
+  `ValueError`.
+- **`backtest(strategy)`** — runs `strategy.generate_signals(signal_df)`, then
+  **validates** `long_signal`/`short_signal` are present and real `pl.Boolean`
+  (`ValueError` otherwise — the §0.4 guard). Walks the bars in plain Python
+  (small frame, not the bottleneck — §2.3) and returns a frame of
+  `entry_time, entry_price, direction, exit_time, exit_price`.
+
+**5a scope / what's a placeholder:** entries honour the t+1 rule (`long_signal`
+on bar *t* → enter at bar *t+1*'s open, via `shift(1, fill_value=False)`) and
+spread-correct fills (long → `ask_open`, short → `bid_open`). One position at a
+time; a same-direction signal while open is ignored. **Exits are crude**: the
+position is closed at the next *opposite* signal's t+1 open (long close →
+`bid_open`, short close → `ask_open`); a position still open at end of data is
+returned with null `exit_time`/`exit_price`. Pass **5b** replaces the exit logic
+with the real SL/TP walk over the 1s path + `exit_on_opposite_signal`.
 
 ### Timing model (enforced by the engine, spec §0.1–0.2)
 
@@ -307,6 +325,24 @@ Once a trade is open, the engine walks the **real 1s price path** between entry
 and exit to find the true first-touch of SL or TP — not the signal-timeframe
 bar's OHLC range. The inner walk is a `@njit` imperative loop (numba) — fast, but
 still reads like a plain step-by-step loop so event ordering stays inspectable.
+
+**`_resolve_exit(exit_high, exit_low, start_idx, end_idx, direction, sl_level, tp_level)`** ✅
+— the `@njit(cache=True)` walk. `direction` is `+1` long / `-1` short.
+
+- The caller passes the 1s high/low of the side the trade **exits against**
+  (§0.3): a long exits by selling → pass the **bid** arrays; a short exits by
+  buying → pass the **ask** arrays. The function is side-agnostic.
+- long: SL when `exit_low[k] <= sl_level`, TP when `exit_high[k] >= tp_level`;
+  short: mirrored. Touches inclusive.
+- Returns `(hit_idx, exit_price, reason)` — `reason` `0` none (`hit_idx ==
+  end_idx`, price `0.0`), `1` SL, `2` TP. `exit_price` is the **level itself** (a
+  resting stop/limit order fills at its price).
+- One 1s bar straddling both levels → **SL wins** (the spec's old "assume SL
+  first" tie-break, now confined to a single second, so rare and bounded).
+
+**`_sl_tp_levels(direction, entry_price, sl_pips, tp_pips, pip=PIP)`** ✅ (plain,
+not njit) → `(sl_level, tp_level)`. long: SL below / TP above entry; short:
+mirrored.
 
 ### Trade log columns (indicative)
 
@@ -439,12 +475,20 @@ pytest lib/tests/
   sub-threshold hole still shows in the report, and `resample` (bid+ask OHLC on
   hand-checked rows, trailing-partial-bucket drop/keep, `close_time` per
   timeframe, flat-candle gap fill, weekend gap left unfilled).
-- **`test_engine.py`** ✅ (9 tests) — `Strategy` is abstract (`Strategy(...)` →
-  `TypeError`); a concrete subclass stores `sl_pips`/`tp_pips`/`timeframe` and its
-  own params; `exit_on_opposite_signal` defaults `True`, overridable to `False`;
-  `__init__` rejects `sl_pips=0` / `tp_pips=-5` / empty or non-str `timeframe`
-  with `ValueError`; `generate_signals` returns real `pl.Boolean` signal columns
-  and does not mutate its input.
+- **`test_engine.py`** ✅ (30 tests) — **Strategy** (9): abstract
+  (`Strategy(...)` → `TypeError`); subclass stores `sl_pips`/`tp_pips`/`timeframe`
+  + own params; `exit_on_opposite_signal` default/override; `__init__` rejects
+  `sl_pips=0` / `tp_pips=-5` / empty or non-str `timeframe`; `generate_signals`
+  returns `pl.Boolean` columns and doesn't mutate input. **Engine 5a** (10):
+  `__init__` validates `base_1s` (`DataQualityError`), rejects a `signal_df`
+  missing columns or unsorted; `backtest` rejects non-Boolean signals; long enters
+  at bar t+1 `ask_open`, short at `bid_open`, signal on the last bar → no entry,
+  a 2nd same-direction signal while open is ignored, entry timestamp is strictly
+  after the signal bar, placeholder exit closes on the opposite signal at `bid_open`.
+  **`_resolve_exit` / `_sl_tp_levels`** (11): njit-compiled (`CPUDispatcher`,
+  nopython signature); long SL / long TP / neither / same-bar-straddle → SL wins;
+  short SL on ask-high, short TP on ask-low; `start_idx` hides earlier touches;
+  `_sl_tp_levels` long/short above-below and the `PIP` offset.
 - **Regression:** SMA(20/50) on resampled 5m bars. Baseline from the prototype was
   **1,691 trades, −346.5 pips, 33.0% win rate** (old same-bar fill approximation).
   Expect **trade count, entry timestamps/prices, and result shape** (small

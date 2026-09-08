@@ -1,9 +1,21 @@
-"""Tests for lib/engine.py — the Strategy ABC (spec §2.2)."""
+"""Tests for lib/engine.py — the Strategy ABC (§2.2) and Engine entry timing (§2.1, pass 5a)."""
+
+from datetime import datetime, timedelta, timezone
 
 import polars as pl
 import pytest
 
-from lib.engine import Strategy
+import numpy as np
+
+from lib.data import PIP, DataQualityError
+from lib.engine import (
+    Engine,
+    Strategy,
+    _resolve_exit,
+    _sl_tp_levels,
+)
+
+UTC = timezone.utc
 
 
 class _MiniStrategy(Strategy):
@@ -78,3 +90,239 @@ def test_generate_signals_does_not_mutate_input():
     _MiniStrategy().generate_signals(df)
     assert df.equals(before)
     assert "long_signal" not in df.columns
+
+
+# --------------------------------------------------------------------------- #
+# Engine — construction + entry timing (spec §2.1, pass 5a)
+# --------------------------------------------------------------------------- #
+
+def _base_1s(n: int = 5) -> pl.DataFrame:
+    """A minimal valid 1s bid/ask frame — just enough for validate_1s to pass."""
+    t0 = datetime(2024, 6, 3, 12, tzinfo=UTC)
+    rows = []
+    for i in range(n):
+        b, a = 1.1000, 1.1002
+        rows.append(dict(
+            timestamp=t0 + timedelta(seconds=i),
+            bid_open=b, bid_high=b, bid_low=b, bid_close=b, bid_volume=1.0,
+            ask_open=a, ask_high=a, ask_low=a, ask_close=a, ask_volume=1.0,
+        ))
+    return pl.DataFrame(rows)
+
+
+def _signal_df(n: int = 8) -> pl.DataFrame:
+    """n 5-minute bars with a distinct ask_open / bid_open per bar (so fills are
+    identifiable), starting 2024-06-03 12:00 UTC."""
+    t0 = datetime(2024, 6, 3, 12, tzinfo=UTC)
+    ts = [t0 + timedelta(minutes=5 * i) for i in range(n)]
+    ask_open = [round(1.1000 + 0.0010 * i, 5) for i in range(n)]
+    bid_open = [round(1.0998 + 0.0010 * i, 5) for i in range(n)]
+    return pl.DataFrame({
+        "timestamp": ts,
+        "close_time": [t + timedelta(minutes=5) for t in ts],
+        "bid_open": bid_open,
+        "bid_high": [round(b + 0.0005, 5) for b in bid_open],
+        "bid_low": [round(b - 0.0005, 5) for b in bid_open],
+        "bid_close": bid_open,
+        "ask_open": ask_open,
+        "ask_high": [round(a + 0.0005, 5) for a in ask_open],
+        "ask_low": [round(a - 0.0005, 5) for a in ask_open],
+        "ask_close": ask_open,
+    })
+
+
+class _ManualStrategy(Strategy):
+    """Attaches signal columns supplied verbatim by the test."""
+
+    def __init__(self, longs, shorts, timeframe="5m"):
+        super().__init__(10.0, 20.0, timeframe)
+        self._longs, self._shorts = longs, shorts
+
+    def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
+        return df.with_columns(
+            long_signal=pl.Series(self._longs, dtype=pl.Boolean),
+            short_signal=pl.Series(self._shorts, dtype=pl.Boolean),
+        )
+
+
+F, Tr = False, True
+
+
+def test_engine_init_validates_base_1s():
+    dirty = _base_1s().with_columns(pl.col("bid_close") + 1.0)  # breaks OHLC / spread
+    with pytest.raises(DataQualityError):
+        Engine(_signal_df(), dirty)
+
+
+def test_engine_init_rejects_signal_df_missing_columns():
+    with pytest.raises(ValueError, match="missing column"):
+        Engine(_signal_df().drop("close_time"), _base_1s())
+
+
+def test_engine_init_rejects_unsorted_signal_df():
+    unsorted = _signal_df().reverse()
+    with pytest.raises(ValueError, match="sorted"):
+        Engine(unsorted, _base_1s())
+
+
+def test_backtest_rejects_non_boolean_signals():
+    class _BadStrategy(Strategy):
+        def __init__(self):
+            super().__init__(10, 20, "5m")
+
+        def generate_signals(self, df):
+            return df.with_columns(long_signal=pl.lit(1), short_signal=pl.lit(0))
+
+    with pytest.raises(ValueError, match="Boolean"):
+        Engine(_signal_df(), _base_1s()).backtest(_BadStrategy())
+
+
+def test_long_signal_enters_at_next_bar_ask_open():
+    sd = _signal_df(8)
+    longs = [F, Tr, F, F, F, F, F, F]          # signal on bar index 1
+    trades = Engine(sd, _base_1s()).backtest(_ManualStrategy(longs, [F] * 8))
+    assert trades.height == 1
+    row = trades.row(0, named=True)
+    assert row["direction"] == "long"
+    assert row["entry_time"] == sd["timestamp"][2]          # bar t+1
+    assert row["entry_price"] == sd["ask_open"][2]          # buy fills at ask
+
+
+def test_short_signal_enters_at_next_bar_bid_open():
+    sd = _signal_df(8)
+    shorts = [F, F, Tr, F, F, F, F, F]         # signal on bar index 2
+    trades = Engine(sd, _base_1s()).backtest(_ManualStrategy([F] * 8, shorts))
+    row = trades.row(0, named=True)
+    assert row["direction"] == "short"
+    assert row["entry_time"] == sd["timestamp"][3]
+    assert row["entry_price"] == sd["bid_open"][3]          # sell fills at bid
+
+
+def test_signal_on_last_bar_produces_no_entry():
+    sd = _signal_df(6)
+    longs = [F, F, F, F, F, Tr]                # nothing after it to act on
+    trades = Engine(sd, _base_1s()).backtest(_ManualStrategy(longs, [F] * 6))
+    assert trades.height == 0
+
+
+def test_second_same_direction_signal_while_open_is_ignored():
+    sd = _signal_df(8)
+    longs = [F, Tr, F, Tr, F, F, F, F]         # 2nd long at index 3, still open
+    trades = Engine(sd, _base_1s()).backtest(_ManualStrategy(longs, [F] * 8))
+    assert trades.height == 1                  # only the first entry
+    assert trades.row(0, named=True)["entry_time"] == sd["timestamp"][2]
+
+
+def test_entry_timestamp_is_strictly_after_the_signal_bar():
+    sd = _signal_df(8)
+    signal_bar = 4
+    longs = [F] * 8
+    longs[signal_bar] = Tr
+    trades = Engine(sd, _base_1s()).backtest(_ManualStrategy(longs, [F] * 8))
+    assert trades.row(0, named=True)["entry_time"] > sd["timestamp"][signal_bar]
+    assert trades.row(0, named=True)["entry_time"] == sd["timestamp"][signal_bar + 1]
+
+
+def test_placeholder_exit_closes_on_opposite_signal():
+    sd = _signal_df(8)
+    longs = [F, Tr, F, F, F, F, F, F]          # enter long at bar 2
+    shorts = [F, F, F, Tr, F, F, F, F]         # opposite at bar 3 -> act bar 4
+    trades = Engine(sd, _base_1s()).backtest(_ManualStrategy(longs, shorts))
+    row = trades.row(0, named=True)
+    assert row["direction"] == "long"
+    assert row["exit_time"] == sd["timestamp"][4]
+    assert row["exit_price"] == sd["bid_open"][4]           # closing a long -> bid
+
+
+# --------------------------------------------------------------------------- #
+# _resolve_exit — numba 1s-path SL/TP walk (spec §2.3, pass 5b part 1)
+# --------------------------------------------------------------------------- #
+
+# Levels for a LONG entered at 1.1000 with sl=10 / tp=20 pips.
+SL_L, TP_L = 1.0990, 1.1020
+# Levels for a SHORT entered at 1.1000 with sl=10 / tp=20 pips.
+SL_S, TP_S = 1.1010, 1.0980
+
+
+def _arr(vals):
+    return np.asarray(vals, dtype=np.float64)
+
+
+def _walk(high, low, direction, sl, tp, start=0):
+    high, low = _arr(high), _arr(low)
+    k, price, reason = _resolve_exit(high, low, start, len(high), direction, sl, tp)
+    return int(k), float(price), int(reason)
+
+
+def test_resolve_exit_is_njit_compiled():
+    assert hasattr(_resolve_exit, "py_func")          # numba dispatcher
+    # first real call forces JIT compilation
+    assert _walk([1.0] * 3, [1.0] * 3, 1, 0.5, 2.0) == (3, 0.0, 0)
+
+
+def test_long_hits_stop_loss():
+    highs = [1.1000] * 6                              # TP (1.1020) never reached
+    lows = [1.0996, 1.0995, 1.0994, SL_L, 1.0993, 1.0992]   # SL touched at k=3
+    assert _walk(highs, lows, 1, SL_L, TP_L) == (3, SL_L, 1)
+
+
+def test_long_hits_take_profit():
+    highs = [1.1005, 1.1010, TP_L, 1.1015, 1.1012, 1.1011]  # TP touched at k=2
+    lows = [1.0995] * 6                               # SL (1.0990) never reached
+    assert _walk(highs, lows, 1, SL_L, TP_L) == (2, TP_L, 2)
+
+
+def test_long_no_touch_returns_end_idx():
+    highs = [1.1000, 1.1005, 1.1010, 1.1015, 1.1018, 1.1019]
+    lows = [1.0995, 1.0994, 1.0993, 1.0992, 1.0991, 1.0991]
+    assert _walk(highs, lows, 1, SL_L, TP_L) == (6, 0.0, 0)
+
+
+def test_same_bar_straddles_both_levels_stop_loss_wins():
+    highs = [1.1000, 1.1030, 1.1000]                  # k=1 high >= TP ...
+    lows = [1.0995, 1.0980, 1.0995]                   # ... and k=1 low <= SL
+    assert _walk(highs, lows, 1, SL_L, TP_L) == (1, SL_L, 1)
+
+
+def test_short_hits_stop_loss_on_ask_high():
+    # short exits by buying -> caller passes the ASK arrays
+    ask_high = [1.1004, 1.1008, SL_S, 1.1012, 1.1011, 1.1009]   # SL touched at k=2
+    ask_low = [1.0999] * 6                            # TP (1.0980) never reached
+    assert _walk(ask_high, ask_low, -1, SL_S, TP_S) == (2, SL_S, 1)
+
+
+def test_short_hits_take_profit_on_ask_low():
+    ask_high = [1.1005] * 6                           # SL (1.1010) never reached
+    ask_low = [1.0995, 1.0988, TP_S, 1.0975, 1.0979, 1.0982]    # TP touched at k=2
+    assert _walk(ask_high, ask_low, -1, SL_S, TP_S) == (2, TP_S, 2)
+
+
+def test_start_idx_skips_earlier_touches():
+    highs = [1.1000] * 6
+    lows = [SL_L, SL_L, 1.0995, 1.0996, 1.0997, 1.0998]   # SL touches at k=0 and k=1
+    # from k=0 the touch is found immediately
+    assert _walk(highs, lows, 1, SL_L, TP_L, start=0) == (0, SL_L, 1)
+    # from k=2 those earlier touches are invisible -> nothing in [2, 6)
+    assert _walk(highs, lows, 1, SL_L, TP_L, start=2) == (6, 0.0, 0)
+
+
+# --------------------------------------------------------------------------- #
+# _sl_tp_levels
+# --------------------------------------------------------------------------- #
+
+def test_sl_tp_levels_long():
+    sl, tp = _sl_tp_levels(1, 1.1000, 10, 20)
+    assert sl == pytest.approx(1.0990)               # SL below entry
+    assert tp == pytest.approx(1.1020)               # TP above entry
+
+
+def test_sl_tp_levels_short():
+    sl, tp = _sl_tp_levels(-1, 1.1000, 10, 20)
+    assert sl == pytest.approx(1.1010)               # SL above entry
+    assert tp == pytest.approx(1.0980)               # TP below entry
+
+
+def test_sl_tp_levels_uses_pip_constant():
+    sl, tp = _sl_tp_levels(1, 1.2000, 5, 5)
+    assert sl == pytest.approx(1.2000 - 5 * PIP)
+    assert tp == pytest.approx(1.2000 + 5 * PIP)
