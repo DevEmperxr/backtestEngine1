@@ -9,7 +9,7 @@ still shift) · ⏸️ deferred (not this build)
 | Module | Purpose | Status |
 |---|---|---|
 | `lib/data.py` | Load + sanity-check 1s data, resample to coarser timeframes | ✅ |
-| `lib/engine.py` | `Engine` — run a strategy over the data, produce a trade log | 📋 |
+| `lib/engine.py` | `Strategy` ABC · `Engine` — run a strategy, produce a trade log | ✅ `Strategy` · 📋 `Engine` |
 | `lib/strategies.py` | Concrete `Strategy` subclasses (SMA crossover first) | 📋 |
 | `lib/signals.py` | Pure, composable signal helpers strategies call into | 📋 |
 | `lib/evaluate.py` | Normal + adversarial performance metrics | 📋 |
@@ -239,9 +239,44 @@ tick-free hour within a session all year).
 
 ---
 
-## `lib/engine.py` — backtest engine 📋
+## `lib/engine.py` — backtest engine ✅ `Strategy` · 📋 `Engine`
 
-### `Engine`
+### `Strategy` (ABC) ✅
+
+The formal strategy interface (spec §2.2). A concrete strategy subclasses it,
+calls `super().__init__(sl_pips, tp_pips, timeframe)`, then adds its own params.
+
+```python
+from abc import ABC, abstractmethod
+import polars as pl
+
+class Strategy(ABC):
+    exit_on_opposite_signal: bool = True   # class attr; subclass sets False for SL/TP-only exits
+
+    def __init__(self, sl_pips: float, tp_pips: float, timeframe: str):
+        # validates: sl_pips > 0, tp_pips > 0, timeframe a non-empty str (else ValueError)
+        ...
+
+    @abstractmethod
+    def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
+        """Pure — does not mutate df, returns a new frame with at least
+        `long_signal` and `short_signal` added, both real pl.Boolean dtype
+        (the engine trusts that — spec §0.4). May add any other columns; the
+        engine ignores them. Owns its no-lookahead correctness: row t uses
+        only info through bar t's close = bar_start + self.timeframe."""
+```
+
+| member | kind | notes |
+|---|---|---|
+| `sl_pips`, `tp_pips` | instance (ctor) | pip distances, must be `> 0` |
+| `timeframe` | instance (ctor) | `"5m"`, `"1h"`, … — drives the "bar t's close" math |
+| `exit_on_opposite_signal` | class attr, default `True` | engine also closes on the opposite signal, on top of SL/TP |
+| `generate_signals(df)` | abstract | the one thing a subclass must implement |
+
+`Strategy(...)` directly raises `TypeError` (abstract). SL/TP/timeframe are
+constructor params because they *define* a strategy variant — not engine-run args.
+
+### `Engine` 📋
 
 ```python
 from engine import Engine
@@ -290,30 +325,8 @@ Position sizing (trades are tracked in **pips only**); multi-instrument support
 
 ## `lib/strategies.py` + `lib/signals.py` — strategies 📋
 
-### `Strategy` interface
-
-```python
-from abc import ABC, abstractmethod
-
-class Strategy(ABC):
-    sl_pips: float
-    tp_pips: float
-    exit_on_opposite_signal: bool = True   # also exit when the opposite signal fires
-
-    @abstractmethod
-    def generate_signals(self, df):
-        """Pure: df in -> df out with (at least) `long_signal` and
-        `short_signal` bool columns added. May add any other columns (SMA
-        values, trend_direction, session flags) for debugging/viz.
-
-        Responsible for its own no-lookahead correctness: a value at row t may
-        only use info available through bar t's close, where 'bar t's close' =
-        bar_start + this strategy's timeframe duration (NOT a hardcoded +5m).
-        """
-```
-
-SL/TP are **constructor params** — they define a strategy variant, not a separate
-engine argument.
+The `Strategy` ABC lives in [`lib/engine.py`](#libenginepy--backtest-engine---strategy---engine)
+(above). Concrete subclasses live here.
 
 ### First strategy — SMA(20/50) crossover (reference / regression case)
 
@@ -426,6 +439,12 @@ pytest lib/tests/
   sub-threshold hole still shows in the report, and `resample` (bid+ask OHLC on
   hand-checked rows, trailing-partial-bucket drop/keep, `close_time` per
   timeframe, flat-candle gap fill, weekend gap left unfilled).
+- **`test_engine.py`** ✅ (9 tests) — `Strategy` is abstract (`Strategy(...)` →
+  `TypeError`); a concrete subclass stores `sl_pips`/`tp_pips`/`timeframe` and its
+  own params; `exit_on_opposite_signal` defaults `True`, overridable to `False`;
+  `__init__` rejects `sl_pips=0` / `tp_pips=-5` / empty or non-str `timeframe`
+  with `ValueError`; `generate_signals` returns real `pl.Boolean` signal columns
+  and does not mutate its input.
 - **Regression:** SMA(20/50) on resampled 5m bars. Baseline from the prototype was
   **1,691 trades, −346.5 pips, 33.0% win rate** (old same-bar fill approximation).
   Expect **trade count, entry timestamps/prices, and result shape** (small
