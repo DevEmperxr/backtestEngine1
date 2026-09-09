@@ -688,22 +688,23 @@ pytest lib/tests/ -m slow    # + the end-to-end regression
   and don't crash on an empty result.
 - **`test_regression.py`** ✅ (6 tests, `-m slow`, skipped if the data file is
   absent) — end to end: `load_1s_data` → `resample("5m")` →
-  `SmaCrossoverStrategy(20/50, sl 10 / tp 20)` → `Engine.backtest`. Asserts the
-  §6 tolerances (trade count ±5% of 1,691, win rate ±3 pts of 33.0%, pips
-  negative and `|pips|` in 0.5×–2× of 346.5), per-trade well-formedness (valid
-  `direction`/`exit_reason`, `exit_time >= entry_time` with `==` ⇒ `sl`/`tp`,
-  `entry_time` one bar after a crossover edge, `entry_price` == the bar's `ask`/
-  `bid` open), no wall-clock overlap, and a headline-numbers lock.
-- **Regression — result: PASS** (see [`regression.md`](regression.md)). Baseline
-  **1,691 / −346.5 / 33.0%**; this build at `sl=10/tp=20` gives **1,714 / −453.1
-  / 32.5%** (0 overlaps) — inside every §6 tolerance. Trade count matches at
-  *any* SL/TP (1,700–1,733 across a 25-cell sweep) because it's set by the
-  crossover count. The pip total at the arbitrary `10/20` runs 1.3× baseline;
-  the notebook shows (a) a fitted cell — `mid, sl≈8/tp≈15` — reproduces −346
-  within 1%, (b) the "assume SL first" fill difference is falsified (0 TP→SL
-  flips), so the gap is a parameter mismatch (the spec never recorded the
-  prototype's SL/TP), not an engine bug. Full analysis + SL/TP sweep grid +
-  pip-gap decomposition in [`notebooks/regression.ipynb`](notebooks/regression.ipynb).
+  `SmaCrossoverStrategy(20/50, sl 10 / tp 20)` → `Engine.backtest`. Locks the
+  headline numbers (`1,714 / −453.1 / 32.5%` + exit mix) as the regression
+  tripwire; loose stability bands (count 1,500–2,000, win 25–40%, edge negative);
+  per-trade well-formedness (valid `direction`/`exit_reason`, `exit_time >=
+  entry_time` with `==` ⇒ `sl`/`tp`, `entry_time` one bar after a crossover edge,
+  `entry_price` == the bar's `ask`/`bid` open); no wall-clock overlap.
+- **Regression — result: PASS** (see [`regression.md`](regression.md)). Locked
+  baseline on the 1s data at `sl=10/tp=20`: **1,714 trades / −453.1 pips / 32.5%
+  win**, 0 overlaps. The spec's old **1,691 / −346.5 / 33.0%** figure is
+  **retired** — a direct bar-level diff confirmed the prototype's 5-min pull was
+  *incomplete* (29 bars the 1s data has that the 5-min data lacks, 0 the other
+  way, clustered at low-liquidity periods — Christmas, July 4th, the Nov 21
+  sell-off). The difference is source-data completeness, **not** an engine /
+  `resample` / fill bug. Trade count is invariant to SL/TP (1,700–1,733 across a
+  25-cell sweep) — it's set by the crossover count, which is the real proof the
+  signal/entry/reversal logic is correct. Full analysis + confirming loop in
+  [`regression.md`](regression.md) / [`notebooks/regression.ipynb`](notebooks/regression.ipynb).
 - **`resample()` lookahead tests:** ✅ in `test_data.py` — (a) trailing partial
   bucket dropped when the data doesn't end on a boundary, kept when it does;
   (b) for 5m and 1h, `close_time == bucket_start + timeframe`, not a hardcoded

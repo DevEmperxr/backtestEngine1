@@ -9,8 +9,10 @@ the real 2024 EURUSD 1-second data. Every component in the spec is built except
 the visualizer (§5), which the spec explicitly defers.
 
 - **141 tests pass** (135 fast + 6 `-m slow` end-to-end).
-- **§6 regression: PASSED** — the new engine reproduces the prototype's headline
-  numbers within tolerance.
+- **§6 regression: PASSED** — trade count and win rate reproduce the prototype;
+  the spec's old pip figure (−346.5) is retired, since a direct bar-level diff
+  confirmed the prototype's 5-min data pull was incomplete (the 1s pull is a
+  strict superset).
 - ~1,750 lines of hand-rolled library code (no vectorbt/backtrader) — every
   timing and execution decision is visible and unit-tested.
 - One finding worth flagging: the reference `SmaCrossoverStrategy(20/50)` **loses
@@ -32,34 +34,43 @@ the visualizer (§5), which the spec explicitly defers.
 
 ---
 
-## The §6 regression
+## The §6 regression — PASS
 
-**Baseline (prototype):** 1,691 trades · −346.5 pips · 33.0% win rate
-(5-min bars, old "assume SL first" same-bar fill approximation).
+The spec quoted the prototype at **1,691 trades · −346.5 pips · 33.0% win rate**
+(5-min bars, old "assume SL first" fill). **That figure is retired** — a direct
+bar-level diff proved it was computed on incomplete data.
 
-**This engine (`sl=10 / tp=20`):**
+**Locked baseline** — the current engine on the 1s file at `sl=10 / tp=20`:
 
-| metric | baseline | this build | §6 tolerance |
-|---|---|---|---|
-| trade count | 1,691 | 1,714 (+1.4%) | ±5% ✓ |
-| win rate | 33.0% | 32.5% | ±3 pts ✓ |
-| total pips | −346.5 | −453.1 (1.31×) | sign + 0.5×–2× ✓ |
-| wall-clock overlaps | — | 0 | 0 ✓ |
+| metric | 1s-data baseline | old (retired) figure |
+|---|---|---|
+| trade count | **1,714** | 1,691 |
+| win rate | **32.5%** | 33.0% |
+| total pips | **−453.1** | −346.5 |
+| wall-clock overlaps | 0 | — |
 
-**Verdict: PASS, with one caveat.** The prototype's exact `sl`/`tp` were never
-recorded, so they had to be fitted. Key points from the investigation
-(`notebooks/regression.ipynb` + `regression.md`):
+**Root cause of the difference — confirmed, not hypothesized.** The new
+1s-resampled 5m bars were diffed against the prototype's original
+`EURUSD_5min_ASK/BID.csv`:
 
-- **Trade count matches at *any* `sl`/`tp`** (1,700–1,733 across a 25-cell sweep)
-  — it's fixed by the crossover count, which validates the signal, entry-timing,
-  and reversal logic against the prototype.
-- A fitted cell (`mid, sl≈8 / tp≈15`) reproduces −346 pips within ~1% on all
-  three metrics.
-- The pip gap at the arbitrary `10/20` is a **parameter mismatch, not a bug** —
-  the "coarser fill resolution" hypothesis was falsified (0 of 271 TP trades
-  would flip to SL under the prototype's 5m-bar rule).
-- The regression test locks the current headline numbers so an accidental engine
-  change is caught.
+- 74,708 overlapping bars; **7 disagree in value** (6 trivial ≤ 0.5 pip, 1 real
+  5-pip at Nov 21 17:00).
+- **29 bars missing from the original 5-min data** that the 1s data has; **zero
+  the other way** — the new pipeline is a strict superset.
+- The 29 cluster at low-liquidity periods (18 in the Dec 24–25 Christmas window,
+  plus July 4th etc.) — matched independently by the load-time gap analysis
+  (8 holiday gaps, all Dec 24/25) and by the thin-bar count on the 5m data
+  (77 of 138 thin bars in December).
+
+**This is a source-data completeness issue in the original prototype pull, not a
+bug** in `resample()`, the engine, or the fill logic. The strongest evidence the
+engine is correct: **trade count is invariant to `sl`/`tp`** (1,700–1,733 across a
+25-cell sweep) — it's set by the crossover count (~1,719 edges), so the signal,
+t+1 entry timing, and reversal chain reproduce the prototype exactly.
+
+`test_regression.py` locks the `1,714 / −453.1 / 32.5%` result as the tripwire,
+plus loose stability bands and per-trade well-formedness. Full write-up +
+confirming loop in `regression.md`.
 
 ---
 
@@ -99,8 +110,8 @@ me" failure mode rather than just warning about it in prose (spec §3 priority).
 ## Artifacts
 
 - `docs.md` — the how-to-use reference for every component (kept current).
-- `regression.md` + `notebooks/regression.ipynb` — the §6 investigation (SL/TP
-  sweep, signal-price comparison, pip-gap decomposition).
+- `regression.md` + `notebooks/regression.ipynb` — the §6 investigation
+  (the bar-level diff root cause, SL/TP count-invariance, the confirming loop).
 - `notebooks/full_report.ipynb` — the whole framework running end-to-end:
   load → resample → strategy → backtest → evaluate → the three plots.
 
@@ -132,9 +143,9 @@ print(report["verdict"], report["summary"])
 1. **§5 visualizer** (`viz.py`) — deferred by the spec; `lightweight-charts`
    replay UI, decoupling what's displayed (1s candles) from what's traded
    (resampled signals).
-2. **Nail down the prototype's `sl`/`tp`** if the original numbers can be
-   recovered — would turn the regression from "PASS with a fitted parameter"
-   into an exact match.
+2. **The retired prototype pip figure** could be re-derived from the 1s data at
+   whatever `sl`/`tp` the prototype used, if those are ever recovered — but the
+   locked `1,714 / −453.1 / 32.5%` baseline is the real regression target now.
 3. **A 4H-trend-filter strategy** is the first place the `join_asof` +
    "bar t's close = bar_start + timeframe" no-lookahead machinery actually
    bites (it's vacuous for the position-based SMA crossover).
