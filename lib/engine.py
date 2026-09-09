@@ -1,17 +1,17 @@
 """Backtest engine (spec §2).
 
 Contains the `Strategy` ABC (§2.2) and `Engine` (§2.1), plus the numba 1s-path
-SL/TP resolver (`_resolve_exit`, §2.3). `Engine` is being built in passes:
-
-    5a  — construction + entry timing (done). Exits are a crude placeholder.
-    5b  — `_resolve_exit` (this file) + wiring it into `backtest` with
-          `exit_on_opposite_signal`. Part 1 here is the standalone resolver.
+SL/TP resolver (`_resolve_exit`, §2.3). `backtest` is complete: rising-edge
+entries with t+1 timing (§0.1), spread-correct fills (§0.3), and per-trade exit
+resolved on the real 1s path — SL / TP / opposite-signal / end-of-data, with the
+within-bar ordering of §0.2 respected.
 """
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+import numpy as np
 import polars as pl
 from numba import njit
 
@@ -108,9 +108,15 @@ class Strategy(ABC):
     exit_on_opposite_signal : bool, class attribute, default True
         Whether the engine also closes an open position when the opposite signal
         fires, on top of SL/TP. Set False on a subclass to exit only via SL/TP.
+    reverse_on_opposite_signal : bool, class attribute, default False
+        On an opposite-signal exit, immediately open the opposite position at the
+        same bar/open ("always in the market"). Requires
+        `exit_on_opposite_signal`. A trade that exits via SL/TP/end-of-data stops
+        the reversal chain — the engine goes flat.
     """
 
     exit_on_opposite_signal: bool = True
+    reverse_on_opposite_signal: bool = False
 
     def __init__(self, sl_pips: float, tp_pips: float, timeframe: str) -> None:
         if not (sl_pips > 0):
@@ -119,6 +125,10 @@ class Strategy(ABC):
             raise ValueError(f"tp_pips must be > 0, got {tp_pips!r}")
         if not isinstance(timeframe, str) or not timeframe:
             raise ValueError(f"timeframe must be a non-empty str, got {timeframe!r}")
+        if self.reverse_on_opposite_signal and not self.exit_on_opposite_signal:
+            raise ValueError(
+                "reverse_on_opposite_signal requires exit_on_opposite_signal"
+            )
         self.sl_pips = float(sl_pips)
         self.tp_pips = float(tp_pips)
         self.timeframe = timeframe
@@ -152,18 +162,28 @@ class Engine:
     1s base at construction so a dirty frame fails loudly here rather than
     silently corrupting a backtest.
 
-    Pass 5a scope: entry timing only. `backtest` honours the t+1 rule (§0.1) and
-    spread-correct fills (§0.3), one position at a time. Exits are a placeholder
-    — a position is closed at the next opposite signal's t+1 open. Pass 5b
-    replaces that with the SL/TP 1s-path walk and `exit_on_opposite_signal`.
+    `backtest`: rising-edge entries honour the t+1 rule (§0.1) and spread-correct
+    fills (§0.3). Each trade's exit is then resolved on the real 1s path
+    (`_resolve_exit`, §2.3): SL / TP first-touch, an opposite-signal exit raced
+    against them (only if `strategy.exit_on_opposite_signal`), or a force-close
+    at end of data (§2.4). If `strategy.reverse_on_opposite_signal`, an
+    opposite-signal exit immediately opens the opposite position at the same
+    open — the chain continues until a trade exits via SL/TP/end-of-data.
+    Scanning then resumes at the first signal bar at/after that exit, so trades
+    never overlap in wall-clock time.
     """
 
-    _TRADE_COLUMNS = ("entry_time", "entry_price", "direction", "exit_time", "exit_price")
+    _TRADE_SCHEMA_TAIL = {
+        "entry_price": pl.Float64,
+        "direction": pl.String,
+        "exit_price": pl.Float64,
+        "pips": pl.Float64,
+        "exit_reason": pl.String,
+    }
 
     def __init__(self, signal_df: pl.DataFrame, base_1s: pl.DataFrame) -> None:
-        # base_1s: the 1s base frame. Needed for 5b's fill walk; just held now.
-        # Validate with the data layer's single source of truth (spec §2.1) —
-        # never re-implement the §0.5 checks here.
+        # Validate base_1s with the data layer's single source of truth
+        # (spec §2.1) — never re-implement the §0.5 checks here.
         validate_1s(base_1s)
         self.base_1s = base_1s
 
@@ -177,8 +197,23 @@ class Engine:
             raise ValueError("signal_df must be sorted by timestamp")
         self.signal_df = signal_df
 
+        # Cache the 1s path as plain arrays once — the per-trade walk needs
+        # contiguous numpy, and rebuilding it per trade would dominate runtime.
+        self._ts_ns = base_1s["timestamp"].dt.epoch("ns").to_numpy()
+        self._bid_high = base_1s["bid_high"].to_numpy()
+        self._bid_low = base_1s["bid_low"].to_numpy()
+        self._bid_close = base_1s["bid_close"].to_numpy()
+        self._ask_high = base_1s["ask_high"].to_numpy()
+        self._ask_low = base_1s["ask_low"].to_numpy()
+        self._ask_close = base_1s["ask_close"].to_numpy()
+
     def backtest(self, strategy: Strategy) -> pl.DataFrame:
-        """Run `strategy` and return the entry log (5a: entries + placeholder exits)."""
+        """Run `strategy`; return the trade log.
+
+        Columns: entry_time, entry_price, direction ("long"/"short"), exit_time,
+        exit_price, pips, exit_reason in {"sl", "tp", "opposite_signal",
+        "end_of_data"}.
+        """
         sig = strategy.generate_signals(self.signal_df)
         for col in ("long_signal", "short_signal"):
             if col not in sig.columns:
@@ -187,66 +222,145 @@ class Engine:
                 raise ValueError(
                     f"{col} must be pl.Boolean dtype, got {sig.schema[col]} (spec §0.4)"
                 )
+        if (sig["long_signal"] & sig["short_signal"]).any():
+            raise ValueError("ambiguous bar: long_signal and short_signal both True")
 
-        # t+1 timing (spec §0.1): a signal on bar t is actionable at bar t+1's
-        # open. shift(1, fill_value=False) keeps a genuine Boolean dtype — the
-        # §0.4 discipline, even though polars doesn't have pandas' object-upcast.
+        # Rising edges only — enter on a fresh False->True transition, not on
+        # every bar a state signal stays True. shift(1, fill_value=False) keeps a
+        # genuine Boolean dtype; `~` is a real logical-not here (spec §0.4).
         sig = sig.with_columns(
-            _act_long=pl.col("long_signal").shift(1, fill_value=False),
-            _act_short=pl.col("short_signal").shift(1, fill_value=False),
+            _entry_long=pl.col("long_signal") & ~pl.col("long_signal").shift(1, fill_value=False),
+            _entry_short=pl.col("short_signal") & ~pl.col("short_signal").shift(1, fill_value=False),
         )
 
-        ts = sig["timestamp"].to_list()
+        sig_ts = sig["timestamp"].to_list()                       # for the log
+        sig_ts_ns = sig["timestamp"].dt.epoch("ns").to_numpy()    # for searchsorted
         ask_open = sig["ask_open"].to_list()
         bid_open = sig["bid_open"].to_list()
-        act_long = sig["_act_long"].to_list()
-        act_short = sig["_act_short"].to_list()
+        entry_long = sig["_entry_long"].to_list()
+        entry_short = sig["_entry_short"].to_list()
+
+        base_ts = self.base_1s["timestamp"]
+        n_sig = sig.height
+        n_base = len(self._ts_ns)
+
+        def resolve(entry_bar: int, direction: int):
+            """Resolve one trade opened at signal bar `entry_bar`'s open,
+            direction +1/-1. Returns (trade, resume_t, reversal); `reversal` is
+            (new_entry_bar, new_direction) iff the trade exited opposite_signal
+            and the strategy reverses, else None."""
+            entry_time = sig_ts[entry_bar]
+            # long fills at ask, short at bid — for a fresh entry AND a reversal
+            # (the close and the re-open are the same side of the book, §0.3).
+            entry_price = ask_open[entry_bar] if direction == 1 else bid_open[entry_bar]
+            sl_level, tp_level = _sl_tp_levels(
+                direction, entry_price, strategy.sl_pips, strategy.tp_pips
+            )
+
+            # First 1s row at/after entry — the entry second is exposed to its
+            # own range (open first, then the range unfolds, §0.2).
+            start_idx = int(np.searchsorted(self._ts_ns, sig_ts_ns[entry_bar], side="left"))
+            if direction == 1:                       # long exits by selling -> bid
+                exit_high, exit_low = self._bid_high, self._bid_low
+            else:                                    # short exits by buying -> ask
+                exit_high, exit_low = self._ask_high, self._ask_low
+
+            # Opposite-signal exit (spec §2.2) — race it against SL/TP. First
+            # opposite rising edge at bar k >= entry_bar, acted on at k+1's open.
+            end_idx = n_base
+            signal_exit = None
+            opp_bar = None
+            if strategy.exit_on_opposite_signal:
+                opp_edge = entry_short if direction == 1 else entry_long
+                k = entry_bar
+                while k < n_sig and not opp_edge[k]:
+                    k += 1
+                if k < n_sig and k + 1 < n_sig:
+                    # Walk only up to (not including) bar k+1's open: the signal
+                    # exit fills at that open, BEFORE the bar's range unfolds, so
+                    # the position never sees k+1's intrabar SL/TP (§0.2).
+                    end_idx = int(np.searchsorted(self._ts_ns, sig_ts_ns[k + 1], side="left"))
+                    signal_exit = (
+                        sig_ts[k + 1],
+                        bid_open[k + 1] if direction == 1 else ask_open[k + 1],
+                        int(sig_ts_ns[k + 1]),
+                    )
+                    opp_bar = k
+
+            hit_idx, exit_price, reason = _resolve_exit(
+                exit_high, exit_low, start_idx, end_idx, direction, sl_level, tp_level
+            )
+
+            if reason == _HIT_SL:  # SL genuinely happened first
+                exit_time, exit_ns, exit_reason = base_ts[hit_idx], int(self._ts_ns[hit_idx]), "sl"
+                exit_price = float(exit_price)
+            elif reason == _HIT_TP:
+                exit_time, exit_ns, exit_reason = base_ts[hit_idx], int(self._ts_ns[hit_idx]), "tp"
+                exit_price = float(exit_price)
+            elif signal_exit is not None:  # nothing touched first -> signal wins
+                exit_time, exit_price, exit_ns = signal_exit[0], float(signal_exit[1]), signal_exit[2]
+                exit_reason = "opposite_signal"
+            else:  # _NO_TOUCH, no signal exit -> force close at end of data (§2.4)
+                exit_time = base_ts[n_base - 1]
+                exit_price = float(self._bid_close[-1] if direction == 1 else self._ask_close[-1])
+                exit_ns, exit_reason = int(self._ts_ns[n_base - 1]), "end_of_data"
+
+            if direction == 1:
+                pips = (exit_price - entry_price) / PIP
+            else:
+                pips = (entry_price - exit_price) / PIP
+
+            trade = {
+                "entry_time": entry_time,
+                "entry_price": float(entry_price),
+                "direction": "long" if direction == 1 else "short",
+                "exit_time": exit_time,
+                "exit_price": exit_price,
+                "pips": float(pips),
+                "exit_reason": exit_reason,
+            }
+
+            resume_t = int(np.searchsorted(sig_ts_ns, exit_ns, side="left"))
+            reversal = None
+            if exit_reason == "opposite_signal" and strategy.reverse_on_opposite_signal:
+                # re-open the opposite at the same bar/open we just closed at.
+                # opp_bar strictly increases down the chain, so it terminates.
+                reversal = (opp_bar + 1, -direction)
+            return trade, resume_t, reversal
 
         trades: list[dict] = []
-        direction: str | None = None
-        entry_time = None
-        entry_price = None
-
+        t = 0
         # Small outer loop over the resampled frame — not the bottleneck (§2.3).
-        for i in range(sig.height):
-            if direction is None:
-                if act_long[i]:
-                    direction, entry_time, entry_price = "long", ts[i], ask_open[i]
-                elif act_short[i]:
-                    direction, entry_time, entry_price = "short", ts[i], bid_open[i]
-            elif direction == "long" and act_short[i]:
-                # placeholder exit: closing a long is a sell -> fills at bid.
-                trades.append({
-                    "entry_time": entry_time, "entry_price": entry_price,
-                    "direction": "long",
-                    "exit_time": ts[i], "exit_price": bid_open[i],
-                })
-                direction = entry_time = entry_price = None
-            elif direction == "short" and act_long[i]:
-                # closing a short is a buy -> fills at ask.
-                trades.append({
-                    "entry_time": entry_time, "entry_price": entry_price,
-                    "direction": "short",
-                    "exit_time": ts[i], "exit_price": ask_open[i],
-                })
-                direction = entry_time = entry_price = None
-            # same-direction signal while in a position: ignored (one at a time).
+        while t < n_sig:
+            if entry_long[t] and t + 1 < n_sig:
+                direction = 1
+            elif entry_short[t] and t + 1 < n_sig:
+                direction = -1
+            else:
+                t += 1
+                continue
 
-        if direction is not None:
-            # still open at end of data — keep it, exit unresolved in 5a.
-            trades.append({
-                "entry_time": entry_time, "entry_price": entry_price,
-                "direction": direction, "exit_time": None, "exit_price": None,
-            })
+            entry_bar = t + 1                        # acted on at t+1's open (§0.1)
+            while True:
+                trade, resume_t, reversal = resolve(entry_bar, direction)
+                trades.append(trade)
+                if reversal is None:
+                    # Resume at the first signal bar at/after this exit — no
+                    # wall-clock overlap, mid-hold edges skipped. max(t+1, …)
+                    # guarantees progress.
+                    t = max(t + 1, resume_t)
+                    break
+                entry_bar, direction = reversal      # keep flipping while opposite exits
 
-        ts_dtype = self.signal_df["timestamp"].dtype
+        ts_dtype = self.base_1s["timestamp"].dtype
         return pl.DataFrame(
             trades,
             schema={
                 "entry_time": ts_dtype,
-                "entry_price": pl.Float64,
-                "direction": pl.String,
                 "exit_time": ts_dtype,
-                "exit_price": pl.Float64,
+                **self._TRADE_SCHEMA_TAIL,
             },
+        ).select(
+            "entry_time", "entry_price", "direction",
+            "exit_time", "exit_price", "pips", "exit_reason",
         )

@@ -9,9 +9,9 @@ still shift) · ⏸️ deferred (not this build)
 | Module | Purpose | Status |
 |---|---|---|
 | `lib/data.py` | Load + sanity-check 1s data, resample to coarser timeframes | ✅ |
-| `lib/engine.py` | `Strategy` ABC · `Engine` · `_resolve_exit` 1s SL/TP walk | ✅ `Strategy`, `_resolve_exit` · 🚧 `Engine` (5a: entries) |
-| `lib/strategies.py` | Concrete `Strategy` subclasses (SMA crossover first) | 📋 |
-| `lib/signals.py` | Pure, composable signal helpers strategies call into | 📋 |
+| `lib/engine.py` | `Strategy` ABC · `Engine` (`backtest`) · `_resolve_exit` 1s SL/TP walk | ✅ |
+| `lib/strategies.py` | Concrete `Strategy` subclasses | ✅ `SmaCrossoverStrategy` |
+| `lib/signals.py` | Pure, composable signal helpers strategies call into | ✅ `sma`, `crossover` · 📋 trend filter, session flag |
 | `lib/evaluate.py` | Normal + adversarial performance metrics | 📋 |
 | `lib/viz.py` | Chart/replay visualizer | ⏸️ |
 
@@ -251,10 +251,12 @@ from abc import ABC, abstractmethod
 import polars as pl
 
 class Strategy(ABC):
-    exit_on_opposite_signal: bool = True   # class attr; subclass sets False for SL/TP-only exits
+    exit_on_opposite_signal: bool = True     # also close on the opposite signal (on top of SL/TP)
+    reverse_on_opposite_signal: bool = False  # ...and immediately re-open the other way
 
     def __init__(self, sl_pips: float, tp_pips: float, timeframe: str):
-        # validates: sl_pips > 0, tp_pips > 0, timeframe a non-empty str (else ValueError)
+        # validates: sl_pips > 0, tp_pips > 0, timeframe a non-empty str;
+        # reverse_on_opposite_signal requires exit_on_opposite_signal  (else ValueError)
         ...
 
     @abstractmethod
@@ -271,12 +273,13 @@ class Strategy(ABC):
 | `sl_pips`, `tp_pips` | instance (ctor) | pip distances, must be `> 0` |
 | `timeframe` | instance (ctor) | `"5m"`, `"1h"`, … — drives the "bar t's close" math |
 | `exit_on_opposite_signal` | class attr, default `True` | engine also closes on the opposite signal, on top of SL/TP |
+| `reverse_on_opposite_signal` | class attr, default `False` | on an opposite-signal exit, re-open the other way at the same open ("always in the market"); requires `exit_on_opposite_signal` |
 | `generate_signals(df)` | abstract | the one thing a subclass must implement |
 
 `Strategy(...)` directly raises `TypeError` (abstract). SL/TP/timeframe are
 constructor params because they *define* a strategy variant — not engine-run args.
 
-### `Engine` — 🚧 pass 5a (construction + entry timing)
+### `Engine` — ✅ `backtest` complete
 
 ```python
 from lib.engine import Engine
@@ -290,24 +293,53 @@ trades = engine.backtest(strategy)     # -> pl.DataFrame trade log
 (`load_1s_data` / `resample`).
 
 - **`__init__(signal_df, base_1s)`** — calls `data.validate_1s(base_1s)` (fails
-  loudly with `DataQualityError` if the 1s base wasn't cleaned) and stores it for
-  5b's fill walk. Checks `signal_df` has `timestamp`, `close_time` and the 8
+  loudly with `DataQualityError` if the 1s base wasn't cleaned). Checks
+  `signal_df` has `timestamp`, `close_time` and the 8
   `{bid,ask}_{open,high,low,close}` columns and is timestamp-sorted, else
-  `ValueError`.
-- **`backtest(strategy)`** — runs `strategy.generate_signals(signal_df)`, then
-  **validates** `long_signal`/`short_signal` are present and real `pl.Boolean`
-  (`ValueError` otherwise — the §0.4 guard). Walks the bars in plain Python
-  (small frame, not the bottleneck — §2.3) and returns a frame of
-  `entry_time, entry_price, direction, exit_time, exit_price`.
+  `ValueError`. Then **caches the 1s path once** as plain numpy
+  (`_ts_ns`, `_bid_high/low/close`, `_ask_high/low/close`) so the per-trade walk
+  doesn't rebuild arrays.
+- **`backtest(strategy)`** — runs `strategy.generate_signals(signal_df)`,
+  **validates** `long_signal`/`short_signal` are present + real `pl.Boolean`
+  (`ValueError` — the §0.4 guard) and that no bar has both True (ambiguous →
+  `ValueError`). Walks the bars in plain Python (small frame — §2.3).
 
-**5a scope / what's a placeholder:** entries honour the t+1 rule (`long_signal`
-on bar *t* → enter at bar *t+1*'s open, via `shift(1, fill_value=False)`) and
-spread-correct fills (long → `ask_open`, short → `bid_open`). One position at a
-time; a same-direction signal while open is ignored. **Exits are crude**: the
-position is closed at the next *opposite* signal's t+1 open (long close →
-`bid_open`, short close → `ask_open`); a position still open at end of data is
-returned with null `exit_time`/`exit_price`. Pass **5b** replaces the exit logic
-with the real SL/TP walk over the 1s path + `exit_on_opposite_signal`.
+**Entries** — rising edge only: `long_signal & ~long_signal.shift(1, fill_value=False)`,
+acted on at bar *t+1*'s open, long → `ask_open` / short → `bid_open` (§0.3).
+
+**Exits** — resolved on the 1s path from `searchsorted(_ts_ns, entry_ns)` (the
+entry second is exposed to its own range, §0.2). Three things race:
+
+- **SL / TP** — `_sl_tp_levels` → `_resolve_exit` on the exit-against side
+  (long → bid, short → ask). Touch → `exit_reason "sl"`/`"tp"`, `exit_price` =
+  the level.
+- **opposite signal** (only if `strategy.exit_on_opposite_signal`) — the first
+  opposite rising edge after entry, acted on at *its* bar's t+1 open (long close
+  → `bid_open`, short → `ask_open`). The walk's `end_idx` is that open's second
+  **exclusive**, so an SL/TP that only prints on the signal-exit bar itself does
+  **not** steal the exit (§0.2 — the exact ordering the prototype once got
+  wrong). If SL/TP fired on an *earlier* bar, it wins; otherwise the signal exit
+  does, `exit_reason "opposite_signal"`.
+- **end of data** — nothing else fired → force-close (§2.4),
+  `exit_reason "end_of_data"`, `exit_price` = last `bid_close`/`ask_close`.
+
+**Reversal** (`strategy.reverse_on_opposite_signal`) — when a trade exits
+`opposite_signal`, the engine immediately opens the opposite position at that
+same bar/open (`entry_time == previous exit_time`, `entry_price == previous
+exit_price` — the close and the re-open are one spread crossing). The chain
+keeps flipping until a trade exits via SL/TP/end-of-data. Off → today's
+close-to-flat behaviour, untouched. (One trade's resolution lives in a
+`resolve(entry_bar, direction)` helper; `backtest` loops: find an edge → resolve
+→ feed a reversal back in, or jump `t` and continue.)
+
+After a non-reversing exit the scan resumes at the first signal bar **at/after
+`exit_time`** (`t = max(t+1, searchsorted(sig_ts_ns, exit_ns))`), so **trades
+never overlap in wall-clock time** and an edge that fired mid-hold is skipped.
+
+**Trade log columns:** `entry_time, entry_price, direction ("long"/"short"),
+exit_time, exit_price, pips, exit_reason ∈ {sl, tp, opposite_signal, end_of_data}`.
+`pips` = `(exit-entry)/PIP` long / `(entry-exit)/PIP` short — entry-at-ask /
+exit-at-bid bakes the spread in.
 
 ### Timing model (enforced by the engine, spec §0.1–0.2)
 
@@ -344,13 +376,12 @@ still reads like a plain step-by-step loop so event ordering stays inspectable.
 not njit) → `(sl_level, tp_level)`. long: SL below / TP above entry; short:
 mirrored.
 
-### Trade log columns (indicative)
+### Trade log columns
 
 `entry_time, entry_price, direction, exit_time, exit_price, pips, exit_reason`
 
-`exit_reason ∈ {sl, tp, opposite_signal, end_of_data}`. An open position at the
-end of data is **force-closed** at the last price and tagged `end_of_data` —
-never silently dropped.
+`exit_reason ∈ {sl, tp, opposite_signal, end_of_data}`. An open position at end
+of data is **force-closed**, never silently dropped.
 
 ### Out of scope for the engine
 
@@ -359,33 +390,60 @@ Position sizing (trades are tracked in **pips only**); multi-instrument support
 
 ---
 
-## `lib/strategies.py` + `lib/signals.py` — strategies 📋
+## `lib/strategies.py` + `lib/signals.py` — strategies
 
 The `Strategy` ABC lives in [`lib/engine.py`](#libenginepy--backtest-engine---strategy---engine)
 (above). Concrete subclasses live here.
 
-### First strategy — SMA(20/50) crossover (reference / regression case)
+### `SmaCrossoverStrategy` ✅ — the reference / regression case
 
 ```python
-from strategies import SmaCrossoverStrategy
+from lib.strategies import SmaCrossoverStrategy
 
-strat = SmaCrossoverStrategy(fast_n=20, slow_n=50, sl_pips=10, tp_pips=20)
+strat = SmaCrossoverStrategy(fast_n=20, slow_n=50, sl_pips=10, tp_pips=20, timeframe="5m")
 trades = engine.backtest(strat)
 ```
 
+- Keyword-only args. `fast_n`/`slow_n`/`timeframe` default; **`sl_pips`/`tp_pips`
+  are required** — no default until the regression pins the prototype's values.
+- `__init__` → `super().__init__(sl_pips, tp_pips, timeframe)` (which validates
+  those), then requires `1 <= fast_n < slow_n` (`ValueError`).
+- `exit_on_opposite_signal` stays `True` (inherited); **`reverse_on_opposite_signal
+  = True`** — the prototype was always in the market, flipping long↔short on each
+  opposite cross (§6).
+- `generate_signals` — **mid price for signals only** (§0.3):
+  `mid_close = (bid_close + ask_close) / 2`; `sma_fast`/`sma_slow` =
+  `sma(mid_close, n)`; `long_signal`/`short_signal` = `crossover(sma_fast,
+  sma_slow)`. Returns `df` + `mid_close, sma_fast, sma_slow, long_signal,
+  short_signal` (§4 — intermediates kept for debugging/viz). Pure.
+- No time arithmetic — §2.2's "bar t's close" rule is vacuous here (SMA/crossover
+  are position-based). It matters for the future 4H-trend-filter strategy.
+
 ### `signals.py` — composable helpers
 
-Pure functions `generate_signals()` implementations call into. They may leave
-intermediate columns behind (SMA values, `trend_direction`, session flags) —
-useful for debugging and the deferred visualizer.
+Pure **polars-expression** helpers `generate_signals()` calls into — they add no
+columns and mutate nothing; the caller wires them up with `with_columns`.
 
 ```python
-from signals import sma_crossover, trend_filter_4h, session_flag
+from lib.signals import sma, crossover
 
-df = sma_crossover(df, fast_n=20, slow_n=50)         # -> long_signal, short_signal, sma_fast, sma_slow
-df = trend_filter_4h(df, base_4h)                    # -> trend_direction  (lookahead-safe merge_asof)
-df = session_flag(df, "London", tz="Europe/London")  # -> in_london_session  (DST-aware)
+fast, slow = sma(pl.col("bid_close"), 20), sma(pl.col("bid_close"), 50)
+cross_up, cross_down = crossover(fast, slow)     # two genuine pl.Boolean exprs
+df = df.with_columns(long_signal=cross_up, short_signal=cross_down)
 ```
+
+- **`sma(values, n)`** ✅ → `values.rolling_mean(n, min_samples=n)`. The first
+  `n-1` outputs are **null**, never a partial average.
+- **`crossover(fast, slow)`** ✅ → `(cross_up, cross_down)`. `cross_up` = `fast`
+  was `<= slow`, now `> slow`; `cross_down` the reverse. Real `pl.Boolean`, no
+  nulls. Warmup is handled by shifting the raw `fast - slow` diff — the first
+  bar both SMAs are valid, `diff.shift(1)` is null, so `&` is null and
+  `fill_null(False)` clears it: **no spurious crossover at the warmup boundary**.
+  This is the spec §0.4 / §6 function — the result never degrades to object-dtype
+  Python bools (the trap where a later `~` does a bitwise invert).
+
+📋 later, with the strategies that need them: 4H `trend_filter` (lookahead-safe
+`merge_asof`), DST-aware `session_flag`.
 
 > **Session flags & DST:** derive session membership from the London-local *hour*
 > (`.dt.convert_time_zone("Europe/London")`), not a fixed UTC hour — the London
@@ -475,29 +533,56 @@ pytest lib/tests/
   sub-threshold hole still shows in the report, and `resample` (bid+ask OHLC on
   hand-checked rows, trailing-partial-bucket drop/keep, `close_time` per
   timeframe, flat-candle gap fill, weekend gap left unfilled).
-- **`test_engine.py`** ✅ (30 tests) — **Strategy** (9): abstract
-  (`Strategy(...)` → `TypeError`); subclass stores `sl_pips`/`tp_pips`/`timeframe`
-  + own params; `exit_on_opposite_signal` default/override; `__init__` rejects
-  `sl_pips=0` / `tp_pips=-5` / empty or non-str `timeframe`; `generate_signals`
-  returns `pl.Boolean` columns and doesn't mutate input. **Engine 5a** (10):
-  `__init__` validates `base_1s` (`DataQualityError`), rejects a `signal_df`
-  missing columns or unsorted; `backtest` rejects non-Boolean signals; long enters
-  at bar t+1 `ask_open`, short at `bid_open`, signal on the last bar → no entry,
-  a 2nd same-direction signal while open is ignored, entry timestamp is strictly
-  after the signal bar, placeholder exit closes on the opposite signal at `bid_open`.
-  **`_resolve_exit` / `_sl_tp_levels`** (11): njit-compiled (`CPUDispatcher`,
-  nopython signature); long SL / long TP / neither / same-bar-straddle → SL wins;
-  short SL on ask-high, short TP on ask-low; `start_idx` hides earlier touches;
-  `_sl_tp_levels` long/short above-below and the `PIP` offset.
-- **Regression:** SMA(20/50) on resampled 5m bars. Baseline from the prototype was
-  **1,691 trades, −346.5 pips, 33.0% win rate** (old same-bar fill approximation).
-  Expect **trade count, entry timestamps/prices, and result shape** (small
-  negative edge) to match closely — **not** the exact pip total (the new engine
-  resolves fills on the real 1s path). A materially different trade count, a sign
-  flip, or a wild pip swing = real bug, investigate.
-- **Boolean-dtype regression:** a crossover helper must return real `bool` dtype
-  and a sane signal count on a synthetic series — guards the `.shift(1)` →
-  `object`-dtype → bitwise-`~` bug that once inflated the signal count 44×.
+- **`test_engine.py`** ✅ (47 tests) — **Strategy**: abstract; ctor storage +
+  validation; `exit_on_opposite_signal` default/override; `reverse` requires
+  `exit_on_opposite_signal`. **`_resolve_exit` / `_sl_tp_levels`** (11):
+  njit-compiled; long/short SL/TP, no-touch, same-bar-straddle → SL wins,
+  `start_idx` hides earlier touches, the `PIP` offset. **Engine `__init__` /
+  entries**: validates `base_1s`, rejects bad `signal_df`; `backtest` rejects
+  non-Boolean and ambiguous signals; long → t+1 `ask_open`, short → `bid_open`,
+  last-bar signal → no entry, entry strictly after the signal bar. **Exits**:
+  long/short SL/TP/end-of-data on the 1s path (`pips ≈ ±pips`, `exit_time` =
+  touch second, EOD `pips ≈ −2`); opposite-signal exit when SL/TP never fires;
+  SL on an earlier bar preempts it; an SL that only prints on the signal-exit
+  bar does **not** (§0.2); last-bar opposite edge falls through;
+  `exit_on_opposite_signal=False` ignores it; rising-edge dedup; a re-cross
+  mid-hold opens no second trade. **Reversal** (5): opposite-signal exit re-opens
+  the other way at the same open (`entry_time`/`entry_price` == prev exit);
+  chains long→short→long while opposite edges keep firing (each `entry_time` ==
+  prev `exit_time`); the chain stops when a trade hits SL; `reverse` off is
+  byte-identical to before (one trade then jump).
+- **`test_signals.py`** ✅ (8 tests) — `sma` hand-checked values + null (not
+  partial) warmup, rejects `n < 1`, pure; `crossover` on a zigzag flags the exact
+  known up/down bar indices, output is `pl.Boolean` with no nulls, is pure, and
+  fires no crossover at the SMA warmup boundary; **§0.4 / §6 regression** —
+  result is real `pl.Boolean`, `sum()` is the small hand-known count (not
+  inflated), and `~` is logical not (`sum(~x) + sum(x) == len`).
+- **`test_strategies.py`** ✅ (13 tests) — constructor stores `fast_n`/`slow_n`
+  and `sl_pips`/`tp_pips`/`timeframe` (via `super()`), rejects `fast_n >= slow_n`
+  / `fast_n < 1` / `sl_pips=0`; `reverse_on_opposite_signal is True`;
+  `generate_signals` output has `mid_close`/`sma_fast`/`sma_slow` + `pl.Boolean`
+  signals with no nulls, is pure; **signals use mid, not bid/ask** (a spread-spike
+  frame where the mid crosses on a different bar than the bid); no signal during
+  the `slow_n` warmup; a hand-built one-crossover frame → `long_signal` True on
+  exactly the expected bar; integration smoke through `Engine.backtest`.
+- **`test_regression.py`** ✅ (6 tests, `-m slow`, skipped if the data file is
+  absent) — end to end: `load_1s_data` → `resample("5m")` →
+  `SmaCrossoverStrategy(20/50, sl 10 / tp 20)` → `Engine.backtest`. Asserts the
+  §6 tolerances (trade count ±5% of 1,691, win rate ±3 pts of 33.0%, pips
+  negative and `|pips|` in 0.5×–2× of 346.5), per-trade well-formedness (valid
+  `direction`/`exit_reason`, `exit_time >= entry_time` with `==` ⇒ `sl`/`tp`,
+  `entry_time` one bar after a crossover edge, `entry_price` == the bar's `ask`/
+  `bid` open), no wall-clock overlap, and a headline-numbers lock.
+- **Regression — result: PASS** (see [`regression.md`](regression.md)). Baseline
+  **1,691 / −346.5 / 33.0%**; this build at `sl=10/tp=20` gives **1,714 / −453.1
+  / 32.5%** (0 overlaps) — inside every §6 tolerance. Trade count matches at
+  *any* SL/TP (1,700–1,733 across a 25-cell sweep) because it's set by the
+  crossover count. The pip total at the arbitrary `10/20` runs 1.3× baseline;
+  the notebook shows (a) a fitted cell — `mid, sl≈8/tp≈15` — reproduces −346
+  within 1%, (b) the "assume SL first" fill difference is falsified (0 TP→SL
+  flips), so the gap is a parameter mismatch (the spec never recorded the
+  prototype's SL/TP), not an engine bug. Full analysis + SL/TP sweep grid +
+  pip-gap decomposition in [`notebooks/regression.ipynb`](notebooks/regression.ipynb).
 - **`resample()` lookahead tests:** ✅ in `test_data.py` — (a) trailing partial
   bucket dropped when the data doesn't end on a boundary, kept when it does;
   (b) for 5m and 1h, `close_time == bucket_start + timeframe`, not a hardcoded
