@@ -179,7 +179,12 @@ class Engine:
         "exit_price": pl.Float64,
         "pips": pl.Float64,
         "exit_reason": pl.String,
+        "spread_pips_paid": pl.Float64,
     }
+    _TRADE_COLUMNS = (
+        "entry_time", "entry_price", "direction",
+        "exit_time", "exit_price", "pips", "exit_reason", "spread_pips_paid",
+    )
 
     def __init__(self, signal_df: pl.DataFrame, base_1s: pl.DataFrame) -> None:
         # Validate base_1s with the data layer's single source of truth
@@ -212,7 +217,8 @@ class Engine:
 
         Columns: entry_time, entry_price, direction ("long"/"short"), exit_time,
         exit_price, pips, exit_reason in {"sl", "tp", "opposite_signal",
-        "end_of_data"}.
+        "end_of_data"}, spread_pips_paid (half-spread in + half-spread out, pips —
+        so gross = net pips + spread_pips_paid).
         """
         sig = strategy.generate_signals(self.signal_df)
         for col in ("long_signal", "short_signal"):
@@ -253,6 +259,7 @@ class Engine:
             # long fills at ask, short at bid — for a fresh entry AND a reversal
             # (the close and the re-open are the same side of the book, §0.3).
             entry_price = ask_open[entry_bar] if direction == 1 else bid_open[entry_bar]
+            entry_half_spread = (ask_open[entry_bar] - bid_open[entry_bar]) / 2 / PIP
             sl_level, tp_level = _sl_tp_levels(
                 direction, entry_price, strategy.sl_pips, strategy.tp_pips
             )
@@ -310,6 +317,16 @@ class Engine:
             else:
                 pips = (entry_price - exit_price) / PIP
 
+            # Half-spread paid getting out, at the exit instant (spec §3.2 needs
+            # the round-trip spread cost; entry-at-ask/exit-at-bid already bakes
+            # it into `pips`, so gross = net + spread_pips_paid).
+            if exit_reason in ("sl", "tp"):
+                exit_half_spread = (self._ask_close[hit_idx] - self._bid_close[hit_idx]) / 2 / PIP
+            elif exit_reason == "opposite_signal":
+                exit_half_spread = (ask_open[opp_bar + 1] - bid_open[opp_bar + 1]) / 2 / PIP
+            else:  # end_of_data
+                exit_half_spread = (self._ask_close[-1] - self._bid_close[-1]) / 2 / PIP
+
             trade = {
                 "entry_time": entry_time,
                 "entry_price": float(entry_price),
@@ -318,6 +335,7 @@ class Engine:
                 "exit_price": exit_price,
                 "pips": float(pips),
                 "exit_reason": exit_reason,
+                "spread_pips_paid": float(entry_half_spread + exit_half_spread),
             }
 
             resume_t = int(np.searchsorted(sig_ts_ns, exit_ns, side="left"))
@@ -360,7 +378,47 @@ class Engine:
                 "exit_time": ts_dtype,
                 **self._TRADE_SCHEMA_TAIL,
             },
-        ).select(
-            "entry_time", "entry_price", "direction",
-            "exit_time", "exit_price", "pips", "exit_reason",
+        ).select(*self._TRADE_COLUMNS)
+
+    def evaluate(
+        self,
+        trades: pl.DataFrame,
+        *,
+        starting_balance: float = 10_000.0,
+        pip_value: float = 1.0,
+        seed: int | None = None,
+        **kw,
+    ) -> dict:
+        """Full performance report for a `backtest` trade log (spec §2.1 / §3).
+
+        Thin orchestration over `lib.evaluate` — `evaluate` (§3.1) plus the four
+        §3.2 checks (`adversarial`, `bootstrap_ci`, `mc_drawdown`). `seed` is
+        passed to the resampling ones for reproducibility; extra kwargs
+        (`exclude_best_pct`, `min_trades`, `n_resamples`, `n_shuffles`,
+        `confidence`) are routed to whichever function accepts them.
+
+        Returns::
+
+            {"summary", "equity_curve", "monthly",   # from evaluate()
+             "adversarial": {"gross_vs_net", "ex_best_month", "ex_best_trades",
+                             "sample_size", "bootstrap_ci", "mc_drawdown"},
+             "verdict": str}                          # sample-size-gated
+        """
+        from lib import evaluate as ev
+
+        money = dict(starting_balance=starting_balance, pip_value=pip_value)
+        adv = ev.adversarial(
+            trades, **money,
+            **{k: kw[k] for k in ("exclude_best_pct", "min_trades") if k in kw},
         )
+        adv["bootstrap_ci"] = ev.bootstrap_ci(
+            trades, seed=seed,
+            **{k: kw[k] for k in ("n_resamples", "confidence") if k in kw},
+        )
+        adv["mc_drawdown"] = ev.mc_drawdown(
+            trades, seed=seed, **money,
+            **{k: kw[k] for k in ("n_shuffles",) if k in kw},
+        )
+        verdict = adv.pop("verdict")
+
+        return {**ev.evaluate(trades, **money), "adversarial": adv, "verdict": verdict}

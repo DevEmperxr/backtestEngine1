@@ -146,7 +146,7 @@ def test_engine_backtest_smoke():
 
     assert trades.columns == [
         "entry_time", "entry_price", "direction",
-        "exit_time", "exit_price", "pips", "exit_reason",
+        "exit_time", "exit_price", "pips", "exit_reason", "spread_pips_paid",
     ]
     assert set(trades["direction"].to_list()) <= {"long", "short"}
     assert set(trades["exit_reason"].to_list()) <= {"sl", "tp", "opposite_signal", "end_of_data"}

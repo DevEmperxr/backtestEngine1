@@ -521,6 +521,39 @@ def test_reverse_off_is_unchanged_one_trade_then_jump():
 
 
 # --------------------------------------------------------------------------- #
+# spread_pips_paid — round-trip cost recorded per trade (spec §3.2 step 0)
+# --------------------------------------------------------------------------- #
+
+def test_spread_pips_paid_flat_market_is_full_spread_and_equals_minus_pips():
+    # _sig_at_noon: entry spread 2 pips -> half 1.0.  _flat_path close spread 2
+    # pips -> exit half 1.0.  end_of_data exit.
+    base = _flat_path(1200)
+    sig = _sig_at_noon(8)
+    row = Engine(sig, base).backtest(
+        _ManualStrategy([F, Tr, F, F, F, F, F, F], [F] * 8)
+    ).row(0, named=True)
+    assert row["exit_reason"] == "end_of_data"
+    assert row["spread_pips_paid"] == pytest.approx(2.0)        # 1.0 in + 1.0 out
+    assert row["pips"] == pytest.approx(-2.0)                   # flat market -> lost exactly the spread
+    assert row["pips"] + row["spread_pips_paid"] == pytest.approx(0.0)  # gross == 0
+
+
+def test_spread_pips_paid_uses_the_spread_at_the_exit_second():
+    # entry half-spread 1.0 (sig).  The 1s bar the TP hits on has a 4-pip close
+    # spread -> exit half-spread 2.0 -> spread_pips_paid == 3.0.
+    bid = [(1.1005, 1.0998)] * 3 + [(1.1035, 1.1025)] + [(1.1005, 1.0998)] * 6
+    ask = _shift_hl(bid, 0.0002)
+    ask[3] = (1.1039, 1.1029)                                  # widen only the TP-hit second
+    base = _path_base(bid, ask)
+    sig = _sig_at_noon(6)
+    row = Engine(sig, base).backtest(
+        _ManualStrategy([F, Tr, F, F, F, F], [F] * 6)
+    ).row(0, named=True)
+    assert row["exit_reason"] == "tp"
+    assert row["spread_pips_paid"] == pytest.approx(3.0)
+
+
+# --------------------------------------------------------------------------- #
 # _resolve_exit — numba 1s-path SL/TP walk (spec §2.3, pass 5b part 1)
 # --------------------------------------------------------------------------- #
 

@@ -9,10 +9,10 @@ still shift) · ⏸️ deferred (not this build)
 | Module | Purpose | Status |
 |---|---|---|
 | `lib/data.py` | Load + sanity-check 1s data, resample to coarser timeframes | ✅ |
-| `lib/engine.py` | `Strategy` ABC · `Engine` (`backtest`) · `_resolve_exit` 1s SL/TP walk | ✅ |
+| `lib/engine.py` | `Strategy` ABC · `Engine` (`backtest` + `evaluate`) · `_resolve_exit` 1s SL/TP walk | ✅ |
 | `lib/strategies.py` | Concrete `Strategy` subclasses | ✅ `SmaCrossoverStrategy` |
 | `lib/signals.py` | Pure, composable signal helpers strategies call into | ✅ `sma`, `crossover` · 📋 trend filter, session flag |
-| `lib/evaluate.py` | Normal + adversarial performance metrics | 📋 |
+| `lib/evaluate.py` | Normal + adversarial metrics, plots | ✅ `evaluate` · `adversarial` · `bootstrap_ci` · `mc_drawdown` · `plot_*` |
 | `lib/viz.py` | Chart/replay visualizer | ⏸️ |
 
 ---
@@ -43,7 +43,7 @@ timestamp, bid_open, bid_high, bid_low, bid_close, bid_volume,
 
 ---
 
-## `lib/data.py` — data layer ✅ / 📋
+## `lib/data.py` — data layer ✅
 
 The pipeline is three separable steps — the engine reuses the check step on a
 frame it was handed (spec §2.1) without re-loading:
@@ -239,7 +239,7 @@ tick-free hour within a session all year).
 
 ---
 
-## `lib/engine.py` — backtest engine ✅ `Strategy` · 📋 `Engine`
+## `lib/engine.py` — backtest engine ✅
 
 ### `Strategy` (ABC) ✅
 
@@ -279,14 +279,14 @@ class Strategy(ABC):
 `Strategy(...)` directly raises `TypeError` (abstract). SL/TP/timeframe are
 constructor params because they *define* a strategy variant — not engine-run args.
 
-### `Engine` — ✅ `backtest` complete
+### `Engine` ✅
 
 ```python
 from lib.engine import Engine
 
 engine = Engine(signal_df, base_1s)    # resampled bars + the 1s base
 trades = engine.backtest(strategy)     # -> pl.DataFrame trade log
-# metrics = engine.evaluate(trades, ...)   # 📋 later
+# metrics = evaluate(trades, ...)      # lib.evaluate — §3.1 done, §3.2 planned
 ```
 
 `Engine` does **not** load data — hand it frames cleaned upstream
@@ -337,9 +337,29 @@ After a non-reversing exit the scan resumes at the first signal bar **at/after
 never overlap in wall-clock time** and an edge that fired mid-hold is skipped.
 
 **Trade log columns:** `entry_time, entry_price, direction ("long"/"short"),
-exit_time, exit_price, pips, exit_reason ∈ {sl, tp, opposite_signal, end_of_data}`.
+exit_time, exit_price, pips, exit_reason ∈ {sl, tp, opposite_signal, end_of_data},
+spread_pips_paid`.
 `pips` = `(exit-entry)/PIP` long / `(entry-exit)/PIP` short — entry-at-ask /
-exit-at-bid bakes the spread in.
+exit-at-bid bakes the spread in. `spread_pips_paid` = half-spread at the entry
+open + half-spread at the exit instant (1s bar close for sl/tp/eod, signal bar
+for opposite_signal), in pips — so **gross P&L = net `pips` + `spread_pips_paid`**
+(used by `evaluate.adversarial`).
+
+### `Engine.evaluate(trades, *, starting_balance=10_000, pip_value=1.0, seed=None, **kw)` ✅
+
+Thin delegator (spec §2.1) — runs `evaluate` + `adversarial` + `bootstrap_ci` +
+`mc_drawdown` and merges:
+
+```python
+{"summary", "equity_curve", "monthly",              # evaluate() §3.1
+ "adversarial": {"gross_vs_net", "ex_best_month", "ex_best_trades",
+                 "sample_size", "bootstrap_ci", "mc_drawdown"},
+ "verdict"}                                          # sample-size-gated, top level
+```
+
+`seed` reaches the two resampling calls; extra kwargs (`exclude_best_pct`,
+`min_trades`, `n_resamples`, `n_shuffles`, `confidence`) route to whichever
+function takes them.
 
 ### Timing model (enforced by the engine, spec §0.1–0.2)
 
@@ -380,8 +400,8 @@ mirrored.
 
 `entry_time, entry_price, direction, exit_time, exit_price, pips, exit_reason`
 
-`exit_reason ∈ {sl, tp, opposite_signal, end_of_data}`. An open position at end
-of data is **force-closed**, never silently dropped.
+`exit_reason ∈ {sl, tp, opposite_signal, end_of_data}` plus `spread_pips_paid`.
+An open position at end of data is **force-closed**, never silently dropped.
 
 ### Out of scope for the engine
 
@@ -451,42 +471,108 @@ df = df.with_columns(long_signal=cross_up, short_signal=cross_down)
 
 ---
 
-## `lib/evaluate.py` — evaluation 📋
+## `lib/evaluate.py` — evaluation ✅ §3.1 + §3.2
 
-Exposed as `Engine.evaluate(trades_df, ...)`. Both tiers are built together.
+### `evaluate(trades, *, starting_balance=10_000.0, pip_value=1.0) -> dict` ✅
+
+Normal metrics (§3.1). `pip_value` = dollars of P&L per pip — fixed position
+size, an evaluate-time input only (§2.4). `rf = 0` everywhere (Sharpe/Sortino
+are raw return/risk ratios). Wiring into `Engine.evaluate` is a trivial
+follow-up.
 
 ```python
-metrics = engine.evaluate(
-    trades,
-    starting_balance=10_000,
-    lot_size=0.1,
-    exclude_best_month=True,
-    exclude_best_trades_pct=0.05,
-    bootstrap_n=10_000,
-    mc_shuffles=10_000,
-)
+from lib.evaluate import evaluate
+r = evaluate(trades, starting_balance=10_000, pip_value=1.0)
+r["summary"]        # dict of scalars
+r["equity_curve"]   # pl.DataFrame: exit_time, cum_pips, equity, drawdown_pct  (one row / trade)
+r["monthly"]        # pl.DataFrame: month (date), pips, pnl, n_trades, win_rate
 ```
 
-### Normal metrics (§3.1)
+**`summary` scalars:** `n_trades`, `win_rate` (%), `expectancy_pips`,
+`profit_factor` (gross win / |gross loss| pips; `inf` if no losers, `None` if no
+trades), `avg_win_pips`, `avg_loss_pips` (`None` if none), `total_pips`,
+`total_return_pct`, `max_drawdown_pct` (**signed, negative** — % below the
+high-water mark, which starts at `starting_balance`), `max_drawdown_date` (exit
+timestamp of the trough, `None` if never underwater), `sharpe`, `sortino`
+(annualized ×√252 from daily returns = daily P&L / `starting_balance`, bucketed
+by `exit_time` date over days that traded; ddof=1; `None` when std is undefined
+or 0 — e.g. a single trading day), `mar` (`CAGR / |max_dd_fraction|`; CAGR over
+`entry.min()→exit.max()` in 365.25-day years).
 
-Equity curve (pips + \$), max drawdown (% and trough date), Sharpe & Sortino
-(annualized from daily returns, rf=0), MAR (CAGR / max DD), win rate, expectancy
-(pips/trade), profit factor, avg win/loss, monthly P&L table + bar chart.
+- **Win** iff `pips > 0`, **loss** iff `pips < 0`; an exact break-even counts in
+  `n_trades` only.
+- **Empty frame** → zeros/`None`, no crash; the two frames come back empty with
+  their schemas.
 
-### Adversarial metrics (§3.2) — always present, not optional
+### `adversarial(trades, *, starting_balance=10_000, pip_value=1.0, exclude_best_pct=(0.01, 0.05), min_trades=100) -> dict` ✅
 
-| metric | question it answers |
+The deterministic §3.2 checks (`bootstrap_ci` + `mc_drawdown` are the resampling
+part, below). Needs the `spread_pips_paid` column (`ValueError` otherwise).
+Returns:
+
+| key | contents |
 |---|---|
-| Bootstrap CI on win rate & expectancy | how precise is the edge estimate? (resampled, not normal-approx) |
-| Monte Carlo trade-order shuffle | was the reported drawdown just a lucky sequence? (reports DD distribution: median / 95th / worst) |
-| P&L excluding best month | does the result hinge on one lucky stretch? |
-| P&L excluding best N% of trades | same, at trade level |
-| Gross vs net cost decomposition | "edge was real but costs ate it" vs "no edge" |
-| Sample-size warning | below ~100 trades, precision is low — flagged prominently, verdict withheld |
+| `gross_vs_net` | `net_pips`, `spread_paid_pips`, `gross_pips` (= net + spread), the `_pnl` versions, and `edge_assessment` — one of *"no edge — gross P&L not positive"*, *"edge existed, costs ate it"*, *"profitable after costs"* |
+| `ex_best_month` | totals with the single best-by-pips calendar month removed: `dropped_month`, `dropped_month_pips`, `pips`, `pnl`, `full_pips` |
+| `ex_best_trades` | list, one per `exclude_best_pct`: `{pct, n_dropped = ceil(n·pct), pips, pnl}` after dropping the top-pips trades |
+| `sample_size` | `{n_trades, min_trades, low_sample, warning}` |
+| `verdict` | `"profitable"` / `"unprofitable"` — **gated**: below `min_trades` it reads `"inconclusive (N trades, need ≥100)"` instead |
+
+Real 2024 run (SMA 20/50, sl 10/tp 20): net **−453** pips, spread paid **598**,
+gross **+145** → *"edge existed, costs ate it"* (though +145 over 1,714 trades is
+barely an edge). Dropping the best month (Nov, +291) → −744. Verdict:
+*unprofitable*.
+
+### `bootstrap_ci(trades, *, n_resamples=10_000, confidence=0.95, seed=None) -> dict` ✅
+
+Percentile bootstrap (resample the `pips` array **with replacement**), not a
+normal approximation — robust to the skewed / fat-tailed trade P&L. Deterministic
+given `seed`. Returns, for `win_rate` (%) and `expectancy_pips` each:
+`{observed, mean, ci_low, ci_high}` (the `(1−confidence)/2` and `1−…` percentiles).
+
+Real 2024 run, seed-fixed: expectancy observed −0.26 pips/trade, 95% CI
+**[−0.73, +0.22]** — straddles zero, i.e. no statistically distinguishable edge.
+
+### `mc_drawdown(trades, *, n_shuffles=10_000, starting_balance=10_000.0, pip_value=1.0, seed=None) -> dict` ✅
+
+Shuffles the **order** of the realized pips `n_shuffles` times (values, and so
+total P&L, unchanged — only the equity path) and rebuilds the max drawdown each
+time. Deterministic given `seed`; the distribution depends only on the multiset
+of pips, not their input order.
+
+- `observed_max_drawdown_pct` — the real historical ordering
+- `median`, `p95` (5th percentile of the signed DDs — the worse tail), `worst` (min)
+- `percentile_rank` — % of reorderings worse than reality
+- `fragile` (bool) — `observed` milder than the shuffled distribution's 25th
+  percentile (a large fraction of reorderings would have been worse → the
+  reported DD may be a lucky-ordering artifact) — `fragile_note` explains it
+- `note` — the §3.2 scope caveat, verbatim: *sequence risk on the trades you
+  already have; it cannot detect a missing edge, and a good shuffle distribution
+  is not validation of the strategy*
+
+Real 2024 run, seed-fixed: observed −8.9%, shuffled median −6.8%, worst −12.4%,
+`percentile_rank` ~6% → **not fragile** (the real ordering was, if anything, a
+touch unlucky).
 
 > The MC shuffle tests **sequence risk on the trades you already have** — it can't
 > detect an edge that doesn't exist. A good shuffle distribution is not validation
 > of the strategy.
+
+### plots ✅ — `plot_equity(result)`, `plot_monthly(result)`, `plot_mc_drawdown(mc_result)`
+
+Each returns a `matplotlib.figure.Figure` and **never** calls `.show()` /
+`.savefig()` — the caller decides. `matplotlib` is **lazy-imported inside each
+function**, so importing `lib.evaluate` (or running the test suite) never pulls
+it in — same rule as `viz.py`. `plot_equity` = $ equity line + drawdown shaded
+on a twin axis; `plot_monthly` = green/red monthly-P&L bars; `plot_mc_drawdown` =
+histogram of `mc_drawdown()`'s `distribution` with the observed DD marked.
+
+```python
+from lib.evaluate import plot_equity
+fig = plot_equity(report); fig.savefig("equity.png")   # caller's call
+```
+
+`notebooks/full_report.ipynb` runs the whole framework end-to-end and renders all three.
 
 ---
 
@@ -498,31 +584,41 @@ region-style signal rendering from explicit per-strategy column lists. See spec 
 
 ---
 
-## End-to-end (once the engine lands)
+## End-to-end
 
 ```python
 from lib.data import load_1s_data, resample
 from lib.engine import Engine
 from lib.strategies import SmaCrossoverStrategy
+from lib.evaluate import plot_equity, plot_monthly, plot_mc_drawdown
 
-df       = load_1s_data("../data/EURUSD_1s_2024.csv")
-bars_5m  = resample(df, "5m")
+df      = load_1s_data("data/EURUSD_1s_2024.csv")
+engine  = Engine(resample(df, "5m"), df)
 
-engine   = Engine(bars_5m, base_1s=df)
-strat    = SmaCrossoverStrategy(fast_n=20, slow_n=50, sl_pips=10, tp_pips=20)
+trades  = engine.backtest(
+    SmaCrossoverStrategy(fast_n=20, slow_n=50, sl_pips=10, tp_pips=20)
+)
+report  = engine.evaluate(trades, starting_balance=10_000, pip_value=1.0, seed=0)
 
-trades   = engine.backtest(strat)
-metrics  = engine.evaluate(trades, starting_balance=10_000, lot_size=0.1)
+print(report["verdict"])               # sample-size-gated
+print(report["summary"])               # §3.1 scalars
+report["adversarial"]["gross_vs_net"]  # §3.2: is the edge real / did costs eat it
+report["adversarial"]["bootstrap_ci"]  # CI on win rate & expectancy
+report["adversarial"]["mc_drawdown"]   # drawdown vs shuffled orderings
 
-print(metrics["summary"])
+fig = plot_equity(report)              # -> matplotlib Figure (caller shows/saves)
 ```
 
 ---
 
 ## Testing (spec §6)
 
+**141 tests** — `pytest lib/tests/` (135 fast; 6 more with `-m slow` when the
+2024 data file is present).
+
 ```bash
-pytest lib/tests/
+pytest lib/tests/            # fast suite
+pytest lib/tests/ -m slow    # + the end-to-end regression
 ```
 
 - **`test_data.py`** ✅ (27 tests) — synthetic-frame tests for every hard check
@@ -533,7 +629,7 @@ pytest lib/tests/
   sub-threshold hole still shows in the report, and `resample` (bid+ask OHLC on
   hand-checked rows, trailing-partial-bucket drop/keep, `close_time` per
   timeframe, flat-candle gap fill, weekend gap left unfilled).
-- **`test_engine.py`** ✅ (47 tests) — **Strategy**: abstract; ctor storage +
+- **`test_engine.py`** ✅ (49 tests) — **Strategy**: abstract; ctor storage +
   validation; `exit_on_opposite_signal` default/override; `reverse` requires
   `exit_on_opposite_signal`. **`_resolve_exit` / `_sl_tp_levels`** (11):
   njit-compiled; long/short SL/TP, no-touch, same-bar-straddle → SL wins,
@@ -550,7 +646,9 @@ pytest lib/tests/
   the other way at the same open (`entry_time`/`entry_price` == prev exit);
   chains long→short→long while opposite edges keep firing (each `entry_time` ==
   prev `exit_time`); the chain stops when a trade hits SL; `reverse` off is
-  byte-identical to before (one trade then jump).
+  byte-identical to before (one trade then jump). **`spread_pips_paid`** (2):
+  flat market → full spread == `−pips` (gross 0); a wider spread on the exit
+  second is what's recorded.
 - **`test_signals.py`** ✅ (8 tests) — `sma` hand-checked values + null (not
   partial) warmup, rejects `n < 1`, pure; `crossover` on a zigzag flags the exact
   known up/down bar indices, output is `pl.Boolean` with no nulls, is pure, and
@@ -565,6 +663,29 @@ pytest lib/tests/
   frame where the mid crosses on a different bar than the bid); no signal during
   the `slow_n` warmup; a hand-built one-crossover frame → `long_signal` True on
   exactly the expected bar; integration smoke through `Engine.backtest`.
+- **`test_evaluate.py`** ✅ (38 tests) — **§3.1** (13): win rate / expectancy /
+  profit factor / avg win-loss (4×+20, 6×−10); `pip_value` scales the \$ metrics
+  only; exact peak→trough drawdown % and date; monotone equity → 0 DD / `None`
+  date; equity-curve columns + cumulative values; monthly sums across 3 months;
+  Sharpe **and** Sortino vs hand-computed `mean/std·√252`; single trading day →
+  `None`; empty frame → zeros/`None` + schema'd empties; all-wins → `inf`;
+  all-losses → `0.0`; break-even counts in neither rate; MAR ==
+  `CAGR / |max_dd_fraction|`. **§3.2 adversarial** (10): gross-vs-net shows
+  "costs ate the edge" (net −2 / gross +10) and "no edge" (gross −12); `gross ==
+  net + spread` always; missing `spread_pips_paid` → `ValueError`; drop-best-month
+  changes the total by exactly that month; drop-best-N% removes `ceil(n·pct)`
+  trades (kills the outlier); the verdict is **withheld** below `min_trades` even
+  when net is positive, and real above; empty → no crash. **§3.2 resampling**
+  (11): `bootstrap_ci` — seed-deterministic, different seed differs, CI brackets
+  observed and mean, degenerate (all-equal pips) collapses to the point, matches
+  a direct numpy computation, empty → no crash; `mc_drawdown` — seed-
+  deterministic, distribution depends only on the pip *multiset* not input order
+  (only `observed` differs), "all losses first" → near-worst + not fragile,
+  interleaved-with-clustering-risk → fragile + most reorderings worse, small n
+  and empty → no crash. **Orchestration + plots** (4): `Engine.evaluate` merges
+  all sections + gates the verdict + is seed-reproducible; the 3 `plot_*`
+  functions return a `matplotlib.figure.Figure` (Agg backend, `plt.close` after)
+  and don't crash on an empty result.
 - **`test_regression.py`** ✅ (6 tests, `-m slow`, skipped if the data file is
   absent) — end to end: `load_1s_data` → `resample("5m")` →
   `SmaCrossoverStrategy(20/50, sl 10 / tp 20)` → `Engine.backtest`. Asserts the
