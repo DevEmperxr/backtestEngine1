@@ -274,7 +274,12 @@ class Strategy(ABC):
         # per-kind default is a single fixed color, which makes multiple
         # auto-plotted lines/markers visually indistinguishable from each
         # other (confirmed: two un-colored sma lines render on top of each
-        # other identically). Cycles if there are more columns than colors.
+        # other identically). Markers are offset past however many colors the
+        # lines already used, so e.g. 2 lines + 2 markers get 4 genuinely
+        # distinct colors instead of the markers silently reusing the first
+        # two line colors and blending into those lines on the chart
+        # (confirmed: that's exactly what happened before this offset).
+        # Cycles if there are more columns than colors either list can use.
         _palette = ("#E8A33D", "#4C78A8", "#59A14F", "#B07AA1", "#E45756", "#76B7B2")
         spec = [{"kind": "candle", "column": "bid"}]
         spec += [
@@ -282,7 +287,10 @@ class Strategy(ABC):
             for i, col in enumerate(self.line_columns)
         ]
         spec += [
-            {"kind": "marker", "column": col, "color": _palette[i % len(_palette)]}
+            {
+                "kind": "marker", "column": col,
+                "color": _palette[(len(self.line_columns) + i) % len(_palette)],
+            }
             for i, col in enumerate(self.marker_columns)
         ]
         spec += [{"kind": "region", "column": col} for col in self.region_columns]
