@@ -21,6 +21,8 @@ spike (`notebooks/viz_spike.ipynb`), not just the library's docs:
 
 from __future__ import annotations
 
+import contextlib
+import json
 import time
 from typing import Any
 
@@ -28,6 +30,7 @@ import numpy as np
 import pandas as pd
 import polars as pl
 from lightweight_charts import StreamChart
+from lightweight_charts.util import marker_position, marker_shape
 from lightweight_charts.plugins.session_highlighting import SessionHighlighting
 
 _TIME_COL = "timestamp"
@@ -133,6 +136,42 @@ class FxChart:
         but useful in scripts/tests that create many `FxChart`s."""
         self._sc.win.stop()
 
+    @contextlib.contextmanager
+    def batch(self):
+        """Combine every script issued inside this block into one atomic
+        send -- see `plot()`'s docstring for why (a JS-side marker-plugin
+        race). Reentrant: `plot()` uses this internally too, so a `visualize()`
+        that does an initial `plot()` immediately followed by
+        `on_range_change`/`add_timeframe_switcher` registration can wrap the
+        whole sequence in one outer `with chart.batch():` and the inner
+        `plot()` call will just join the same batch instead of flushing early.
+        """
+        if self._sc.win.bulk_run.enabled:
+            yield  # already inside an outer batch -- nothing to do here
+            return
+        with self._sc.win.bulk_run:
+            yield
+
+    # ------------------------------------------------------------------
+    # event wiring (visualizer spec §4/§5) -- confirmed hands-on in the §1.1
+    # spike: a real pan fires range_change with live barsBefore/barsAfter, a
+    # real topbar click fires the switcher callback with the clicked value.
+    # ------------------------------------------------------------------
+
+    def on_range_change(self, callback) -> None:
+        """`callback(bars_before: float, bars_after: float)` on every pan/zoom.
+        Small/negative `bars_before` or `bars_after` means the user is near
+        (or past) the edge of the currently-loaded window on that side."""
+        self._sc.events.range_change += lambda _chart, before, after: callback(before, after)
+
+    def add_timeframe_switcher(self, options: tuple[str, ...], default: str, callback) -> None:
+        """Adds the native topbar timeframe selector. `callback(new_timeframe: str)`
+        fires on click, after the UI's own active-button state has updated."""
+        self._sc.topbar.switcher(
+            "tf", options, default=default,
+            func=lambda chart_obj: callback(chart_obj.topbar["tf"].value),
+        )
+
     # ------------------------------------------------------------------
     # declarative entry point
     # ------------------------------------------------------------------
@@ -158,9 +197,18 @@ class FxChart:
         # messages are sent back to back (replayed-on-connect or live) --
         # `Cannot read properties of undefined (reading 'setMarkers')` with no
         # Python-side exception. One combined script has no message boundary
-        # for that race to happen across.
+        # for that race to happen across -- EXCEPT for a brand-new series'
+        # own marker-plugin setup, which is asynchronous on the JS side and
+        # isn't resolved just by being earlier in the same script (confirmed
+        # by direct testing: an uncaught exception there also aborts every
+        # later statement in that same combined send -- e.g. a topbar
+        # switcher registered right after it would silently never appear).
+        # So marker *data* application is deferred to its own second batch,
+        # after a real wall-clock gap for brand-new carrier series -- same-
+        # script ordering can't substitute for that, only elapsed time can.
         pane_added = False
-        with self._sc.win.bulk_run:
+        deferred_markers: list[tuple] = []
+        with self.batch():
             target_keys: set[tuple] = set()
             for entry in spec:
                 kind = entry["kind"]
@@ -171,7 +219,9 @@ class FxChart:
                 elif kind == "line":
                     target_keys |= self._plot_line(pdf, entry, pane)
                 elif kind == "marker":
-                    target_keys |= self._plot_marker(pdf, entry, pane)
+                    key, series, is_new = self._ensure_marker_series(entry, pane)
+                    target_keys.add(key)
+                    deferred_markers.append((series, entry, is_new))
                 elif kind == "region":
                     target_keys |= self._plot_region(pdf, entry, pane)
                 else:
@@ -185,6 +235,13 @@ class FxChart:
 
         if pane_added:
             time.sleep(0.3)
+
+        if deferred_markers:
+            if any(is_new for _, _, is_new in deferred_markers):
+                time.sleep(0.3)
+            with self.batch():
+                for series, entry, _is_new in deferred_markers:
+                    self._apply_markers(series, pdf, entry)
 
     def _await_client(self, timeout: float = 5.0) -> None:
         """Block briefly until a browser client is connected.
@@ -264,30 +321,66 @@ class FxChart:
             keys.add(key)
         return keys
 
-    def _plot_marker(self, pdf: pd.DataFrame, entry: dict, pane: int) -> set[tuple]:
+    def _ensure_marker_series(self, entry: dict, pane: int) -> tuple[tuple, Any, bool]:
+        """Create (if needed) the invisible carrier series a marker column's
+        glyphs attach to -- markers are per-series in this library, so each
+        marker_column gets its own so columns don't clobber each other's
+        markers on re-plot. Returns (key, series, is_newly_created).
+        """
         col = entry["column"]
-        shape = entry.get("shape", "circle")
-        color = entry.get("color", "#2196F3")
-        position = entry.get("position", "below")
         key = ("marker", col, pane)
         series = self._series.get(key)
-        if series is None:
-            # invisible carrier series -- markers are per-series in this library,
-            # so each marker_column gets its own so columns don't clobber each
-            # other's markers on re-plot.
+        is_new = series is None
+        if is_new:
             series = self._sc.create_line(
                 f"__marker__{col}", color="rgba(0,0,0,0)", price_line=False, pane_index=pane
             )
             self._series[key] = series
+        return key, series, is_new
+
+    def _apply_markers(self, series, pdf: pd.DataFrame, entry: dict) -> None:
+        """Set `series`'s markers with a self-healing retry on the JS side.
+
+        A fixed Python-side delay before this call (see `plot()`) handles the
+        common case, but the underlying library's marker-plugin setup for a
+        brand-new series is asynchronous with no exposed "ready" signal, so no
+        fixed delay can be guaranteed sufficient. `clear_markers()` is safe to
+        call directly (pure Python-side bookkeeping plus one script that's
+        idempotent to lose). The actual `setMarkers()` call is sent as a
+        small JS retry loop instead of the library's own `marker_list()`,
+        which sends it unconditionally and lets it throw if `seriesMarkers`
+        isn't ready yet -- confirmed by direct testing to do exactly that.
+        """
+        col = entry["column"]
+        shape = entry.get("shape", "circle")
+        color = entry.get("color", "#2196F3")
+        position = entry.get("position", "below")
         mask = pdf[col].astype(bool).to_numpy()
         markers = [
             {"time": t, "position": position, "shape": shape, "color": color, "text": ""}
             for t in pdf.loc[mask, "time"]
         ]
         series.clear_markers()
-        if markers:
-            series.marker_list(markers)
-        return {key}
+        series.markers.clear()
+        for marker in markers:
+            marker_id = series.win._id_gen.generate()
+            series.markers[marker_id] = {
+                "time": series._single_datetime_format(marker["time"]),
+                "position": marker_position(marker["position"]),
+                "color": marker["color"],
+                "shape": marker_shape(marker["shape"]),
+                "text": marker["text"],
+            }
+        payload = json.dumps(list(series.markers.values()))
+        series.run_script(f"""
+            (function setMarkersWithRetry(attempt) {{
+                if ({series.id}.seriesMarkers) {{
+                    {series.id}.seriesMarkers.setMarkers({payload});
+                }} else if (attempt < 30) {{
+                    setTimeout(() => setMarkersWithRetry(attempt + 1), 100);
+                }}
+            }})(0);
+        """)
 
     def _plot_region(self, pdf: pd.DataFrame, entry: dict, pane: int) -> set[tuple]:
         col = entry["column"]

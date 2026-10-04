@@ -15,7 +15,7 @@ import numpy as np
 import polars as pl
 from numba import njit
 
-from lib.data import PIP, validate_1s
+from lib.data import PIP, resample, validate_1s
 
 _PRICE_COLUMNS = tuple(
     f"{side}_{field}"
@@ -86,6 +86,27 @@ def _sl_tp_levels(direction, entry_price, sl_pips, tp_pips, pip=PIP):
     if direction == 1:
         return entry_price - offset_sl, entry_price + offset_tp
     return entry_price + offset_sl, entry_price - offset_tp
+
+
+def _windowed_signals(
+    strategy: "Strategy", bars: pl.DataFrame, start_idx: int, end_idx: int, warmup_bars: int
+) -> pl.DataFrame:
+    """`generate_signals()` over `[start_idx, end_idx)`, extended backward by
+    up to `warmup_bars` so indicators (SMA, etc.) aren't seamed/null right at
+    the loaded edge (visualizer spec §5).
+
+    No-lookahead by construction: `compute_start = max(0, start_idx -
+    warmup_bars)` is always <= `start_idx`, so the extra rows fed to
+    `generate_signals()` are strictly history relative to what gets returned
+    -- never `end_idx` or beyond. The warmup rows themselves are sliced back
+    off before returning; they exist only to seed rolling calculations, never
+    to be shown or used again. `generate_signals()` is called unmodified, so
+    its own §0.1-§0.4 no-lookahead contract is untouched by this.
+    """
+    compute_start = max(0, start_idx - warmup_bars)
+    raw = bars.slice(compute_start, end_idx - compute_start)
+    full = strategy.generate_signals(raw)
+    return full.slice(start_idx - compute_start, end_idx - start_idx)
 
 
 def _project_trades(df: pl.DataFrame, trades: pl.DataFrame) -> pl.DataFrame:
@@ -191,7 +212,18 @@ class Strategy(ABC):
         "act at `t+1`" timing rule; that is a different responsibility (§0.1).
         """
 
-    def visualize(self, engine: "Engine", chart=None, show_trades: bool = False):
+    def visualize(
+        self,
+        engine: "Engine",
+        chart=None,
+        show_trades: bool = False,
+        *,
+        initial_bars: int = 500,
+        warmup_bars: int = 200,
+        fetch_chunk: int = 500,
+        edge_margin: float = 50,
+        timeframes: tuple[str, ...] = ("1m", "5m", "15m", "1h", "4h"),
+    ):
         """Chart this strategy against `engine`'s data (visualizer spec §8).
 
         `chart=None` creates and returns a fresh `FxChart` (displays it in the
@@ -202,14 +234,32 @@ class Strategy(ABC):
         `show_trades=False` by default: it runs a full backtest (including the
         numba 1s fill-resolution walk), which would make the fast
         signal-iteration loop sluggish if it ran on every rerun. Flip it on
-        deliberately for the fuller trade-level audit view.
+        deliberately for the fuller trade-level audit view. The trade log
+        itself is computed once here, never re-backtested on pan/timeframe
+        switch (§8.5) -- only re-projected onto whatever window is showing.
+
+        Lazy-loading (§5) and timeframe-switching (§4): only the last
+        `initial_bars` bars are loaded at first; panning near a loaded edge
+        (within `edge_margin` bars, via the chart's own `range_change` event)
+        fetches another `fetch_chunk` bars on that side, and the native
+        topbar switcher resamples `engine.base_1s` fresh and recomputes
+        `generate_signals()` for the new timeframe, anchored on the same
+        real-world moment that was at the right edge before the switch.
+
+        No-lookahead discipline: every window handed to `generate_signals()`
+        is extended by `warmup_bars` *strictly backward in time* (never
+        forward) purely so indicators (SMA, etc.) have real history to warm up
+        against instead of showing null/seamed values at the loaded edge --
+        those extra rows are dropped again before anything is plotted. This
+        mirrors the §0.1-§0.4 no-lookahead rules `generate_signals()` already
+        has to satisfy on its own; nothing here bypasses or weakens that
+        contract, it only ever slices strictly-historical data for it to run
+        on.
         """
         from fx_viz import FxChart  # lazy -- headless backtests must never pay for this
 
         if chart is None:
             chart = FxChart()
-
-        df = self.generate_signals(engine.signal_df)
 
         # A small distinct palette per declared column -- FxChart's own
         # per-kind default is a single fixed color, which makes multiple
@@ -218,32 +268,89 @@ class Strategy(ABC):
         # other identically). Cycles if there are more columns than colors.
         _palette = ("#E8A33D", "#4C78A8", "#59A14F", "#B07AA1", "#E45756", "#76B7B2")
 
-        spec = [{"kind": "candle", "column": "bid"}]
-        spec += [
-            {"kind": "line", "column": col, "color": _palette[i % len(_palette)]}
-            for i, col in enumerate(self.line_columns)
-        ]
-        spec += [
-            {"kind": "marker", "column": col, "color": _palette[i % len(_palette)]}
-            for i, col in enumerate(self.marker_columns)
-        ]
-        spec += [{"kind": "region", "column": col} for col in self.region_columns]
-
-        if show_trades:
-            trades = engine.backtest(self)
-            df = _project_trades(df, trades)
+        def _spec() -> list[dict]:
+            spec = [{"kind": "candle", "column": "bid"}]
             spec += [
-                {"kind": "marker", "column": "trade_entry_long",
-                 "shape": "arrow_up", "color": "#26A69A", "position": "below"},
-                {"kind": "marker", "column": "trade_entry_short",
-                 "shape": "arrow_down", "color": "#EF5350", "position": "above"},
-                {"kind": "region", "column": "trade_region_long",
-                 "color": "rgba(38, 166, 154, 0.12)"},
-                {"kind": "region", "column": "trade_region_short",
-                 "color": "rgba(239, 83, 80, 0.12)"},
+                {"kind": "line", "column": col, "color": _palette[i % len(_palette)]}
+                for i, col in enumerate(self.line_columns)
             ]
+            spec += [
+                {"kind": "marker", "column": col, "color": _palette[i % len(_palette)]}
+                for i, col in enumerate(self.marker_columns)
+            ]
+            spec += [{"kind": "region", "column": col} for col in self.region_columns]
+            if show_trades:
+                spec += [
+                    {"kind": "marker", "column": "trade_entry_long",
+                     "shape": "arrow_up", "color": "#26A69A", "position": "below"},
+                    {"kind": "marker", "column": "trade_entry_short",
+                     "shape": "arrow_down", "color": "#EF5350", "position": "above"},
+                    {"kind": "region", "column": "trade_region_long",
+                     "color": "rgba(38, 166, 154, 0.12)"},
+                    {"kind": "region", "column": "trade_region_short",
+                     "color": "rgba(239, 83, 80, 0.12)"},
+                ]
+            return spec
 
-        chart.plot(df, spec=spec)
+        trades = engine.backtest(self) if show_trades else None
+        spec = _spec()
+
+        # Mutable closure state -- the currently-resampled full series for the
+        # active timeframe, and which [start_idx, end_idx) slice of it is
+        # currently loaded on the chart. Re-resampling the full engine.base_1s
+        # only happens on a timeframe switch, never on an ordinary pan.
+        state: dict = {}
+
+        def _render(bars: pl.DataFrame, start_idx: int, end_idx: int) -> None:
+            visible = _windowed_signals(self, bars, start_idx, end_idx, warmup_bars)
+            if show_trades:
+                visible = _project_trades(visible, trades)
+            chart.plot(visible, spec=spec)
+            state["bars"], state["start_idx"], state["end_idx"] = bars, start_idx, end_idx
+
+        if self.timeframe not in timeframes:
+            timeframes = (*timeframes, self.timeframe)
+
+        def _on_range_change(bars_before: float, bars_after: float) -> None:
+            bars, start_idx, end_idx = state["bars"], state["start_idx"], state["end_idx"]
+            new_start, new_end = start_idx, end_idx
+            if bars_before < edge_margin and start_idx > 0:
+                new_start = max(0, start_idx - fetch_chunk)
+            if bars_after < edge_margin and end_idx < bars.height:
+                new_end = min(bars.height, end_idx + fetch_chunk)
+            if (new_start, new_end) != (start_idx, end_idx):
+                _render(bars, new_start, new_end)
+
+        def _on_timeframe(new_timeframe: str) -> None:
+            if new_timeframe == state["timeframe"]:
+                return
+            new_bars = resample(engine.base_1s, new_timeframe)
+            # Anchor the new window on the same real-world instant that was at
+            # the right edge before switching -- never past it, so the switch
+            # can't reveal bars "later" than what was already being viewed.
+            anchor_time = state["bars"]["timestamp"][state["end_idx"] - 1]
+            end_idx = int((new_bars["timestamp"] <= anchor_time).sum())
+            start_idx = max(0, end_idx - initial_bars)
+            state["timeframe"] = new_timeframe
+            _render(new_bars, start_idx, end_idx)
+
+        bars0 = resample(engine.base_1s, self.timeframe)
+        end_idx0 = bars0.height
+        start_idx0 = max(0, end_idx0 - initial_bars)
+        # Deliberately NOT wrapped in an outer chart.batch(): plot() (called
+        # inside _render) already handles its own marker-series timing in two
+        # phases internally, and wrapping it in an outer batch would make it
+        # reentrant-collapse back into one send and defeat that (confirmed by
+        # direct testing -- it also silently prevented the topbar switcher
+        # created right after from ever appearing, since an earlier statement
+        # throwing aborts every later statement in the same combined script).
+        # Calling these sequentially after plot() has fully returned is what
+        # keeps them safe.
+        _render(bars0, start_idx0, end_idx0)
+        state["timeframe"] = self.timeframe
+        chart.on_range_change(_on_range_change)
+        chart.add_timeframe_switcher(timeframes, default=self.timeframe, callback=_on_timeframe)
+
         return chart
 
 

@@ -17,7 +17,8 @@ import polars as pl
 import pytest
 
 from fx_viz.chart import _contiguous_runs, _to_pandas
-from lib.engine import _project_trades
+from lib.engine import _project_trades, _windowed_signals
+from lib.strategies import SmaCrossoverStrategy
 
 
 class TestContiguousRuns:
@@ -139,3 +140,147 @@ class TestProjectTrades:
         out = _project_trades(df, trades)
         for col in ("trade_entry_long", "trade_entry_short", "trade_region_long", "trade_region_short"):
             assert not out[col].any()
+
+
+class TestWindowedSignalsNoLookahead:
+    """`_windowed_signals` backs the lazy-load/timeframe-switch paths in
+    `Strategy.visualize()` (spec §4/§5). The property that matters most: a
+    windowed-with-warmup computation must be IDENTICAL to what a full-dataset
+    computation produces for the same rows -- not approximately close, not
+    "close enough after warmup converges" -- exactly equal, bar for bar. If
+    it weren't, that would mean either future data was leaking backward
+    (wrong direction) or real history was being withheld that should have
+    been there (the "seam" bug the spec explicitly calls out).
+    """
+
+    @staticmethod
+    def _bars(n=1000, seed=0):
+        rng = np.random.default_rng(seed)
+        walk = 1.10 + np.cumsum(rng.normal(0, 0.0003, n))
+        return pl.DataFrame(
+            {
+                "timestamp": pl.datetime_range(
+                    datetime(2024, 1, 1), datetime(2024, 1, 1) + pd.Timedelta(minutes=5 * (n - 1)),
+                    "5m", eager=True,
+                ),
+                "bid_close": walk,
+                "ask_close": walk + 0.0001,
+            }
+        )
+
+    @staticmethod
+    def _strategy():
+        return SmaCrossoverStrategy(fast_n=5, slow_n=20, sl_pips=10, tp_pips=20)
+
+    def test_matches_full_dataset_computation_exactly(self):
+        bars = self._bars()
+        strat = self._strategy()
+        full = strat.generate_signals(bars)
+
+        start_idx, end_idx, warmup = 400, 700, 200
+        windowed = _windowed_signals(strat, bars, start_idx, end_idx, warmup)
+        expected = full.slice(start_idx, end_idx - start_idx)
+
+        assert windowed.height == expected.height
+        for col in ("sma_fast", "sma_slow", "long_signal", "short_signal"):
+            assert windowed[col].to_list() == expected[col].to_list(), col
+
+    def test_insufficient_warmup_degrades_safely_not_wrongly(self):
+        # warmup_bars=5 is LESS than slow_n=20's own lookback requirement --
+        # this is the one case where windowed and full-dataset DON'T match
+        # bar-for-bar, and that's correct: with less history available,
+        # sma()'s null-until-a-full-window design (lib/signals.py) means the
+        # windowed version shows nulls for MORE leading rows than the
+        # full-dataset version does. That's the system being honest about
+        # insufficient data rather than fabricating a value -- the opposite
+        # failure mode of lookahead. What must NEVER happen: a row where the
+        # full dataset has a real value but the windowed version has a
+        # DIFFERENT real value (that would mean genuine corruption), or a row
+        # where windowed has a real value but the full dataset has null
+        # (that would mean it used data it wasn't entitled to).
+        bars = self._bars()
+        strat = self._strategy()
+        full = strat.generate_signals(bars)
+
+        start_idx, end_idx, warmup = 10, 60, 5  # warmup_bars < slow_n=20
+        windowed = _windowed_signals(strat, bars, start_idx, end_idx, warmup)
+        expected = full.slice(start_idx, end_idx - start_idx)
+
+        for col in ("sma_fast", "sma_slow"):
+            w, e = windowed[col].to_numpy(), expected[col].to_numpy()
+            # windowed may be null where expected is real (less history) ...
+            assert not (np.isnan(e) & ~np.isnan(w)).any(), f"{col}: used data it shouldn't have"
+            # ... but never the reverse, and never a differing real value
+            both_real = ~np.isnan(w) & ~np.isnan(e)
+            np.testing.assert_allclose(w[both_real], e[both_real], rtol=1e-9)
+        for col in ("long_signal", "short_signal"):
+            # a signal can only legitimately fire where BOTH SMAs are real in
+            # both versions; outside that, windowed staying quiet (False)
+            # while expected (with more history) might have fired is the
+            # same safe degradation as above, never the other way around.
+            w_fires = windowed[col].to_numpy()
+            e_fires = expected[col].to_numpy()
+            both_smas_real = (
+                ~np.isnan(windowed["sma_slow"].to_numpy()) & ~np.isnan(expected["sma_slow"].to_numpy())
+            )
+            assert (w_fires[both_smas_real] == e_fires[both_smas_real]).all(), col
+            assert not (w_fires & ~e_fires).any(), f"{col}: fired where full dataset didn't"
+
+    def test_window_starting_at_zero_needs_no_warmup_clamp(self):
+        bars = self._bars()
+        strat = self._strategy()
+        full = strat.generate_signals(bars)
+
+        windowed = _windowed_signals(strat, bars, 0, 50, warmup_bars=200)
+        expected = full.slice(0, 50)
+        assert windowed["sma_slow"].to_list() == expected["sma_slow"].to_list()
+
+    def test_never_reads_past_end_idx(self):
+        # mutate every row from end_idx onward to an impossible sentinel value;
+        # if the windowed computation's result changes, it read past the
+        # window it was given -- i.e. a real lookahead bug.
+        bars = self._bars()
+        strat = self._strategy()
+        start_idx, end_idx, warmup = 300, 500, 200
+
+        windowed_before = _windowed_signals(strat, bars, start_idx, end_idx, warmup)
+
+        poisoned = bars.with_columns(
+            pl.when(pl.int_range(pl.len()) >= end_idx)
+            .then(pl.lit(999.0))
+            .otherwise(pl.col("bid_close"))
+            .alias("bid_close"),
+            pl.when(pl.int_range(pl.len()) >= end_idx)
+            .then(pl.lit(999.0))
+            .otherwise(pl.col("ask_close"))
+            .alias("ask_close"),
+        )
+        windowed_after = _windowed_signals(strat, poisoned, start_idx, end_idx, warmup)
+
+        for col in ("sma_fast", "sma_slow", "long_signal", "short_signal"):
+            assert windowed_before[col].to_list() == windowed_after[col].to_list(), col
+
+    def test_never_reads_before_compute_start(self):
+        # symmetric check: poisoning data strictly BEFORE compute_start must
+        # not change the result either (it's outside even the warmup window).
+        bars = self._bars()
+        strat = self._strategy()
+        start_idx, end_idx, warmup = 300, 500, 200
+        compute_start = start_idx - warmup  # == 100
+
+        windowed_before = _windowed_signals(strat, bars, start_idx, end_idx, warmup)
+
+        poisoned = bars.with_columns(
+            pl.when(pl.int_range(pl.len()) < compute_start)
+            .then(pl.lit(-999.0))
+            .otherwise(pl.col("bid_close"))
+            .alias("bid_close"),
+            pl.when(pl.int_range(pl.len()) < compute_start)
+            .then(pl.lit(-999.0))
+            .otherwise(pl.col("ask_close"))
+            .alias("ask_close"),
+        )
+        windowed_after = _windowed_signals(strat, poisoned, start_idx, end_idx, warmup)
+
+        for col in ("sma_fast", "sma_slow", "long_signal", "short_signal"):
+            assert windowed_before[col].to_list() == windowed_after[col].to_list(), col
