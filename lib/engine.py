@@ -88,6 +88,35 @@ def _sl_tp_levels(direction, entry_price, sl_pips, tp_pips, pip=PIP):
     return entry_price + offset_sl, entry_price - offset_tp
 
 
+def _project_trades(df: pl.DataFrame, trades: pl.DataFrame) -> pl.DataFrame:
+    """Project a trade log onto `df` as new boolean columns (visualizer §8.4):
+    `trade_entry_long`/`trade_entry_short` (True at each trade's entry bar) and
+    `trade_region_long`/`trade_region_short` (True for every bar inside a
+    trade's [entry_time, exit_time) window). Relies on `Engine.backtest`'s
+    guarantee that trades never overlap in wall-clock time, so an asof-backward
+    join unambiguously attributes each bar to at most one open trade.
+    """
+    by_entry = trades.sort("entry_time")
+    joined = df.join_asof(
+        by_entry.select("entry_time", "exit_time", "direction"),
+        left_on="timestamp", right_on="entry_time", strategy="backward",
+    )
+    in_trade = (joined["timestamp"] >= joined["entry_time"]) & (
+        joined["timestamp"] < joined["exit_time"]
+    )
+    direction = joined["direction"]
+    return df.with_columns(
+        trade_entry_long=df["timestamp"].is_in(
+            trades.filter(pl.col("direction") == "long")["entry_time"].implode()
+        ),
+        trade_entry_short=df["timestamp"].is_in(
+            trades.filter(pl.col("direction") == "short")["entry_time"].implode()
+        ),
+        trade_region_long=(in_trade & (direction == "long")).fill_null(False),
+        trade_region_short=(in_trade & (direction == "short")).fill_null(False),
+    )
+
+
 class Strategy(ABC):
     """Formal strategy interface (spec §2.2).
 
@@ -117,6 +146,15 @@ class Strategy(ABC):
 
     exit_on_opposite_signal: bool = True
     reverse_on_opposite_signal: bool = False
+
+    # Column-rendering metadata for visualize() (visualizer spec §2). Every
+    # column generate_signals() adds that should be inspectable on a chart
+    # must be declared here explicitly -- undeclared columns are simply not
+    # plotted, never silently guessed at. "candle" needs no declaration here
+    # (visualize() auto-detects the bid_* OHLC columns).
+    line_columns: list[str] = []
+    marker_columns: list[str] = []
+    region_columns: list[str] = []
 
     def __init__(self, sl_pips: float, tp_pips: float, timeframe: str) -> None:
         if not (sl_pips > 0):
@@ -152,6 +190,61 @@ class Strategy(ABC):
         timeframe, never a hardcoded +5m. The engine separately enforces the
         "act at `t+1`" timing rule; that is a different responsibility (§0.1).
         """
+
+    def visualize(self, engine: "Engine", chart=None, show_trades: bool = False):
+        """Chart this strategy against `engine`'s data (visualizer spec §8).
+
+        `chart=None` creates and returns a fresh `FxChart` (displays it in the
+        current cell). Pass an existing `FxChart` back in on a rerun to update
+        it in place without resetting zoom/pan/timeframe (the hot-reload
+        pattern — see fx_visualizer_widget_spec.md §3).
+
+        `show_trades=False` by default: it runs a full backtest (including the
+        numba 1s fill-resolution walk), which would make the fast
+        signal-iteration loop sluggish if it ran on every rerun. Flip it on
+        deliberately for the fuller trade-level audit view.
+        """
+        from fx_viz import FxChart  # lazy -- headless backtests must never pay for this
+
+        if chart is None:
+            chart = FxChart()
+
+        df = self.generate_signals(engine.signal_df)
+
+        # A small distinct palette per declared column -- FxChart's own
+        # per-kind default is a single fixed color, which makes multiple
+        # auto-plotted lines/markers visually indistinguishable from each
+        # other (confirmed: two un-colored sma lines render on top of each
+        # other identically). Cycles if there are more columns than colors.
+        _palette = ("#E8A33D", "#4C78A8", "#59A14F", "#B07AA1", "#E45756", "#76B7B2")
+
+        spec = [{"kind": "candle", "column": "bid"}]
+        spec += [
+            {"kind": "line", "column": col, "color": _palette[i % len(_palette)]}
+            for i, col in enumerate(self.line_columns)
+        ]
+        spec += [
+            {"kind": "marker", "column": col, "color": _palette[i % len(_palette)]}
+            for i, col in enumerate(self.marker_columns)
+        ]
+        spec += [{"kind": "region", "column": col} for col in self.region_columns]
+
+        if show_trades:
+            trades = engine.backtest(self)
+            df = _project_trades(df, trades)
+            spec += [
+                {"kind": "marker", "column": "trade_entry_long",
+                 "shape": "arrow_up", "color": "#26A69A", "position": "below"},
+                {"kind": "marker", "column": "trade_entry_short",
+                 "shape": "arrow_down", "color": "#EF5350", "position": "above"},
+                {"kind": "region", "column": "trade_region_long",
+                 "color": "rgba(38, 166, 154, 0.12)"},
+                {"kind": "region", "column": "trade_region_short",
+                 "color": "rgba(239, 83, 80, 0.12)"},
+            ]
+
+        chart.plot(df, spec=spec)
+        return chart
 
 
 class Engine:
