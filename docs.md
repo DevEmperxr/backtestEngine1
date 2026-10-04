@@ -13,7 +13,7 @@ still shift) · ⏸️ deferred (not this build)
 | `lib/strategies.py` | Concrete `Strategy` subclasses | ✅ `SmaCrossoverStrategy` |
 | `lib/signals.py` | Pure, composable signal helpers strategies call into | ✅ `sma`, `crossover` · 📋 trend filter, session flag |
 | `lib/evaluate.py` | Normal + adversarial metrics, plots | ✅ `evaluate` · `adversarial` · `bootstrap_ci` · `mc_drawdown` · `plot_*` |
-| `lib/viz.py` | Chart/replay visualizer | ⏸️ |
+| `fx_viz/` | Live in-notebook chart (`FxChart`) + `Strategy.visualize()` | ✅ |
 
 ---
 
@@ -25,11 +25,23 @@ python -m venv .venv
 .venv\Scripts\activate            # Windows
 
 pip install polars numba numpy matplotlib
+
+# only needed for fx_viz (lazy-imported -- headless backtests/tests never pay for this)
+pip install python-lightweight-charts pyarrow pandas playwright
+playwright install chromium   # only if you want to verify chart rendering yourself, not for normal use
 ```
 
 - **polars** — the entire data layer (no pandas at the data layer).
 - **numba** — JITs the inner 1-second fill-resolution loop in the engine.
 - **matplotlib** — evaluation charts (equity curve, monthly P&L, MC distributions).
+- **python-lightweight-charts** — `fx_viz`'s chart engine (`StreamChart`). Pulls in
+  `fastapi`/`uvicorn`/`websockets`.
+- **pyarrow**, **pandas** — `fx_viz` hands the chart library pandas, not polars;
+  `polars.to_pandas()` needs `pyarrow`.
+- **playwright** — only if you want to drive a headless browser against `fx_viz`
+  yourself (screenshots, simulated clicks/pans) the way this module's hands-on
+  verification was done; not a runtime dependency of anything in `lib/` or
+  `fx_viz/`.
 
 Data files live in `data/` (git-ignored). The 1s EURUSD file is a single CSV with
 bid and ask OHLCV side by side:
@@ -254,6 +266,11 @@ class Strategy(ABC):
     exit_on_opposite_signal: bool = True     # also close on the opposite signal (on top of SL/TP)
     reverse_on_opposite_signal: bool = False  # ...and immediately re-open the other way
 
+    # chart-rendering metadata (visualizer spec §2) -- see "fx_viz" below
+    line_columns: list[str] = []
+    marker_columns: list[str] = []
+    region_columns: list[str] = []
+
     def __init__(self, sl_pips: float, tp_pips: float, timeframe: str):
         # validates: sl_pips > 0, tp_pips > 0, timeframe a non-empty str;
         # reverse_on_opposite_signal requires exit_on_opposite_signal  (else ValueError)
@@ -266,6 +283,9 @@ class Strategy(ABC):
         (the engine trusts that — spec §0.4). May add any other columns; the
         engine ignores them. Owns its no-lookahead correctness: row t uses
         only info through bar t's close = bar_start + self.timeframe."""
+
+    def visualize(self, engine: "Engine", chart=None, show_trades: bool = False, **kw):
+        """Chart this strategy -- see "fx_viz" below for the full contract."""
 ```
 
 | member | kind | notes |
@@ -274,7 +294,9 @@ class Strategy(ABC):
 | `timeframe` | instance (ctor) | `"5m"`, `"1h"`, … — drives the "bar t's close" math |
 | `exit_on_opposite_signal` | class attr, default `True` | engine also closes on the opposite signal, on top of SL/TP |
 | `reverse_on_opposite_signal` | class attr, default `False` | on an opposite-signal exit, re-open the other way at the same open ("always in the market"); requires `exit_on_opposite_signal` |
+| `line_columns`/`marker_columns`/`region_columns` | class attr, default `[]` | which `generate_signals()` columns `visualize()` plots — see **fx_viz** below |
 | `generate_signals(df)` | abstract | the one thing a subclass must implement |
+| `visualize(engine, chart=None, show_trades=False, **kw)` | concrete | charting entry point — see **fx_viz** below |
 
 `Strategy(...)` directly raises `TypeError` (abstract). SL/TP/timeframe are
 constructor params because they *define* a strategy variant — not engine-run args.
@@ -563,7 +585,7 @@ touch unlucky).
 Each returns a `matplotlib.figure.Figure` and **never** calls `.show()` /
 `.savefig()` — the caller decides. `matplotlib` is **lazy-imported inside each
 function**, so importing `lib.evaluate` (or running the test suite) never pulls
-it in — same rule as `viz.py`. `plot_equity` = $ equity line + drawdown shaded
+it in — same rule `fx_viz` follows for its own GUI deps. `plot_equity` = $ equity line + drawdown shaded
 on a twin axis; `plot_monthly` = green/red monthly-P&L bars; `plot_mc_drawdown` =
 histogram of `mc_drawdown()`'s `distribution` with the observed DD marked.
 
@@ -576,11 +598,216 @@ fig = plot_equity(report); fig.savefig("equity.png")   # caller's call
 
 ---
 
-## `lib/viz.py` — visualizer ⏸️
+## `fx_viz` — visualizer ✅
 
-Deferred — not part of this build. Planned: `Strategy.visualize(df)` thin
-delegator, `lightweight-charts-python` renderer, replay controls, point-style vs
-region-style signal rendering from explicit per-strategy column lists. See spec §5.
+Companion to [`fx_visualizer_widget_spec.md`](fx_visualizer_widget_spec.md), which
+supersedes `fx_backtester_spec.md`'s §5 placeholder. Live, in-notebook charting
+built on [`python-lightweight-charts`](https://pypi.org/project/python-lightweight-charts/)'s
+`StreamChart` (a local FastAPI/WebSocket server embedded as an iframe) — not raw
+`anywidget`. The §1.1 validation spike that justified this choice, and every
+gotcha below, were confirmed **hands-on** with a Playwright-driven headless
+Chromium (`notebooks/viz_spike.ipynb`), not by reading the library's docs.
+
+Two layers: `fx_viz.FxChart` (generic, declarative, knows nothing about
+strategies) and `Strategy.visualize()` (the integration glue — knows about
+`Engine`/trades, calls into `FxChart`).
+
+### Quick start
+
+```python
+# CELL 1 -- once per session
+from lib.data import load_1s_data, resample
+from lib.engine import Engine
+from lib.strategies import SmaCrossoverStrategy
+
+raw    = load_1s_data("data/EURUSD_1s_2024.csv")
+engine = Engine(resample(raw, "5m"), raw)
+
+class VizStrategy(SmaCrossoverStrategy):
+    line_columns   = ["sma_fast", "sma_slow"]
+    marker_columns = ["long_signal", "short_signal"]
+
+strategy = VizStrategy(fast_n=20, slow_n=50, sl_pips=10, tp_pips=20)
+chart = strategy.visualize(engine, show_trades=True)
+chart   # displays the iframe
+```
+
+```python
+# CELL 2 -- rerun whenever the strategy changes; SAME chart, viewport persists
+strategy.visualize(engine, chart=chart, show_trades=True)
+```
+
+`notebooks/viz_demo.ipynb` is this exact pattern, ready to run.
+
+### `FxChart` ✅ (`fx_viz/chart.py`)
+
+```python
+from fx_viz import FxChart
+
+chart = FxChart(width=820, height=460, port=8765)   # starts a local StreamChart server
+chart.plot(df, spec=[
+    {"kind": "candle", "column": "bid"},                              # -> bid_open/high/low/close
+    {"kind": "line", "column": "sma_fast", "color": "#E8A33D"},
+    {"kind": "marker", "column": "long_signal", "shape": "arrow_up"},
+    {"kind": "region", "column": "session"},                          # full-height background band
+    {"kind": "region", "column": "zone",                              # bounded box instead
+     "top_column": "zone_top", "bottom_column": "zone_bottom"},
+])
+```
+
+**Column contract** (`spec` entries, every `kind` takes an optional `"pane"` int,
+default `0` = main price pane):
+
+| `kind` | needs | notes |
+|---|---|---|
+| `"candle"` | `open`/`high`/`low`/`close`, or `"column": "bid"` → `bid_open`/… | at most one per chart (it *is* the chart's own series) |
+| `"line"` | `"column"` (numeric) | `null` runs are **not** a gap by default in the underlying library (see gotchas) — `FxChart` works around this by splitting a column into one line series per contiguous non-null run, so a bounded/hline-style column (null outside, constant inside) renders correctly without you doing anything |
+| `"marker"` | `"column"` (boolean) | `True` rows get a glyph; `shape` (`circle`/`arrow_up`/`arrow_down`/`square`), `color`, `position` (`above`/`below`/`inside`) |
+| `"region"` | `"column"` (boolean) | contiguous `True` runs shaded. Add `top_column`/`bottom_column` (numeric, constant per run) for a bounded box instead of full-height shading |
+
+Calling `.plot()` again is **idempotent**: matching columns update their
+existing series (`.set()`) instead of recreating them, so zoom/pan/timeframe
+survive a rerun; columns no longer in `spec` get `.delete()`d.
+
+Other `FxChart` methods, all used internally by `Strategy.visualize()` but
+public if you're building something custom:
+
+- **`on_range_change(callback)`** — `callback(bars_before, bars_after)` on every
+  pan/zoom (small/negative ⇒ near that edge of the loaded window). This is the
+  spec §5 lazy-load hook.
+- **`add_timeframe_switcher(options, default, callback)`** — the native topbar
+  selector; `callback(new_timeframe)` on click. **Call this exactly once** per
+  chart — see gotchas.
+- **`position_tool(entry, stop, target, entry_time, end_time=None, ...)`** —
+  the long/short risk-reward box (red stop zone, green target zone). One call
+  per trade; no `spec`/column entry for this (one object per trade doesn't fit
+  the per-bar column shape). See gotchas for the bar-alignment requirement.
+- **`batch()`** — internal; combines several script sends into one atomic send.
+  Don't wrap a `.plot()` call in it yourself (see gotchas).
+
+### `Strategy.visualize(engine, chart=None, show_trades=False, *, initial_bars=500, warmup_bars=200, fetch_chunk=500, edge_margin=50, timeframes=(...)) -> FxChart` ✅
+
+The primary interface — real work happens through a `Strategy` subclass, not
+raw `FxChart` calls.
+
+- **Spec is auto-built**, never hand-written: a candle (`bid_*`) entry, plus one
+  `"line"`/`"marker"`/`"region"` entry per name in `line_columns`/
+  `marker_columns`/`region_columns` (§2), each with its own color from a small
+  palette (lines and markers get *disjoint* palette ranges, so e.g. 2 lines +
+  2 markers are 4 genuinely distinct colors, not 2 colors used twice). An
+  undeclared column is simply never plotted — explicit wins, no guessing.
+- **Lazy-loading (§5):** only the last `initial_bars` bars load at first.
+  Panning within `edge_margin` bars of the loaded window's edge fetches another
+  `fetch_chunk` bars on that side (`on_range_change`). `engine.base_1s` is
+  re-resampled to the active timeframe **once** and cached — an ordinary pan
+  only re-slices the cached frame, never re-resamples.
+- **Timeframe-switching (§4) is display-only.** Clicking a topbar button
+  resamples `engine.base_1s` fresh and recomputes `generate_signals()` *for
+  display* — the SMA lines/markers you see genuinely change. It does **not**
+  re-run `engine.backtest()` and does **not** change `self.timeframe` on the
+  strategy (deliberately — re-backtesting, including the numba 1s walk, on
+  every click would make the chart sluggish, §8.5's same reasoning). The
+  practical consequence: `show_trades=True`'s position-tool boxes always
+  reflect the real backtest at the strategy's *actual* configured timeframe,
+  so they generally won't line up with a crossover you're looking at on some
+  *other* timeframe — that's not a bug, it's two different things being shown
+  together.
+- **No-lookahead discipline**, the thing to trust most here: every window
+  handed to `generate_signals()` is extended **strictly backward in time** by
+  `warmup_bars` so indicators aren't null/seamed at the loaded edge, then those
+  extra rows are dropped before anything is plotted or returned. Covered by
+  dedicated tests (`TestWindowedSignalsNoLookahead`) that poison data on both
+  sides of the window and confirm the output is unaffected either direction —
+  not just "looks right once," structurally can't read data it wasn't given.
+- **`show_trades=True`:** runs `engine.backtest(self)` **once** (not on every
+  rerun/pan/switch — §8.5), then draws one `position_tool()` box per trade
+  whose entry falls in the currently-loaded window, with `stop`/`target`
+  recomputed from `entry_price` + `self.sl_pips`/`self.tp_pips` via the same
+  `_sl_tp_levels` the engine itself used. Default `False` for the same reason
+  as §8.5: the fast signal-iteration loop shouldn't pay for a backtest on
+  every keystroke-driven rerun.
+
+### Gotchas (confirmed hands-on, not from the library's docs)
+
+These matter if you're extending `fx_viz`/`visualize()` — all already handled
+transparently by the code above, listed here so a future change doesn't
+silently reintroduce one:
+
+- **tz-naive only.** Any timestamp reaching this library (a `time` column, a
+  `PositionTool`'s `entry_time`/`end_time`) must be tz-naive — a tz-aware value
+  throws `TypeError` inside the library's own `_format_time`. Check *every* new
+  code path that hands it a timestamp, not just the first one found — this bit
+  twice in the same module (the main plot path, then again at `position_tool`,
+  which takes raw `datetime`s straight from the trade log rather than going
+  through the same `_to_pandas()` prep).
+- **`PositionTool` needs bar-aligned times.** A sub-bar-precision `entry_time`/
+  `end_time` collapses the box to a near-zero-width sliver instead of spanning
+  the real range — confirmed by direct reproduction. SL/TP exits resolve on
+  the real 1s price path (§2.3) and so land on an exact second, never `:00` —
+  i.e. this hits ~40% of real trades, not a rare edge case. Fixed by
+  `_nearest_bar_at_or_before()` snapping both times to a real bar before they
+  reach `position_tool()`.
+- **`null` does not render as a gap by default.** Lightweight Charts v5's line
+  series silently interpolates straight across null/whitespace points instead
+  of breaking — confirmed with a sharp step-function test (a smooth/linear
+  test signal can't tell the two apart, since a straight connecting line and a
+  true gap look identical when the trend is already linear). `FxChart._plot_line`
+  works around this by splitting a column into one `create_line()` series per
+  contiguous non-null run.
+- **A series' marker-plugin setup is asynchronous with no "ready" signal.**
+  Touching a brand-new series' markers immediately can throw `Cannot read
+  properties of undefined (reading 'setMarkers')` — and in Chromium, an
+  uncaught exception mid-script aborts every *later* statement in that same
+  combined send, which once silently prevented a topbar switcher batched right
+  after it from ever appearing. `FxChart.plot()` applies marker *data* in a
+  separate phase, after a real wall-clock gap for brand-new series, via a
+  self-healing JS retry loop instead of the library's own `marker_list()`
+  (which sends unconditionally and lets it throw).
+- **No "replace a widget" API.** Re-registering `add_timeframe_switcher`/
+  `on_range_change` on every `visualize()` rerun stacks a new topbar row on
+  top of the old one instead of replacing it (confirmed: 3 duplicate rows
+  after 3 reruns). `visualize()` wires both exactly once per `chart`
+  (`chart._fx_events_wired`); a mutable state dict stored on the chart itself
+  (`chart._fx_live`) is what lets a rerun with different strategy params still
+  take effect without re-wiring.
+- **`StreamChart` ships a CSP header with no `style-src`**, which blocks the
+  inline-style mutations the JS uses to resize panes — breaks dynamic
+  `add_pane()` silently (14 browser console errors, no Python exception).
+  `FxChart` patches this at the HTTP-response level, process-wide, the first
+  time an `FxChart` is created (can't be fixed by editing the installed
+  package — a reinstall would wipe it).
+- **`StreamChart`'s window (`StreamWindow`) is missing `_id_gen`**, a class
+  attribute the desktop `Window` class has that `marker()`/`marker_list()`
+  need. `FxChart` patches it in at construction time, same mechanism as the
+  CSP fix.
+- **Don't wrap a `.plot()` call in an outer `chart.batch()`.** `plot()` already
+  does its own two-phase send internally for marker timing (see above);
+  `batch()` is reentrant, so an outer wrapper makes the inner call join that
+  one send and silently defeats the two-phase split.
+- **A box/region positioned outside the current viewport can look "missing."**
+  `StreamChart` doesn't auto-fit to the full loaded range — it shows a
+  scrolled view of the most recent portion. A region on older data is still
+  correctly positioned; pan to it (or, for a one-off check,
+  `chart._sc.run_script(f"{chart._sc.id}.chart.timeScale().fitContent()")` to
+  force the whole loaded range into view) to confirm.
+- **Playwright's `page.screenshot()` (CDP capture) can itself trigger a
+  one-off `setMarkers` console error** via some forced-repaint path unrelated
+  to normal rendering — confirmed via A/B test (0 errors polled 10s without a
+  screenshot call; 1 appears specifically right after one). A testing-harness
+  artifact, not something real browser/notebook usage triggers — don't chase
+  it if you see it while testing this way yourself.
+
+### Verification method
+
+Nothing above was confirmed by reading the library's source alone — every
+claim was reproduced hands-on with Playwright driving a real headless
+Chromium against the actual served page: real mouse drags for pan events,
+real clicks for the topbar switcher, WebSocket frame sniffing to confirm what
+data actually reached the browser, and screenshots read back directly. See
+`notebooks/viz_spike.ipynb` (the original §1.1 spike) for the technique if you
+need to verify a future change the same way — it's cheap to redo and catches
+things a "did it throw?" check alone would miss (several of the gotchas above
+rendered silently wrong with zero exceptions anywhere).
 
 ---
 
@@ -613,7 +840,7 @@ fig = plot_equity(report)              # -> matplotlib Figure (caller shows/save
 
 ## Testing (spec §6)
 
-**141 tests** — `pytest lib/tests/` (135 fast; 6 more with `-m slow` when the
+**157 tests** — `pytest lib/tests/` (151 fast; 6 more with `-m slow` when the
 2024 data file is present).
 
 ```bash
@@ -709,3 +936,20 @@ pytest lib/tests/ -m slow    # + the end-to-end regression
   bucket dropped when the data doesn't end on a boundary, kept when it does;
   (b) for 5m and 1h, `close_time == bucket_start + timeframe`, not a hardcoded
   duration; (c) bid/ask OHLC aggregation checked on a few hand-verifiable rows.
+- **`test_viz.py`** ✅ (16 tests) — `fx_viz`'s pure-logic pieces only; anything
+  needing a live browser (candle/line/marker/region rendering, hot-reload, pane
+  add/delete) was verified by hand instead, see **fx_viz**'s gotchas/
+  verification-method sections above, not re-covered here. `_contiguous_runs`
+  (6): single/empty/bounded/leading-trailing/single-bar runs — the gap-
+  segmentation helper behind the null-doesn't-gap-by-default workaround.
+  `_to_pandas` (2): strips tz, passes tz-naive through unchanged. **
+  `TestWindowedSignalsNoLookahead`** (6, the most load-bearing ones here): a
+  windowed-with-warmup computation matches a full-dataset computation exactly,
+  bar for bar; degrades safely (more nulls, never a wrong or fabricated value)
+  when `warmup_bars` is less than an indicator's own lookback; the zero-offset
+  edge case needs no clamp; and the two most direct lookahead checks —
+  poisoning data at/after `end_idx` or before `compute_start` and confirming
+  the result is provably unaffected either direction, not just "looks right
+  once." `TestTradesInWindow` (3) — the trade-window filter behind the
+  `PositionTool` overlay: keeps only entries within range, boundary-inclusive,
+  empty trade log → empty result.
