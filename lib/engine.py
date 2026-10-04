@@ -118,6 +118,22 @@ def _trades_in_window(trades: pl.DataFrame, start_time, end_time) -> pl.DataFram
     )
 
 
+def _nearest_bar_at_or_before(bars: pl.DataFrame, time):
+    """The latest bar in `bars` with `timestamp <= time`, tz-naive.
+
+    `PositionTool` needs its `entry_time`/`end_time` to land on a real bar --
+    confirmed by direct testing that a sub-bar-precision timestamp (e.g. a
+    SL/TP exit, which resolves on the real 1s price path and so almost never
+    falls on a clean bar boundary) collapses the box to a near-zero-width
+    sliver instead of spanning the real range. Falls back to the first bar
+    if `time` is before all of them (shouldn't happen for a real trade's own
+    entry/exit, but keeps this total rather than raising on an edge case).
+    """
+    ts = bars["timestamp"]
+    idx = max(ts.search_sorted(time, side="right") - 1, 0)
+    return ts[idx].replace(tzinfo=None)
+
+
 class Strategy(ABC):
     """Formal strategy interface (spec §2.2).
 
@@ -307,9 +323,15 @@ class Strategy(ABC):
                         entry=row["entry_price"], stop=stop, target=target,
                         # tz-naive -- same gotcha as the main plot path
                         # (abstract.py's _format_time can't convert a
-                        # tz-aware datetime, only reject it).
-                        entry_time=row["entry_time"].replace(tzinfo=None),
-                        end_time=row["exit_time"].replace(tzinfo=None),
+                        # tz-aware datetime, only reject it). Also snapped to
+                        # a real bar boundary (_nearest_bar_at_or_before):
+                        # PositionTool's end_time collapses the box to a
+                        # near-zero-width sliver when given a sub-bar-
+                        # precision timestamp -- confirmed by direct testing
+                        # -- and SL/TP exits always have one (they resolve on
+                        # the real 1s price path, e.g. "...:21", never ":00").
+                        entry_time=_nearest_bar_at_or_before(bars, row["entry_time"]),
+                        end_time=_nearest_bar_at_or_before(bars, row["exit_time"]),
                     ))
             chart._fx_trade_positions = positions
 
