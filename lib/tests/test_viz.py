@@ -6,7 +6,8 @@ verified by hand with a Playwright-driven headless Chromium against real
 backtester data -- see the §1.1 spike methodology in
 notebooks/viz_spike.ipynb. This file covers only what's testable without one:
 the contiguous-run/gap-segmentation helper, the tz-strip-and-rename prep
-step, and the trade-to-column projection used by Strategy.visualize().
+step, and the trade-window filter used by Strategy.visualize()'s
+PositionTool overlay.
 """
 
 from datetime import datetime
@@ -17,7 +18,7 @@ import polars as pl
 import pytest
 
 from fx_viz.chart import _contiguous_runs, _to_pandas
-from lib.engine import _project_trades, _windowed_signals
+from lib.engine import _trades_in_window, _windowed_signals
 from lib.strategies import SmaCrossoverStrategy
 
 
@@ -75,17 +76,9 @@ class TestToPandas:
         assert "time" in pdf.columns
 
 
-class TestProjectTrades:
-    @staticmethod
-    def _signal_df(n=10):
-        return pl.DataFrame(
-            {
-                "timestamp": pl.datetime_range(
-                    pl.datetime(2024, 1, 1), pl.datetime(2024, 1, 1, 0, 9),
-                    "1m", eager=True,
-                ),
-            }
-        )
+class TestTradesInWindow:
+    """`_trades_in_window` picks which trades get a `PositionTool` overlay
+    for the currently-loaded chart window (visualizer §8.4)."""
 
     @staticmethod
     def _trade(entry_min, exit_min, direction):
@@ -100,46 +93,34 @@ class TestProjectTrades:
             "spread_pips_paid": 0.1,
         }
 
-    def test_marks_entry_bar_and_in_trade_window(self):
-        df = self._signal_df()
-        trades = pl.DataFrame([self._trade(2, 5, "long")])
-        out = _project_trades(df, trades)
-
-        assert out["trade_entry_long"].to_list() == [
-            False, False, True, False, False, False, False, False, False, False
-        ]
-        # [entry_time, exit_time) -- bar 5 (the exit bar) is NOT inside the window
-        assert out["trade_region_long"].to_list() == [
-            False, False, True, True, True, False, False, False, False, False
-        ]
-        assert not out["trade_entry_short"].any()
-        assert not out["trade_region_short"].any()
-
-    def test_non_overlapping_long_and_short_trades(self):
-        df = self._signal_df()
-        trades = pl.DataFrame([self._trade(1, 3, "long"), self._trade(3, 6, "short")])
-        out = _project_trades(df, trades)
-
-        assert out["trade_region_long"].to_list() == [
-            False, True, True, False, False, False, False, False, False, False
-        ]
-        assert out["trade_region_short"].to_list() == [
-            False, False, False, True, True, True, False, False, False, False
+    def test_keeps_only_trades_entered_within_range(self):
+        trades = pl.DataFrame([
+            self._trade(1, 2, "long"),    # before the window -- excluded
+            self._trade(5, 7, "long"),    # inside -- kept
+            self._trade(8, 9, "short"),   # inside -- kept
+            self._trade(20, 22, "short"), # after the window -- excluded
+        ])
+        out = _trades_in_window(trades, datetime(2024, 1, 1, 0, 4), datetime(2024, 1, 1, 0, 10))
+        assert out["entry_time"].to_list() == [
+            datetime(2024, 1, 1, 0, 5), datetime(2024, 1, 1, 0, 8)
         ]
 
-    def test_no_trades_yields_all_false(self):
-        df = self._signal_df()
+    def test_boundary_entries_are_inclusive(self):
+        trades = pl.DataFrame([self._trade(4, 6, "long"), self._trade(10, 12, "long")])
+        out = _trades_in_window(trades, datetime(2024, 1, 1, 0, 4), datetime(2024, 1, 1, 0, 10))
+        assert out.height == 2
+
+    def test_no_trades_yields_empty(self):
         trades = pl.DataFrame(
             [], schema={
-                "entry_time": df.schema["timestamp"], "entry_price": pl.Float64,
-                "direction": pl.String, "exit_time": df.schema["timestamp"],
+                "entry_time": pl.Datetime, "entry_price": pl.Float64,
+                "direction": pl.String, "exit_time": pl.Datetime,
                 "exit_price": pl.Float64, "pips": pl.Float64,
                 "exit_reason": pl.String, "spread_pips_paid": pl.Float64,
             }
         )
-        out = _project_trades(df, trades)
-        for col in ("trade_entry_long", "trade_entry_short", "trade_region_long", "trade_region_short"):
-            assert not out[col].any()
+        out = _trades_in_window(trades, datetime(2024, 1, 1), datetime(2024, 1, 2))
+        assert out.height == 0
 
 
 class TestWindowedSignalsNoLookahead:

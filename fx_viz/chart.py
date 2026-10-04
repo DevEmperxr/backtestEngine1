@@ -140,11 +140,15 @@ class FxChart:
     def batch(self):
         """Combine every script issued inside this block into one atomic
         send -- see `plot()`'s docstring for why (a JS-side marker-plugin
-        race). Reentrant: `plot()` uses this internally too, so a `visualize()`
-        that does an initial `plot()` immediately followed by
-        `on_range_change`/`add_timeframe_switcher` registration can wrap the
-        whole sequence in one outer `with chart.batch():` and the inner
-        `plot()` call will just join the same batch instead of flushing early.
+        race). Reentrant: `plot()` uses this internally too. Do NOT wrap a
+        `plot()` call together with other calls in an outer `with
+        chart.batch():` -- `plot()` needs its own two-phase timing for
+        marker series internally, and reentrancy means an outer batch would
+        make it join that one send and silently defeat the two-phase split
+        (confirmed by direct testing: it also silently prevented a topbar
+        switcher batched right after it from ever appearing). Only use this
+        directly for your own sequences of calls that don't themselves call
+        `plot()`.
         """
         if self._sc.win.bulk_run.enabled:
             yield  # already inside an outer batch -- nothing to do here
@@ -170,6 +174,27 @@ class FxChart:
         self._sc.topbar.switcher(
             "tf", options, default=default,
             func=lambda chart_obj: callback(chart_obj.topbar["tf"].value),
+        )
+
+    def position_tool(
+        self, entry: float, stop: float, target: float, entry_time, end_time=None,
+        *, stop_color: str = "rgba(239, 83, 80, 0.25)", target_color: str = "rgba(38, 166, 154, 0.25)",
+    ):
+        """The TradingView-style long/short position tool for one trade: a red
+        stop-zone rectangle (entry -> stop) and a green target-zone rectangle
+        (entry -> target). Pin `end_time` to the trade's actual exit for a
+        closed historical trade -- left as `None` (the library's default), it
+        auto-tracks the chart's latest bar, which is only right for a still-
+        open position. No column-based `spec` entry for this (deliberately --
+        one object per trade doesn't fit the per-bar column shape §6 is built
+        around). Returns the created object; call `.delete()` on it yourself
+        to remove it (e.g. before re-rendering a new set on a rerun).
+        """
+        from lightweight_charts.plugins.position_tool import PositionTool
+
+        return PositionTool(
+            self._sc, entry, stop, target, entry_time, end_time,
+            stop_color=stop_color, target_color=target_color,
         )
 
     # ------------------------------------------------------------------
