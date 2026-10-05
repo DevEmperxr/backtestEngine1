@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05
 **File:** research/strategies/003_sma_nywin_atr.py
-**Status:** exploring
+**Status:** discarded
 
 ## Hypothesis
 *(written and committed before any code or backtest — pre-registration)*
@@ -35,16 +35,48 @@ per-trade `sl_pips` matches 2.5 × ATR(14) computed on bars up to the signal bar
 **Trial count:** trial 3 of 3 pre-registered variants.
 
 ## Headline result
-_(filled after the run)_
+- trades: 273, win rate: 37.7%, net pips: **−166.6** (expectancy −0.61 pips/trade)
+- profit factor 0.88, avg win +12.0 / avg loss −8.3, max DD −3.2%, Sharpe −0.96
+- exits: 69 TP / 122 SL / 82 force-flat
+- per-trade SL (2.5 × ATR14): min 3.7, p10 5.9, median 9.3, p90 18.7, max 31.8 pips
+- verdict: `unprofitable` (not withheld)
 
 ## Adversarial checks
-_(filled after the run)_
+- gross vs net: gross **−102.7**, spread 63.9 → "no edge — gross P&L not positive".
+- bootstrap CI (expectancy): **[−1.92, +0.75] → straddles zero.**
+- MC drawdown: observed −3.17% vs median −2.77%, rank 24.7% → not fragile.
+- ex-best-month: dropping Oct (+59.4) → −226.0. ex-best-trades: top 5% → −481.2.
+- **H1/H2 split:** H1 −133.5 (win 36.6%), H2 −33.2 (win 38.7%). Negative in both.
+- **random-walk null:** TP-first rate 36.1% vs 40.0% null (below random, within noise).
+- **lookahead audit: passed.** 273/273 entries verified; 0 force-flat violations;
+  0 trades whose SL differs from 2.5 × ATR at the signal bar.
 
 ## Visual check
-_(filled after the run)_
+Static render of 4 randomly sampled trades (seed 7) at the strategy's own 5m
+timeframe: [sample_trades.png](sample_trades.png). Checked: each entry is one bar
+after a real SMA20/SMA50 cross, inside the shaded window (12:00–16:00 London);
+SL/TP lines at the logged distances; force-flat exits land at exactly
+16:00:00 London. Nothing suspicious. The interactive `strategy.visualize(engine,
+show_trades=True)` was **not** run in this session (no notebook); a human pass
+in the notebook is still worth doing.
+
+Observation (post hoc, **not** pre-registered): entries in the last 30 min of
+the window (15:30–15:55 London) are near-certain to be time-exited before SL/TP
+can resolve: 23 trades, −45.7 pips in 001 (−43.9 in 003). Acting on this would
+be a data-snooped change and must be logged as a new trial.
 
 ## Interpretation
-_(filled after the run)_
+Volatility-scaled exits did not help. Gross P&L is negative and the TP rate is a
+little *below* the random-walk null. The CI still straddles zero, so 003 is not
+demonstrably worse than 001 either. Its distance from 001 (−167 vs +27) is within
+noise for ~270 trades. This is what Kaminski & Lo predict when the entry has no
+momentum information: reshaping the exits only reshuffles the noise.
 
 ## Decision
-_(filled after the run)_
+**discard**.
+**Why:** gross P&L −102.7 (no edge before costs); expectancy CI [−1.92, +0.75]
+straddles zero; both halves negative; TP rate 36.1% vs 40% null. Scaling the exits
+to volatility cannot rescue an entry that carries no signal.
+
+
+Raw numbers: [results.json](results.json) · plots: [equity](equity.png), [monthly](monthly.png), [MC drawdown](mc_drawdown.png)

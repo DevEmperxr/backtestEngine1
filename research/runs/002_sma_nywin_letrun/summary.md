@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05
 **File:** research/strategies/002_sma_nywin_letrun.py
-**Status:** exploring
+**Status:** discarded
 
 ## Hypothesis
 *(written and committed before any code or backtest — pre-registration)*
@@ -54,16 +54,53 @@ expectation is "no edge"; only clear evidence should overturn it.
   later variant counts as an extra trial and must be reported as such.
 
 ## Headline result
-_(filled after the run)_
+- trades: 266, win rate: 40.2%, net pips: **+15.0** (expectancy +0.06 pips/trade)
+- profit factor 1.01, max DD −3.3%, Sharpe 0.08
+- exits: 107 TP / 159 SL (no time exit)
+- verdict: `profitable` (not withheld). Sample-size gate only; see the CI.
 
 ## Adversarial checks
-_(filled after the run)_
+- gross vs net: gross +80.2, spread 65.2, net +15.0 → "profitable after costs"
+  (+0.30 pips/trade gross).
+- bootstrap CI (expectancy): **[−1.45, +1.56] → straddles zero.** Win-rate CI
+  [34.2, 46.2]%.
+- MC drawdown: observed −3.30% vs median −2.03%, worst −4.45%, rank 2.6% → not
+  fragile (the real ordering was unusually *unlucky*).
+- ex-best-month: dropping Nov (+135) → **−120.0**. ex-best-trades: top 1% → −30,
+  top 5% → −195.
+- **H1/H2 split:** H1 −115.0 (win 36.1%), H2 +130.0 (win 43.5%). **Sign flips.**
+- **random-walk null:** win rate 40.23% vs 40.0% null: almost exactly random.
+- **001 vs 002 (time-exit effect):** the 68 trades 001 force-closed at 16:00 made
+  −18.2 pips there; in 002 the same trades ran to 26 TP / 42 SL = −30.0 pips (median
+  3.1 h to resolve). The 16:00 flat saved ~12 pips over 68 trades, which is noise.
+- **lookahead audit: passed** (266/266 entries verified).
 
 ## Visual check
-_(filled after the run)_
+Static render of 4 randomly sampled trades (seed 7) at the strategy's own 5m
+timeframe: [sample_trades.png](sample_trades.png). Checked: each entry is one bar
+after a real SMA20/SMA50 cross, inside the shaded window (12:00–16:00 London);
+SL/TP lines at the logged distances; force-flat exits land at exactly
+16:00:00 London. Nothing suspicious. The interactive `strategy.visualize(engine,
+show_trades=True)` was **not** run in this session (no notebook); a human pass
+in the notebook is still worth doing.
+
+Observation (post hoc, **not** pre-registered): entries in the last 30 min of
+the window (15:30–15:55 London) are near-certain to be time-exited before SL/TP
+can resolve: 23 trades, −45.7 pips in 001 (−43.9 in 003). Acting on this would
+be a data-snooped change and must be logged as a new trial.
 
 ## Interpretation
-_(filled after the run)_
+The cleanest null result of the three. With no time exit, every trade is a pure
+10/15 bracket, and the win rate (40.2%) matches the random-walk prediction (40%)
+almost exactly. The entry carries no directional information. Holding past London
+close neither helps nor hurts in any detectable way.
 
 ## Decision
-_(filled after the run)_
+**discard**.
+**Why:** win rate 40.23% vs 40.0% random-walk null; expectancy CI [−1.45, +1.56]
+straddles zero; halves have opposite signs; ex-November −120. The 001-vs-002
+comparison shows the 16:00 force-flat makes no meaningful difference (~12 pips
+over 68 trades).
+
+
+Raw numbers: [results.json](results.json) · plots: [equity](equity.png), [monthly](monthly.png), [MC drawdown](mc_drawdown.png)

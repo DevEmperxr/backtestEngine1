@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from importlib import import_module
 from pathlib import Path
 
+import numpy as np
 import polars as pl
 
 from lib.data import load_1s_data, resample
@@ -49,6 +50,8 @@ def _jsonable(x):
         return [_jsonable(v) for v in x]
     if isinstance(x, pl.DataFrame):
         return None  # frames are saved separately / plotted, not dumped
+    if isinstance(x, np.ndarray):
+        return x.tolist() if x.size <= 50 else None  # e.g. the 10k MC samples: plotted, not dumped
     if isinstance(x, float) and x != x:
         return None
     if hasattr(x, "isoformat"):
