@@ -15,7 +15,7 @@ import polars as pl
 
 from lib.data import PIP
 from lib.engine import Strategy, _sl_tp_levels
-from lib.signals import session_window
+from lib.signals import atr, session_window
 
 _orb = import_module("research.strategies.005_orb_ny_prenews")
 NY, LONDON = _orb.NY, "Europe/London"
@@ -31,9 +31,19 @@ class OrbFixFadeStrategy(Strategy):
     force_flat = True
     audit_kind = "orb_fix_fade"
 
-    def __init__(self, *, fix_time: time = time(16, 0), timeframe: str = "1m") -> None:
+    def __init__(
+        self, *, fix_time: time = time(16, 0), timeframe: str = "1m",
+        exit_mode: str = "mirror", atr_tf: str = "1h", atr_n: int = 14,
+        sl_atr: float = 1.5, tp_atr: float = 1.5,
+    ) -> None:
         super().__init__(10.0, 10.0, timeframe)   # per-trade columns override these
+        if exit_mode not in ("mirror", "time", "atr", "range"):
+            raise ValueError(f"unknown exit_mode {exit_mode!r}")
         self.fix_time = fix_time
+        # mirror = 018 (TP at breakout SL, SL at breakout TP); time = 019A;
+        # atr = 019B; range = 019C. See research/runs/019_orb_fix_fade_exits.
+        self.exit_mode, self.atr_tf, self.atr_n = exit_mode, atr_tf, atr_n
+        self.sl_atr, self.tp_atr = sl_atr, tp_atr
         self.window_end, self.window_end_tz = time(16, 0), NY
         self.orb = _orb.make()                     # 005, unchanged
 
@@ -46,6 +56,19 @@ class OrbFixFadeStrategy(Strategy):
                       & (close_l.dt.weekday() <= 5),
             is_fix=(close_l.dt.time() == self.fix_time) & (close_l.dt.weekday() <= 5),
         )
+        if self.exit_mode != "mirror":
+            # ATR of the LAST CLOSED higher-tf mid bar (as-of backward on close_time)
+            m = lambda f: (pl.col(f"bid_{f}") + pl.col(f"ask_{f}")) / 2
+            htf = (
+                df.select("timestamp", h=m("high"), l=m("low"), c=m("close"))
+                .group_by_dynamic("timestamp", every=self.atr_tf, label="left", closed="left")
+                .agg(pl.col("h").max(), pl.col("l").min(), pl.col("c").last())
+                .with_columns(_atr_ct=pl.col("timestamp").dt.offset_by(self.atr_tf),
+                              atr_pips=atr(pl.col("h"), pl.col("l"), pl.col("c"), self.atr_n) / PIP)
+                .select("_atr_ct", "atr_pips")
+            )
+            out = out.join_asof(htf, left_on="close_time", right_on="_atr_ct",
+                                strategy="backward").drop("_atr_ct")
         n = out.height
         is_fix = out["is_fix"].to_numpy()
         fix_idx = np.flatnonzero(is_fix)
@@ -55,6 +78,8 @@ class OrbFixFadeStrategy(Strategy):
         mid = out["mid_close"].to_numpy()
         o_long, o_short = orb["long_signal"].to_numpy(), orb["short_signal"].to_numpy()
         o_sl, o_tp = orb["sl_pips"].to_numpy(), orb["tp_pips"].to_numpy()
+        r_hi, r_lo = orb["range_hi_d"].to_numpy(), orb["range_lo_d"].to_numpy()
+        a = out["atr_pips"].to_numpy() if self.exit_mode != "mirror" else None
 
         long_sig = np.zeros(n, bool)
         short_sig = np.zeros(n, bool)
@@ -76,11 +101,26 @@ class OrbFixFadeStrategy(Strategy):
                 touched = (ah[e:f + 1] >= b_sl).any() or (al[e:f + 1] <= b_tp).any()
             if touched:
                 continue
-            # fade: opposite direction; TP at the breakout's SL, SL at its TP
-            fade_tp = abs(b_sl - mid[f]) / PIP
-            fade_sl = abs(mid[f] - b_tp) / PIP
             right_side = (b_sl > mid[f] > b_tp) if d == -1 else (b_sl < mid[f] < b_tp)
-            if not right_side or fade_tp <= 0 or fade_sl <= 0:
+            if not right_side:
+                continue
+            if self.exit_mode == "mirror":
+                # fade: opposite direction; TP at the breakout's SL, SL at its TP
+                fade_tp = abs(b_sl - mid[f]) / PIP
+                fade_sl = abs(mid[f] - b_tp) / PIP
+            else:
+                atr_f = a[f]
+                if not (atr_f == atr_f) or atr_f <= 0:          # null/NaN ATR: no trade
+                    continue
+                if self.exit_mode == "time":
+                    fade_sl, fade_tp = 3.0 * atr_f, 10.0 * atr_f
+                elif self.exit_mode == "atr":
+                    fade_sl, fade_tp = self.sl_atr * atr_f, self.tp_atr * atr_f
+                else:  # range: back to the edge the breakout broke
+                    edge = r_hi[i] if d == 1 else r_lo[i]
+                    fade_tp = ((mid[f] - edge) if d == 1 else (edge - mid[f])) / PIP
+                    fade_sl = self.sl_atr * atr_f
+            if fade_tp <= 0 or fade_sl <= 0:
                 continue
             if d == 1:
                 short_sig[f] = True

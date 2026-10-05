@@ -376,7 +376,10 @@ def _orbfade_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s: 
     held = held.filter(lt == strategy.fix_time)
     by_time = {r["exit_time"]: r for r in held.iter_rows(named=True)}
     tol = 1.5 * PIP
+    mode = getattr(strategy, "exit_mode", "mirror")
     no_match = wrong_dir = bad_levels = 0
+    if mode != "mirror":
+        atr_at, edge_at = _orbfade_independent_atr_and_edges(strategy, base_1s)
     for r in trades.iter_rows(named=True):
         b = by_time.get(r["entry_time"])
         if b is None:
@@ -386,15 +389,90 @@ def _orbfade_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s: 
             wrong_dir += 1
             continue
         d = 1 if b["direction"] == "long" else -1
-        b_sl = b["entry_price"] - d * b["sl_pips"] * PIP
-        b_tp = b["entry_price"] + d * b["tp_pips"] * PIP
-        f_tp = r["entry_price"] - d * r["tp_pips"] * PIP    # fade direction is -d
-        f_sl = r["entry_price"] + d * r["sl_pips"] * PIP
-        bad_levels += not (abs(f_tp - b_sl) <= tol and abs(f_sl - b_tp) <= tol)
+        if mode == "mirror":
+            b_sl = b["entry_price"] - d * b["sl_pips"] * PIP
+            b_tp = b["entry_price"] + d * b["tp_pips"] * PIP
+            f_tp = r["entry_price"] - d * r["tp_pips"] * PIP    # fade direction is -d
+            f_sl = r["entry_price"] + d * r["sl_pips"] * PIP
+            bad_levels += not (abs(f_tp - b_sl) <= tol and abs(f_sl - b_tp) <= tol)
+            continue
+        a, (mid_f, edge) = atr_at.get(r["entry_time"]), edge_at.get(r["entry_time"], (None, None))
+        if a is None:
+            bad_levels += 1
+            continue
+        if mode == "time":
+            ok = abs(r["sl_pips"] - 3.0 * a) < 1e-6 and abs(r["tp_pips"] - 10.0 * a) < 1e-6
+        elif mode == "atr":
+            ok = abs(r["sl_pips"] - strategy.sl_atr * a) < 1e-6 and abs(r["tp_pips"] - strategy.tp_atr * a) < 1e-6
+        else:  # range: TP back to the edge of the range the breakout broke
+            e = edge["hi"] if d == 1 else edge["lo"]
+            want_tp = ((mid_f - e) if d == 1 else (e - mid_f)) / PIP
+            ok = abs(r["sl_pips"] - strategy.sl_atr * a) < 1e-6 and abs(r["tp_pips"] - want_tp) < 1e-6 and want_tp > 0
+        bad_levels += not ok
     return {"fade_no_matching_open_breakout": no_match, "fade_same_direction_as_breakout": wrong_dir,
             "fade_levels_not_mirrored": bad_levels,
             "info_breakouts_open_at_fix": held.height,
             "info_open_breakouts_without_fade": held.height - (trades.height - no_match)}
+
+
+def _orbfade_independent_atr_and_edges(strategy, base_1s: pl.DataFrame):
+    """Separate code for 019's exits: 1m bars from 1s via lib.data.resample, hourly
+    mid H/L/C aggregated in plain Python, ATR(n) as a simple mean of true range,
+    looked up as the last hour closed <= the entry time; plus the signal-bar mid
+    close and the 07:00-08:30 NY range of each entry's NY date."""
+    from collections import defaultdict
+    from datetime import timedelta
+    b = resample(base_1s, "1m")
+    ts = b["timestamp"].to_list()
+    mh = ((b["bid_high"] + b["ask_high"]) / 2).to_list()
+    ml = ((b["bid_low"] + b["ask_low"]) / 2).to_list()
+    mc = ((b["bid_close"] + b["ask_close"]) / 2).to_list()
+    hours = {}
+    for t, h, l, c in zip(ts, mh, ml, mc):
+        k = t.replace(minute=0, second=0, microsecond=0)
+        if k not in hours:
+            hours[k] = [h, l, c]
+        else:
+            hh = hours[k]
+            hh[0], hh[1], hh[2] = max(hh[0], h), min(hh[1], l), c
+    keys = sorted(hours)
+    n = strategy.atr_n
+    trs, atr_by_close = [], {}
+    prev_c = None
+    for k in keys:
+        h, l, c = hours[k]
+        tr = h - l if prev_c is None else max(h - l, abs(h - prev_c), abs(l - prev_c))
+        trs.append(tr)
+        prev_c = c
+        if len(trs) >= n:
+            atr_by_close[k + timedelta(hours=1)] = sum(trs[-n:]) / n / PIP
+    closes = sorted(atr_by_close)
+    import bisect
+    ny = "America/New_York"
+    close_at = dict(zip(b["close_time"].to_list(), mc))
+    t0 = b["timestamp"].dt.convert_time_zone(ny)
+    t1 = b["close_time"].dt.convert_time_zone(ny)
+    rng = defaultdict(lambda: {"hi": -1e9, "lo": 1e9})
+    for d0, tt0, tt1, h, l in zip(t0.dt.date().to_list(), t0.dt.time().to_list(),
+                                  t1.dt.time().to_list(), mh, ml):
+        if tt0 >= strategy.orb.range_start and tt1 <= strategy.orb.range_end and tt1 > tt0:
+            rng[d0]["hi"] = max(rng[d0]["hi"], h)
+            rng[d0]["lo"] = min(rng[d0]["lo"], l)
+    atr_at, edge_at = {}, {}
+    def lookup(et):
+        j = bisect.bisect_right(closes, et) - 1
+        return atr_by_close[closes[j]] if j >= 0 else None
+    return _LazyMap(lookup), _LazyMap(lambda et: (close_at.get(et), rng.get(
+        et.astimezone(__import__("zoneinfo").ZoneInfo(ny)).date()) if close_at.get(et) is not None else None))
+
+
+class _LazyMap:
+    def __init__(self, fn):
+        self.fn = fn
+
+    def get(self, k, default=None):
+        v = self.fn(k)
+        return default if v is None else v
 
 
 def random_walk_baseline(trades: pl.DataFrame) -> dict:
