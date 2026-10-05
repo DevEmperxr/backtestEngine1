@@ -1,0 +1,301 @@
+{
+  "run": "009_band_rsi_fade",
+  "strategy": {
+    "sl_pips": 10.0,
+    "tp_pips": 10.0,
+    "timeframe": "5m",
+    "bb_n": 20,
+    "bb_k": 2.0,
+    "rsi_n": 14,
+    "rsi_lo": 30,
+    "rsi_hi": 70,
+    "atr_n": 14,
+    "atr_sl_mult": 2.5,
+    "window_end": "16:00:00",
+    "window_end_tz": "Europe/London"
+  },
+  "full_year": {
+    "summary": {
+      "n_trades": 277,
+      "win_rate": 42.238267148014444,
+      "expectancy_pips": -0.6861913357400987,
+      "profit_factor": 0.8688142728966731,
+      "avg_win_pips": 10.759188034187812,
+      "avg_loss_pips": -9.112578616352087,
+      "total_pips": -190.07500000000735,
+      "total_return_pct": -1.9007500000000737,
+      "max_drawdown_pct": -3.838901084786387,
+      "max_drawdown_date": "2024-12-05T14:00:26+00:00",
+      "sharpe": -1.1305657997755532,
+      "sortino": -2.487046253864191,
+      "mar": -0.496643745498383
+    },
+    "verdict": "unprofitable",
+    "gross_vs_net": {
+      "net_pips": -190.07500000000735,
+      "spread_paid_pips": 66.35000000001278,
+      "gross_pips": -123.72499999999457,
+      "net_pnl": -190.07500000000735,
+      "gross_pnl": -123.72499999999457,
+      "spread_paid_pnl": 66.35000000001278,
+      "edge_assessment": "no edge \u2014 gross P&L (before spread) is not positive"
+    },
+    "bootstrap_ci": {
+      "win_rate": {
+        "observed": 42.238267148014444,
+        "mean": 42.20097472924188,
+        "ci_low": 36.462093862815884,
+        "ci_high": 48.014440433213
+      },
+      "expectancy_pips": {
+        "observed": -0.6861913357400986,
+        "mean": -0.6941874415936322,
+        "ci_low": -2.037885379061324,
+        "ci_high": 0.6499464930376347
+      },
+      "n_resamples": 10000,
+      "confidence": 0.95,
+      "seed": 0
+    },
+    "mc_drawdown": {
+      "observed_max_drawdown_pct": -3.838901084786387,
+      "median": -2.949511166929446,
+      "p95": -3.9580726943182527,
+      "worst": -5.2668339809480615,
+      "percentile_rank": 7.1499999999999995,
+      "fragile": false,
+      "fragile_note": "fragile == the real ordering's drawdown is milder than the 25th percentile of the shuffled distribution \u2014 a large fraction of reorderings would have been worse, so the reported drawdown may be a lucky-ordering artifact.",
+      "distribution": null,
+      "n_shuffles": 10000,
+      "seed": 0,
+      "note": "This tests sequence risk on the trades you already have \u2014 it cannot detect a missing edge, and a good shuffle distribution is not validation of the strategy."
+    },
+    "ex_best_month": {
+      "dropped_month": "2024-12-01",
+      "dropped_month_pips": 88.90142857142624,
+      "pips": -278.97642857143353,
+      "pnl": -278.97642857143353,
+      "full_pips": -190.0750000000073
+    },
+    "ex_best_trades": [
+      {
+        "pct": 0.01,
+        "n_dropped": 3,
+        "pips": -285.70750000000766,
+        "pnl": -285.70750000000766
+      },
+      {
+        "pct": 0.05,
+        "n_dropped": 14,
+        "pips": -523.5749999999962,
+        "pnl": -523.5749999999962
+      }
+    ],
+    "sample_size": {
+      "n_trades": 277,
+      "min_trades": 100,
+      "low_sample": false,
+      "warning": null
+    }
+  },
+  "halves": {
+    "H1_jan_jun": {
+      "summary": {
+        "n_trades": 149,
+        "win_rate": 38.25503355704698,
+        "expectancy_pips": -1.3572195589645326,
+        "profit_factor": 0.7511292389037426,
+        "avg_win_pips": 10.707850877192776,
+        "avg_loss_pips": -8.832317546583734,
+        "total_pips": -202.22571428571536,
+        "total_return_pct": -2.0222571428571534,
+        "max_drawdown_pct": -3.1255351105241247,
+        "max_drawdown_date": "2024-06-13T11:32:26+00:00",
+        "sharpe": -2.3697673378890065,
+        "sortino": -4.920979594545282,
+        "mar": -1.320186132361704
+      },
+      "verdict": "unprofitable",
+      "bootstrap_ci": {
+        "win_rate": {
+          "observed": 38.25503355704698,
+          "mean": 38.2751677852349,
+          "ci_low": 30.87248322147651,
+          "ci_high": 46.308724832214764
+        },
+        "expectancy_pips": {
+          "observed": -1.3572195589645328,
+          "mean": -1.3482953499520667,
+          "ci_low": -3.0724066994248034,
+          "ci_high": 0.4425689717161461
+        },
+        "n_resamples": 10000,
+        "confidence": 0.95,
+        "seed": 0
+      },
+      "gross_vs_net": {
+        "net_pips": -202.22571428571536,
+        "spread_paid_pips": 36.19999999999956,
+        "gross_pips": -166.0257142857158,
+        "net_pnl": -202.22571428571536,
+        "gross_pnl": -166.0257142857158,
+        "spread_paid_pnl": 36.19999999999956,
+        "edge_assessment": "no edge \u2014 gross P&L (before spread) is not positive"
+      }
+    },
+    "H2_jul_dec": {
+      "summary": {
+        "n_trades": 128,
+        "win_rate": 46.875,
+        "expectancy_pips": 0.09492745535709382,
+        "profit_factor": 1.0190950853531473,
+        "avg_win_pips": 10.80795833333311,
+        "avg_loss_pips": -9.497414712153411,
+        "total_pips": 12.150714285708009,
+        "total_return_pct": 0.12150714285708009,
+        "max_drawdown_pct": -1.5417963240296062,
+        "max_drawdown_date": "2024-12-05T14:00:26+00:00",
+        "sharpe": 0.14697286192499448,
+        "sortino": 0.34341905252921545,
+        "mar": 0.15811369971713282
+      },
+      "verdict": "profitable",
+      "bootstrap_ci": {
+        "win_rate": {
+          "observed": 46.875,
+          "mean": 46.948515625,
+          "ci_low": 38.28125,
+          "ci_high": 55.46875
+        },
+        "expectancy_pips": {
+          "observed": 0.09492745535709385,
+          "mean": 0.10911621568075339,
+          "ci_low": -1.9054607979910887,
+          "ci_high": 2.127911272321366
+        },
+        "n_resamples": 10000,
+        "confidence": 0.95,
+        "seed": 0
+      },
+      "gross_vs_net": {
+        "net_pips": 12.150714285708009,
+        "spread_paid_pips": 30.150000000013222,
+        "gross_pips": 42.30071428572123,
+        "net_pnl": 12.150714285708009,
+        "gross_pnl": 42.30071428572123,
+        "spread_paid_pnl": 30.150000000013222,
+        "edge_assessment": "profitable after costs"
+      }
+    }
+  },
+  "random_walk_baseline": {
+    "n_bracket_trades": 209,
+    "null_tp_rate_pct": 43.2,
+    "actual_tp_rate_pct": 40.67,
+    "gross_expectancy_pips": -0.447,
+    "net_expectancy_pips": -0.686,
+    "avg_spread_paid_pips": 0.24,
+    "exit_reasons": {
+      "tp": 85,
+      "sl": 124,
+      "exit_signal": 68
+    }
+  },
+  "lookahead_audit": {
+    "n_window_signals": 657,
+    "n_trades": 277,
+    "no_signal_bar_closing_at_entry": 0,
+    "signal_does_not_match_direction": 0,
+    "signal_bar_outside_window": 0,
+    "force_flat_violations": 0,
+    "band_signal_bar_invalid": 0,
+    "sl_mismatch_vs_signal_bar": 0,
+    "ok": true
+  },
+  "monthly": [
+    {
+      "month": "2024-01-01",
+      "pips": -12.737499999997407,
+      "pnl": -12.737499999997407,
+      "n_trades": 21,
+      "win_rate": 38.095238095238095
+    },
+    {
+      "month": "2024-02-01",
+      "pips": 42.121071428560256,
+      "pnl": 42.121071428560256,
+      "n_trades": 23,
+      "win_rate": 47.82608695652174
+    },
+    {
+      "month": "2024-03-01",
+      "pips": -91.82964285714192,
+      "pnl": -91.82964285714192,
+      "n_trades": 30,
+      "win_rate": 36.666666666666664
+    },
+    {
+      "month": "2024-04-01",
+      "pips": -139.81714285713267,
+      "pnl": -139.81714285713267,
+      "n_trades": 26,
+      "win_rate": 23.076923076923077
+    },
+    {
+      "month": "2024-05-01",
+      "pips": 11.165357142852717,
+      "pnl": 11.165357142852717,
+      "n_trades": 28,
+      "win_rate": 39.285714285714285
+    },
+    {
+      "month": "2024-06-01",
+      "pips": -11.12785714285636,
+      "pnl": -11.12785714285636,
+      "n_trades": 21,
+      "win_rate": 47.61904761904761
+    },
+    {
+      "month": "2024-07-01",
+      "pips": -16.439642857144502,
+      "pnl": -16.439642857144502,
+      "n_trades": 19,
+      "win_rate": 31.57894736842105
+    },
+    {
+      "month": "2024-08-01",
+      "pips": -55.05071428572039,
+      "pnl": -55.05071428572039,
+      "n_trades": 20,
+      "win_rate": 35.0
+    },
+    {
+      "month": "2024-09-01",
+      "pips": 65.62499999999804,
+      "pnl": 65.62499999999804,
+      "n_trades": 21,
+      "win_rate": 52.38095238095239
+    },
+    {
+      "month": "2024-10-01",
+      "pips": 35.12785714286481,
+      "pnl": 35.12785714286481,
+      "n_trades": 25,
+      "win_rate": 60.0
+    },
+    {
+      "month": "2024-11-01",
+      "pips": -106.01321428571617,
+      "pnl": -106.01321428571617,
+      "n_trades": 16,
+      "win_rate": 25.0
+    },
+    {
+      "month": "2024-12-01",
+      "pips": 88.90142857142624,
+      "pnl": 88.90142857142624,
+      "n_trades": 27,
+      "win_rate": 62.96296296296296
+    }
+  ]
+}

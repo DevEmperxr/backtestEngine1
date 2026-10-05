@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05
 **File:** research/strategies/007_fix_fade_london.py
-**Status:** exploring
+**Status:** discarded
 
 ## Hypothesis
 *(written and committed before any code or backtest — pre-registration; 007–009 registered together)*
@@ -41,17 +41,49 @@ a much larger conditional effect could show.
   contamination above.
 
 ## Headline result
-_(filled after the run)_
+- trades: 260 (every weekday), win rate 51.9%, net pips: **+39.4** (expectancy +0.15/trade)
+- profit factor 1.02, avg win +12.9 / avg loss −13.7, max DD −2.0%, Sharpe 0.14
+- exits: 252 time-exit at 16:00 NY, 6 SL, 2 TP (the 50-pip disaster bracket barely matters)
+- verdict: `profitable` (sample-size gate only)
 
 ## Adversarial checks
-_(filled after the run)_
+- gross vs net: gross +90.1, spread 50.7 → "profitable after costs" (+0.35 gross/trade).
+- bootstrap CI (expectancy): **[−1.96, +2.29] → straddles zero.**
+- MC drawdown: observed −1.99% vs median −2.75%, rank 90% → `fragile` (real ordering
+  unusually kind).
+- ex-best-month: drop Jan (+65.2) → −25.8; ex top 1% (3 trades) → −105.4; ex top 5% → −460.1.
+- **H1/H2:** H1 −11.4 (win 49.6%), H2 +50.8 (win 54.2%). Not both positive.
+- **Pre-registered |r| split (descriptive):** big pre-fix move (|r| > median): 130 trades
+  **+217.7**, win 59.2%, CI [−1.51, +4.85]; small pre-fix move: 130 trades **−178.3**, win
+  44.6%, CI [−4.20, +1.50].
+- **Raised bar:** CI excludes 0? no. Both halves positive? no. → not a candidate.
+- **lookahead audit: passed.** 260/260 entries at the fix bar's close inside the window;
+  independent recompute of the 15:00→16:00 move from 1s-rebuilt bars: 0 entries off
+  16:00 London, 0 direction mismatches, 0 missing bars; 0 force-flat violations.
 
 ## Visual check
-_(filled after the run)_
+[sample_trades.png](sample_trades.png): entries at 16:00 London, opposite to the
+15:00→16:00 move in all four samples (checked by eye); exits at 21:00 London = 16:00 NY;
+the 50-pip bracket sits far outside the path. Interactive `strategy.visualize` not run (no notebook).
 
 ## Interpretation
-_(filled after the run)_
+As expected from the power calculation, one year cannot resolve this. The total is
+slightly positive, but the CI is ±2 pips/trade wide and H1 is negative.
+
+The pre-registered split is the one thing pointing the way the paper predicts. Krohn,
+Mueller & Whelan's conditional result says a *larger* pre-fix move should reverse
+*more*: big-move days made +217.7, small-move days −178.3. But both CIs include zero,
+it is one split of one year, and 2024 is contaminated by the 006 observation. It is a
+hypothesis worth carrying forward, not a finding.
 
 ## Decision
-_(filled after the run)_
+**discard on 2024 (not a candidate); re-test on other years.**
+**Why:** expectancy CI [−1.96, +2.29] straddles zero; H1 negative; fails the raised bar.
+Carry forward as a pre-specified out-of-sample test: *fade the 15:00→16:00 London move
+only when |move| is above its trailing median*. Its threshold must come from past data
+only (e.g. a trailing 60-day median), never from 2024's full-year median. It must be
+tested on years other than 2024.
 
+
+
+Raw numbers: [results.json](results.json) · plots: [equity](equity.png), [monthly](monthly.png), [MC drawdown](mc_drawdown.png)

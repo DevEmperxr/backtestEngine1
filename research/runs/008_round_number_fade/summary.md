@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05
 **File:** research/strategies/008_round_number_fade.py
-**Status:** exploring
+**Status:** discarded
 
 ## Hypothesis
 *(written and committed before any code or backtest — pre-registration; 007–009 registered together)*
@@ -38,17 +38,43 @@ project has tested round numbers yet.
   ≥ 2 SE above the spread-adjusted null.
 
 ## Headline result
-_(filled after the run)_
+- trades: 378 (from 1,007 in-window rejections; the rest fired while a trade was open),
+  win rate 36.2%, net pips: **−181.7** (expectancy −0.48/trade)
+- profit factor 0.85, avg win +7.5 / avg loss −5.0, max DD −2.8%, Sharpe −1.79
+- exits: 129 TP / 232 SL / 17 force-flat
+- verdict: `unprofitable`
 
 ## Adversarial checks
-_(filled after the run)_
+- gross vs net: gross **−91.8**, spread 89.9 → "no edge — gross P&L not positive".
+- bootstrap CI (expectancy): **[−1.14, +0.19]**, mostly negative.
+- MC drawdown: observed −2.77% vs median −2.38%, rank 16% → not fragile.
+- ex-best-month: drop Jan (+79.5) → −261.2; ex top 5% → −410.4.
+- **H1/H2:** H1 −20.1, H2 −161.6. Negative in both.
+- **random-walk null (spread-adjusted):** TP-first 35.7% vs 38.0% (z ≈ −0.9).
+- **Pre-registered level split:** x.xx00 levels 202 trades **−142.5** (win 33.7%); x.xx50
+  levels 176 trades −39.2 (win 39.2%). Osler finds take-profit clustering strongest at
+  00, so fading should work *best* there. It worked *worst*.
+- **Raised bar:** no on all three counts.
+- **lookahead audit: passed.** 378/378 entries verified; independent level scan on
+  1s-rebuilt bars: 0 invalid signal bars; 0 SL mismatches; 0 force-flat violations.
 
 ## Visual check
-_(filled after the run)_
+[sample_trades.png](sample_trades.png): levels and touch-and-reject bars as defined;
+SL 4 pips beyond the level, TP 1.5×. The 02-29 short shows the failure mode: price
+rejected 1.0850 once, then broke straight through into the stop. Interactive `strategy.visualize` not run (no notebook).
 
 ## Interpretation
-_(filled after the run)_
+No edge. A 1m touch-and-reject at a round number is no better than random, and
+**00 levels were the worst**. That fits Osler's *other* finding: stop-loss orders
+cluster just beyond round numbers, and once they trigger the move accelerates through
+the level. On 1m bars a "rejection" is often just the pause before that cascade.
+Post hoc, not evidence.
 
 ## Decision
-_(filled after the run)_
+**discard**.
+**Why:** gross −91.8 (no edge before costs); CI [−1.14, +0.19]; both halves negative;
+TP rate below the null; the level the theory favours most (00) performed worst.
 
+
+
+Raw numbers: [results.json](results.json) · plots: [equity](equity.png), [monthly](monthly.png), [MC drawdown](mc_drawdown.png)

@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05
 **File:** research/strategies/009_band_rsi_fade.py
-**Status:** exploring
+**Status:** discarded
 
 ## Hypothesis
 *(written and committed before any code or backtest — pre-registration; 007–009 registered together)*
@@ -30,17 +30,37 @@ support was found, so this is the weakest-grounded of the three.
   ≥ 2 SE above the spread-adjusted null.
 
 ## Headline result
-_(filled after the run)_
+- trades: 277 (from 657 in-window signals), win rate 42.2%, net pips: **−190.1**
+  (expectancy −0.69/trade)
+- profit factor 0.87, avg win +10.8 / avg loss −9.1, max DD −3.8%, Sharpe −1.13
+- exits: 85 TP / 124 SL / 68 force-flat
+- verdict: `unprofitable`
 
 ## Adversarial checks
-_(filled after the run)_
+- gross vs net: gross **−123.7**, spread 66.4 → "no edge — gross P&L not positive".
+- bootstrap CI (expectancy): **[−2.04, +0.65]**.
+- MC drawdown: observed −3.84% vs median −2.95%, rank 7% → not fragile (unlucky ordering).
+- ex-best-month: drop Dec (+88.9) → −279.0; ex top 5% → −523.6.
+- **H1/H2:** H1 −202.2 (win 38.3%), H2 +12.2 (win 46.9%).
+- **random-walk null (spread-adjusted):** TP-first 40.7% vs 43.2% (z ≈ −0.7).
+- **Raised bar:** no on all three counts.
+- **lookahead audit: passed.** 277/277 entries verified; independent Bollinger/Wilder-RSI
+  recompute with explicit numpy loops on 1s-rebuilt 5m bars: 0 invalid signal bars;
+  0 SL mismatches; 0 force-flat violations.
 
 ## Visual check
-_(filled after the run)_
+[sample_trades.png](sample_trades.png): entries at closes outside the band with RSI
+extreme; TP at the middle band as of the signal bar. The 01-18 long shows the classic
+failure: fading a persistent trend while the band walks down with price. Interactive `strategy.visualize` not run (no notebook).
 
 ## Interpretation
-_(filled after the run)_
+No edge, as the prior expected for an indicator rule with no peer-reviewed support.
+Behaves like a random entry with a bracket, minus costs.
 
 ## Decision
-_(filled after the run)_
+**discard**.
+**Why:** gross −123.7; CI [−2.04, +0.65]; H1 −202 / H2 +12; TP rate below the null.
 
+
+
+Raw numbers: [results.json](results.json) · plots: [equity](equity.png), [monthly](monthly.png), [MC drawdown](mc_drawdown.png)
