@@ -76,8 +76,8 @@ sample.** It was positive in 2024 (discovery), 2023 and 2025, and positive befor
 three. The per-trade edge shrank sharply from discovery to test: +2.80 → +0.99 → +0.46.
 That is the textbook winner's-curse pattern: the 2024 number was mostly selection luck,
 and whatever is real is probably well under +1 pip/trade. At ~110 trades/year, an edge of
-+0.5 pips/trade with SD ≈ 17 would need roughly **4,500 trades (~40 years)** to confirm
-at 95%. More years of this rule cannot settle it quickly.
++0.5 pips/trade with the measured pooled SD ≈ 18.0 would need roughly **5,000 trades (~45
+years)** to confirm at 95% (≈ 2,600 for the observed +0.69). More years of this rule cannot settle it quickly.
 
 Consistent with the published post-fix reversal (Krohn, Mueller & Whelan; Evans), but
 not evidence for it on its own. 2023's H2 was negative, so it is not steady within years.
@@ -89,3 +89,7 @@ passed), but the pooled 99% CI [−2.47, +3.77] includes zero and the edge decay
 from +2.8 to ~+0.5–1.0 pips/trade. Not tradable with confidence. Next steps, if pursued:
 pre-register on further unseen data (2021–2022 or 2026 YTD), and/or a version with a
 better-shaped bracket (the current TP/SL asymmetry is inherited from 005, not designed).
+
+Note: these runs used a working tree with an uncommitted third-party change to lib/engine.py
+(percentage SL/TP mode for other instruments). Verified it is inert for EURUSD pips mode:
+005, 007 and 018 reproduce their committed 2024 trade logs exactly.
