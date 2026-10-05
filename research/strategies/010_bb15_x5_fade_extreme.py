@@ -36,6 +36,8 @@ class Bb15Cross5FadeStrategy(Strategy):
         tp_frac: float = 0.8, stop_mode: str = "extreme", stop_buffer_pips: float = 2.0,
         atr_n: int = 14, atr_sl_mult: float = 2.5, timeframe: str = "5m",
         confirm: str = "sma_cross",
+        window_start: time = time(7, 0), window_start_tz: str = NY,
+        window_end: time = time(16, 0), window_end_tz: str = LONDON,
     ) -> None:
         super().__init__(10.0, 10.0, timeframe)   # per-trade columns override these
         if stop_mode not in ("extreme", "atr", "signal_bar"):
@@ -48,14 +50,16 @@ class Bb15Cross5FadeStrategy(Strategy):
         self.setup_life_min, self.tp_frac = setup_life_min, tp_frac
         self.stop_mode, self.stop_buffer_pips = stop_mode, stop_buffer_pips
         self.atr_n, self.atr_sl_mult = atr_n, atr_sl_mult
-        self.window_end, self.window_end_tz = time(16, 0), LONDON
+        self.window_start, self.window_start_tz = window_start, window_start_tz
+        self.window_end, self.window_end_tz = window_end, window_end_tz
 
     def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
         mid = lambda f: (pl.col(f"bid_{f}") + pl.col(f"ask_{f}")) / 2
         c15 = pl.col("close")
         out = df.with_columns(
             mid_open=mid("open"), mid_close=mid("close"), mid_high=mid("high"), mid_low=mid("low"),
-            in_window=session_window(pl.col("close_time"), NY, time(7, 0), LONDON, time(16, 0))
+            in_window=session_window(pl.col("close_time"), self.window_start_tz, self.window_start,
+                                     self.window_end_tz, self.window_end)
                       & (pl.col("close_time").dt.convert_time_zone(NY).dt.weekday() <= 5),
         )
         # 15m band values of the LAST CLOSED 15m bar (as-of on close_time)
