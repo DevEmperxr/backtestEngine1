@@ -89,7 +89,7 @@ def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s:
     """
     sig = strategy.generate_signals(bars).with_row_index("bar")
     keyed = trades.with_row_index("trade").join(
-        sig.select("bar", "timestamp", "close_time", "cross_up", "cross_down", "in_window",
+        sig.select("bar", "timestamp", "close_time", "long_signal", "short_signal", "in_window",
                    *(["sl_pips"] if "sl_pips" in sig.columns else [])).rename(
             {"timestamp": "signal_bar_start", "sl_pips": "signal_sl_pips"}, strict=False),
         left_on="entry_time", right_on="close_time", how="left",
@@ -97,9 +97,9 @@ def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s:
     is_long = pl.col("direction") == "long"
     problems = {
         "no_signal_bar_closing_at_entry": keyed.filter(pl.col("bar").is_null()).height,
-        "cross_does_not_match_direction": keyed.filter(
+        "signal_does_not_match_direction": keyed.filter(
             pl.col("bar").is_not_null()
-            & ~pl.when(is_long).then(pl.col("cross_up")).otherwise(pl.col("cross_down"))
+            & ~pl.when(is_long).then(pl.col("long_signal")).otherwise(pl.col("short_signal"))
         ).height,
         "signal_bar_outside_window": keyed.filter(
             pl.col("bar").is_not_null() & ~pl.col("in_window")).height,
@@ -134,12 +134,47 @@ def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s:
             | ((pl.col("direction") == "short") & (pl.col("trend") >= 0))
         )
         out[f"trend_{tf}_mismatch"] = wrong.height
+    if hasattr(strategy, "range_start"):
+        out.update(_orb_audit(strategy, trades, base_1s))
     if "signal_sl_pips" in keyed.columns:
         out["sl_mismatch_vs_signal_bar"] = keyed.filter(
             (pl.col("sl_pips") - pl.col("signal_sl_pips")).abs() > 1e-9).height
     out["ok"] = all(v == 0 for k, v in out.items()
                     if k not in ("n_window_signals", "n_trades"))
     return out
+
+
+def _orb_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
+    """Independent ORB re-check: 1m bars rebuilt from the 1s data, the opening
+    range recomputed here with plain wall-clock filtering (not the strategy's
+    code), then for every trade: the signal bar (closing at entry_time) closed
+    beyond the range on the trade's side, it closed after the range ended, no
+    earlier bar that day closed beyond the range, and <= 1 trade per day."""
+    ny = "America/New_York"
+    b = resample(base_1s, "1m").with_columns(
+        mid_c=(pl.col("bid_close") + pl.col("ask_close")) / 2,
+        mid_h=(pl.col("bid_high") + pl.col("ask_high")) / 2,
+        mid_l=(pl.col("bid_low") + pl.col("ask_low")) / 2,
+        t0=pl.col("timestamp").dt.convert_time_zone(ny),
+        t1=pl.col("close_time").dt.convert_time_zone(ny),
+    ).with_columns(d=pl.col("t0").dt.date())
+    rs, re_ = strategy.range_start, strategy.range_end
+    rng = b.filter((pl.col("t0").dt.time() >= rs) & (pl.col("t1").dt.time() <= re_)
+                   & (pl.col("t1").dt.date() == pl.col("d"))).group_by("d").agg(
+        hi=pl.col("mid_h").max(), lo=pl.col("mid_l").min())
+    after = b.filter(pl.col("t1").dt.time() > re_).join(rng, on="d")
+    first_brk = after.filter((pl.col("mid_c") > pl.col("hi")) | (pl.col("mid_c") < pl.col("lo")))         .group_by("d").agg(first_close=pl.col("close_time").min())
+    t = trades.with_columns(d=pl.col("entry_time").dt.convert_time_zone(ny).dt.date())         .join(rng, on="d", how="left").join(first_brk, on="d", how="left")         .join(b.select("close_time", "mid_c", "t1"), left_on="entry_time", right_on="close_time", how="left")
+    long = pl.col("direction") == "long"
+    return {
+        "orb_range_missing": t.filter(pl.col("hi").is_null()).height,
+        "orb_signal_not_beyond_range": t.filter(
+            pl.when(long).then(pl.col("mid_c") <= pl.col("hi")).otherwise(pl.col("mid_c") >= pl.col("lo"))
+        ).height,
+        "orb_signal_not_after_range": t.filter(pl.col("t1").dt.time() <= re_).height,
+        "orb_not_first_breakout": t.filter(pl.col("entry_time") != pl.col("first_close")).height,
+        "orb_days_with_multiple_trades": t.group_by("d").len().filter(pl.col("len") > 1).height,
+    }
 
 
 def random_walk_baseline(trades: pl.DataFrame) -> dict:
@@ -187,6 +222,13 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
         halves[name] = {"summary": r["summary"], "verdict": r["verdict"],
                         "bootstrap_ci": r["adversarial"]["bootstrap_ci"],
                         "gross_vs_net": r["adversarial"]["gross_vs_net"]}
+
+    for name, part in (strategy.report_splits(trades).items()
+                       if hasattr(strategy, "report_splits") else ()):
+        r = engine.evaluate(part, starting_balance=10_000, pip_value=1.0, seed=SEED)
+        halves[f"split_{name}"] = {"summary": r["summary"], "verdict": r["verdict"],
+                                   "bootstrap_ci": r["adversarial"]["bootstrap_ci"],
+                                   "gross_vs_net": r["adversarial"]["gross_vs_net"]}
 
     result = {
         "run": path.stem,
