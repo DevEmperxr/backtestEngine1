@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05
 **File:** research/strategies/011_bb15_x5_fade_atr.py
-**Status:** exploring
+**Status:** discarded
 
 ## Hypothesis
 *(written and committed before any code or backtest — pre-registration; 010 and 011 registered together)*
@@ -51,16 +51,47 @@ setup life from **60 to 120 minutes**. Nothing else changed. New signal count: 1
 middle band is small. Break-even win rate is therefore ~65–70%.
 
 ## Headline result
-_(filled after the run)_
+- trades: **99**, win rate 58.6%, net **+6.3** pips (expectancy +0.06/trade)
+- profit factor 1.02, avg win +5.2 / avg loss −7.3, max DD −0.57%, Sharpe 0.14
+- exits: 47 TP / 24 SL / 28 force-flat
+- verdict: **withheld: "inconclusive (99 trades, need ≥100)"**
 
 ## Adversarial checks
-_(filled after the run)_
+- gross vs net: gross +37.9, spread 31.7.
+- bootstrap CI (expectancy): **[−1.42, +1.49]**; win rate CI [48.5, 67.7]%.
+- MC drawdown: −0.57% vs median −0.73%, rank 82% → `fragile` flag; moot.
+- ex-best-month: drop Mar (+50.5) → −44.2; ex best 1 trade → −10.9; ex top 5% → −65.1.
+- **H1/H2:** H1 −16.7 (60), H2 +23.0 (39).
+- **random-walk null (spread-adjusted):** TP-first 66.2% vs **63.6%** null (z ≈ +0.45).
+- **010 vs 011 (stop choice):** same entries; extreme-stop +12.8 vs ATR-stop +6.3.
+  Indistinguishable at n ≈ 98.
+- **Raised bar:** no on all three counts; verdict withheld for sample size.
+- **lookahead audit: passed** (same checks as 010, all 0).
 
 ## Visual check
-_(filled after the run)_
+[sample_trades.png](sample_trades_entries_shared_with_010.png) (4 random trades of 010; 011 has the same entries):
+setup line (15m close outside the band) precedes each entry within 2 h; the 15m bands step
+only when a 15m bar closes (no lookahead on the chart); entries at a 5m SMA 9/21 cross;
+TP 80% of the way to the middle band. The 02-08 trade shows the structural issue below.
+Interactive `strategy.visualize` not run (no notebook).
 
 ## Interpretation
-_(filled after the run)_
+Inconclusive, and nothing points to an edge. The high win rate is exactly what the
+geometry predicts: targets are about half the stop (median TP/SL 0.55), so a random
+entry would win ~64% of SL/TP-resolved trades, and this won 66.2%. Under 100
+trades, the expectancy CI is ±1.5 pips/trade wide; H1 negative, H2 positive.
+
+Structural issue (post hoc, a new trial if acted on): the 5m 9/21 cross arrives
+late. By then price is usually most of the way back to the middle band: 81–82 of ~98
+trades had TP < SL, and 15 had TP < 2 pips (e.g. 2024-02-08: TP 0.1 vs SL 22.9). The
+confirmation filters out falling knives, but also most of the reversion it was
+meant to capture.
 
 ## Decision
-_(filled after the run)_
+**discard** (inconclusive; no sign of an edge).
+**Why:** verdict withheld (<100 trades); expectancy CI ≈ ±1.5 pips straddles zero; the
+win rate matches the random-walk null for this TP/SL geometry; H1 negative. Under the
+raised bar this fails on every count.
+
+
+Raw numbers: [results.json](results.json) · plots: [equity](equity.png), [monthly](monthly.png), [MC drawdown](mc_drawdown.png)
