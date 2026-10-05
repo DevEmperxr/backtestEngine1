@@ -55,7 +55,21 @@ any year existed when this was written).
 _(filled after the run)_
 
 ## Results — 2023–2025 (descriptive)
-_(filled after the run)_
+*(Run at the user's request while the test years were still downloading; the rules above
+were already committed, so these numbers could not influence the confirmatory test. 2024
+is the discovery year of the entry; none of this is evidence.)*
+
+| exit design | 2023 | 2024 | 2025 | 3-yr total (n) | exp/trade | 95% CI |
+|---|---|---|---|---|---|---|
+| 018 mirrored (control) | +95.9 | +330.2 | +58.2 | +484.3 (341) | +1.42 | [−0.31, +3.21] |
+| 019A time exit | +244.0 | +229.4 | +36.3 | +509.7 (341) | +1.49 | [−0.63, +3.62] |
+| 019B ATR bracket | +78.5 | +272.9 | +8.2 | +359.6 (341) | +1.05 | [−0.68, +2.79] |
+| 019C back to range | +108.9 | +139.3 | −65.7 | +182.5 (224) | +0.81 | [−0.89, +2.50] |
+
+- A: 327/341 trades closed at the 16:00 NY time exit; only 14 hit the 3×ATR disaster stop.
+- C: highest win rate (64.6–70.6%) but negative in 2025.
+- All four in the same +0.8 to +1.5 pips/trade band: the entry carries the result, not the exits.
+- 2025 is the weakest year for every design. All audits passed.
 
 ## Interpretation
 _(filled after the run)_
