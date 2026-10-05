@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05
 **File:** research/strategies/013_bb15_engulf5_candlestop.py
-**Status:** exploring
+**Status:** discarded
 
 ## Hypothesis
 *(written and committed before any P&L; 012 and 013 registered together)*
@@ -46,16 +46,46 @@ SL 5.8; TP < SL on 366; TP < 2 pips on 72.
   above the spread-adjusted null.
 
 ## Headline result
-_(filled after the run)_
+- trades: 476, win rate 41.8%, net **−149.3** pips (expectancy −0.31/trade)
+- profit factor 0.91, avg win +7.7 / avg loss −6.1, max DD −2.7%, Sharpe −0.91
+- exits: 139 TP / 257 SL / 80 force-flat
+- verdict: `unprofitable`
 
 ## Adversarial checks
-_(filled after the run)_
+- gross vs net: gross **−36.7**, spread 112.6 → "no edge — gross P&L not positive".
+- bootstrap CI (expectancy): **[−1.03, +0.44]**.
+- MC drawdown: −2.71% vs median −2.61%, rank 43% → `fragile` flag (borderline); moot.
+- ex-best-month: drop May (+67.2) → −216.5; ex top 5% → −626.1.
+- **H1/H2:** H1 −148.0 (win 39.1%), H2 −1.2 (win 45.2%).
+- **random-walk null (spread-adjusted):** TP-first 35.1% vs **39.0%** null (z ≈ −1.6).
+- **vs 012 (stop choice):** tighter candle stop → more trades (476 vs 415, quicker exits
+  free the engine), similar total (−149 vs −158). Neither stop rescues the entry.
+- **Raised bar:** no on all three counts.
+- **lookahead audit: passed** (same checks as 012, all 0).
 
 ## Visual check
-_(filled after the run)_
+[sample_trades.png](sample_trades.png): setup line (15m close outside the band) precedes
+each entry within 2 h; entry right after a 5m bar that closes beyond the previous bar's
+high/low; TP 80% of the way to the 15m mid; SL as registered. Failure modes visible: fading
+a persistent trend (01-23 long into steadily falling bands) and late-window entries that
+the 16:00 flat cuts off (09-05, entered 15:50). Interactive `strategy.visualize` not run.
 
 ## Interpretation
-_(filled after the run)_
+No edge, and a little worse than random. Earlier confirmation did what it was meant
+to do mechanically: entries came sooner, with more distance to the middle band. But the
+reversals didn't follow through. After a 15m close outside the band and a strong 5m
+reversal candle, price reached the 80% target *less* often than a random entry with the
+same bracket would.
+
+Across 008, 009, 010–013, every intraday mean-reversion rule *inside* the 07:00 NY →
+16:00 London window is at or below random. Post hoc reading: this window is the most
+liquid, news-driven part of the day, where stretched moves are more often information
+than overreaction. The only reversal with a published mechanism (007, the London fix)
+sits *after* the window.
 
 ## Decision
-_(filled after the run)_
+**discard**.
+**Why:** gross −36.7; CI [−1.03, +0.44]; both halves ≤ 0; TP-first 1.6 SE below the null.
+
+
+Raw numbers: [results.json](results.json) · plots: [equity](equity.png), [monthly](monthly.png), [MC drawdown](mc_drawdown.png)
