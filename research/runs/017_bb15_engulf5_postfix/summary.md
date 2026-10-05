@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05
 **File:** research/strategies/017_bb15_engulf5_postfix.py (make_a = setup-extreme stop, make_b = engulfing-candle stop)
-**Status:** exploring
+**Status:** discarded
 
 ## Hypothesis
 *(registered before the 2023/2025 files were read: the downloads were still running,
@@ -39,16 +39,33 @@ setup to the post-fix period should be profitable **in years it was not discover
 - Audits: setup + engulfing re-derived from 1s-rebuilt bars; force-flat at 16:00 NY.
 
 ## Results — 2023
-_(filled after the run)_
+| | trades | net pips | exp/trade | 95% CI | gross | H1 / H2 |
+|---|---|---|---|---|---|---|
+| A | 255 | **−47.1** | −0.18 | [−1.57, +1.23] | +23.2 | −6.0 / −41.1 |
+| B | 303 | **−51.6** | −0.17 | [−1.20, +0.89] | +35.6 | +9.1 / −60.7 |
+
+Data: 2023 (10.50 M 1s rows, checks PASSED; 10 gaps of 10–17 min, all 17:03–17:25 New
+York = daily rollover, outside every test window), 2025 (9.42 M rows, checks PASSED,
+0 unexplained gaps). All lookahead/independent audits passed on every run.
 
 ## Results — 2025
-_(filled after the run)_
+| | trades | net pips | exp/trade | 95% CI | gross | H1 / H2 |
+|---|---|---|---|---|---|---|
+| A | 310 | **−99.3** | −0.32 | [−1.77, +1.15] | +28.4 | −162.3 / +63.0 |
+| B | 384 | **−218.3** | −0.57 | [−1.54, +0.45] | −53.0 | −177.7 / −40.5 |
 
 ## Pooled 2023 + 2025 and 2024 reference
-_(filled after the run)_
+| | n | net | exp | 95% CI | 99% CI (family) | 2023 | 2025 | 2024 ref |
+|---|---|---|---|---|---|---|---|---|
+| A | 565 | **−146.5** | −0.26 | [−1.25, +0.76] | [−1.56, +1.08] | −47.1 | −99.3 | +74.5 |
+| B | 687 | **−269.8** | −0.39 | [−1.11, +0.34] | [−1.31, +0.58] | −51.6 | −218.3 | +34.4 |
 
 ## Interpretation
-_(filled after the run)_
+**Not confirmed: both variants lost in both test years.** The post-fix advantage seen in
+014/015 on 2024 was noise from slicing one year. Gross P&L is near zero (+23 to +36 in 2023,
+−53 to +28 in 2025): a random-like entry minus spread, like every other mean-reversion
+rule in this project.
 
 ## Decision
-_(filled after the run)_
+**discard (A and B).**
+**Why:** pooled −146.5 (A) / −269.8 (B); negative in both 2023 and 2025; criterion failed.

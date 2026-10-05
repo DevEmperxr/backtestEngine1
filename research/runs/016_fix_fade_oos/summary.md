@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05
 **File:** research/strategies/016_fix_fade_oos.py (A = 007 rules unchanged; B = big-move filter)
-**Status:** exploring
+**Status:** discarded
 
 ## Hypothesis
 *(written and committed while the 2023 and 2025 data were still downloading: no
@@ -44,19 +44,43 @@ years nobody has looked at.**
 - Costs: the spread in each year's data (no other costs).
 
 ## Results — 2023
-_(filled after the run)_
+| | trades | net pips | exp/trade | 95% CI | gross | H1 / H2 |
+|---|---|---|---|---|---|---|
+| A | 259 | **−423.6** | −1.64 | [−4.21, +0.92] | −352.3 | −282.0 / −141.6 |
+| B | 110 | **−127.6** | −1.16 | [−5.01, +2.70] | −100.3 | +38.8 / −166.4 |
+
+Data: 2023 (10.50 M 1s rows, checks PASSED; 10 gaps of 10–17 min, all 17:03–17:25 New
+York = daily rollover, outside every test window), 2025 (9.42 M rows, checks PASSED,
+0 unexplained gaps). All lookahead/independent audits passed on every run.
 
 ## Results — 2025
-_(filled after the run)_
+| | trades | net pips | exp/trade | 95% CI | gross | H1 / H2 |
+|---|---|---|---|---|---|---|
+| A | 259 | **−10.9** | −0.04 | [−2.81, +2.69] | +89.1 | −387.3 / +376.4 |
+| B | 116 | **−276.8** | −2.39 | [−6.83, +1.95] | −231.2 | −345.2 / +68.4 |
 
 ## Pooled 2023 + 2025 and 2024 reference
-_(filled after the run)_
+| | n | net | exp | 97.5% CI (registered) | 99% CI (family) | 2023 | 2025 | 2024 ref |
+|---|---|---|---|---|---|---|---|---|
+| A | 518 | **−434.5** | −0.84 | [−2.99, +1.30] | [−3.34, +1.58] | −423.6 | −10.9 | +39.4 |
+| B | 226 | **−404.4** | −1.79 | [−5.11, +1.51] | [−5.69, +2.09] | −127.6 | −276.8 | +71.6 |
 
 ## Visual check
-_(filled after the run)_
+Mechanics identical to 007 (A reproduces 007's 2024 trade log exactly); audits
+recompute the 15:00→16:00 move and, for B, the past-only 20-day threshold from
+1s-rebuilt bars: 0 violations in every year.
 
 ## Interpretation
-_(filled after the run)_
+**Not confirmed: both variants lost money in both test years.** The 2024 "big pre-fix move"
+split (+217.7) was an artefact of using the full-year median; with a past-only threshold
+it shrank to +71.6 on 2024 and turned negative out of sample.
+
+This does not refute Krohn, Mueller & Whelan. Their unconditional effect is ~0.3
+pips/day, invisible in two years. But fading the 15:00→16:00 London move at the fix is
+**not a tradable rule on this data**. Part of that window is the 10:00 NY US-data
+reaction (flagged before the test), which this rule fades indiscriminately.
 
 ## Decision
-_(filled after the run)_
+**discard (A and B).**
+**Why:** pooled 2023+2025 −434.5 (A) / −404.4 (B); negative in both test years for both
+variants; registered criterion (CI excludes 0 and both years positive) failed on every part.
