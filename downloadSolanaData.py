@@ -111,8 +111,12 @@ def kline_to_row(k: list) -> list:
     open_, high, low, close = float(k[1]), float(k[2]), float(k[3]), float(k[4])
     vol = float(k[5])
     h = HALF_SPREAD_PCT
-    bid = [p * (1 - h) for p in (open_, high, low, close)]
-    ask = [p * (1 + h) for p in (open_, high, low, close)]
+    # round to 8dp (Binance's own string precision) -- without this, the
+    # spread multiplication leaves raw float noise in every price (e.g.
+    # "165.46778500000002" instead of "165.467785"), which is meaningless
+    # and was bloating the file by ~45% for zero real information.
+    bid = [round(p * (1 - h), 8) for p in (open_, high, low, close)]
+    ask = [round(p * (1 + h), 8) for p in (open_, high, low, close)]
     return [fmt_ts(k[0]), *bid, vol, *ask, vol]
 
 
