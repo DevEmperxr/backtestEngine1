@@ -5,7 +5,9 @@ import pytest
 
 from datetime import datetime, time, timezone
 
-from lib.signals import atr, crossover, session_window, sma
+from datetime import timedelta
+
+from lib.signals import atr, crossover, higher_tf_join, session_window, sma
 
 
 # --------------------------------------------------------------------------- #
@@ -177,3 +179,45 @@ def test_session_window_late_evening_and_early_morning_are_out():
         datetime(2024, 1, 10, 23, 0, tzinfo=UTC),
         datetime(2024, 1, 10, 5, 0, tzinfo=UTC),
     ) == [False, False, False]
+
+
+# --------------------------------------------------------------------------- #
+# higher_tf_join — 5m/15m features on 1m rows, no peeking at a forming bar
+# --------------------------------------------------------------------------- #
+
+def _one_min(closes, start=datetime(2024, 6, 3, 12, 0, tzinfo=UTC)):
+    ts = [start + timedelta(minutes=i) for i in range(len(closes))]
+    return pl.DataFrame({"timestamp": ts, "close_time": [t + timedelta(minutes=1) for t in ts],
+                         "c": closes})
+
+
+def _join5(df):
+    return higher_tf_join(df, "5m", "c", {"htf_close": pl.col("close")})
+
+
+def test_higher_tf_join_only_sees_closed_buckets():
+    df = _one_min([float(i) for i in range(12)])           # 12:00..12:11
+    out = _join5(df)["htf_close"].to_list()
+    # rows 12:00-12:03 close before the first 5m bar closes (12:05) -> null
+    assert out[:4] == [None] * 4
+    # row 12:04 closes at 12:05 == first bucket's close -> sees its close (row 4's c)
+    assert out[4:9] == [4.0] * 5
+    assert out[9:] == [9.0] * 3                            # second bucket closes 12:10
+
+
+def test_higher_tf_join_future_bars_never_change_earlier_rows():
+    a = [float(i) for i in range(15)]
+    b = a[:7] + [999.0] * 8                                # change everything after 12:06
+    out_a, out_b = _join5(_one_min(a))["htf_close"], _join5(_one_min(b))["htf_close"]
+    # rows up to 12:06 (closing <= 12:07) must be identical, including the ones
+    # whose 5m bucket (12:05-12:10) is still forming
+    assert out_a[:7].to_list() == out_b[:7].to_list()
+
+
+def test_higher_tf_join_features_and_nesting_check():
+    df = _one_min([1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    out = higher_tf_join(df, "5m", "c", {"up": pl.col("close") > pl.col("close").shift(1)})
+    assert out["up"].to_list()[9] is True                  # bucket 2 close 10 > bucket 1 close 5
+    bad = df.with_columns(close_time=pl.col("timestamp") + timedelta(minutes=7))
+    with pytest.raises(ValueError, match="nest"):
+        _join5(bad)

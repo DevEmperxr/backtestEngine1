@@ -91,3 +91,35 @@ def session_window(
 
     ts_utc = ts.dt.convert_time_zone("UTC")
     return ((ts_utc >= _bound(start, start_tz)) & (ts_utc < _bound(end, end_tz))).fill_null(False)
+
+
+def higher_tf_join(
+    df: pl.DataFrame, timeframe: str, close_col: str, features: dict[str, pl.Expr]
+) -> pl.DataFrame:
+    """Add higher-timeframe `features` to a lower-timeframe frame, lookahead-safe.
+
+    Builds `timeframe` bars from `df[close_col]` (bucket close = the last
+    lower-timeframe close in the bucket; buckets `label=left, closed=left`, as
+    `resample`), evaluates `features` on that series (exprs over `pl.col("close")`,
+    e.g. `{"up_15m": sma(pl.col("close"), 20) > sma(pl.col("close"), 50)}`), and
+    joins them back **as-of backward on close_time**: row t sees only the latest
+    higher-timeframe bar whose close_time <= row t's close_time — a bar still
+    forming at t is invisible. Rows before the first such bar get null.
+
+    `df` needs `timestamp`, `close_time` and `close_col`, sorted, with bars that
+    nest inside the higher buckets (e.g. 1m inside 5m) — else `ValueError`.
+    Returns `df` plus the feature columns; pure.
+    """
+    bucket_end = pl.col("timestamp").dt.truncate(timeframe).dt.offset_by(timeframe)
+    if not df.select((pl.col("close_time") <= bucket_end).all()).item():
+        raise ValueError(f"bars in df do not nest inside {timeframe} buckets")
+    htf = (
+        df.group_by_dynamic("timestamp", every=timeframe, label="left", closed="left")
+        .agg(close=pl.col(close_col).last())
+        .with_columns(_htf_close_time=pl.col("timestamp").dt.offset_by(timeframe))
+        .with_columns(**features)
+        .select("_htf_close_time", *features)
+    )
+    return df.join_asof(
+        htf, left_on="close_time", right_on="_htf_close_time", strategy="backward"
+    ).drop("_htf_close_time")

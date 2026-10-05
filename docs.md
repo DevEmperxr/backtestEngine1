@@ -507,8 +507,13 @@ df = df.with_columns(long_signal=cross_up, short_signal=cross_down)
   never "before 16:00 London and after 07:00 NY". E.g. 07:00 New York → 16:00
   London = 12–16 UTC winter, 11–15 UTC summer, 11–16 UTC in the DST-mismatch weeks.
 
-📋 later, with the strategy that needs it: 4H `trend_filter` (lookahead-safe
-`merge_asof`).
+- **`higher_tf_join(df, timeframe, close_col, features)`** ✅ → frame helper:
+  builds `timeframe` bars from `df[close_col]` (bucket close = last value),
+  evaluates `features` (exprs over `pl.col("close")`) on them, and joins them back
+  **as-of backward on `close_time`** — row t sees only the latest higher bar with
+  `close_time <= ` row t's `close_time`; a still-forming bar is invisible.
+  Lower bars must nest in the buckets (`ValueError`). Used by research 004
+  (1m entries filtered by 5m/15m trend); also the basis for a future 4H filter.
 
 > **Session flags & DST:** derive session membership from the London-local *hour*
 > (`.dt.convert_time_zone("Europe/London")`), not a fixed UTC hour — the London

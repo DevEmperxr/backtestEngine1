@@ -43,6 +43,10 @@ def _find(num: str, folder: str, suffix: str) -> Path:
     return hits[0]
 
 
+def _load(num: str):
+    return import_module(f"research.strategies.{_find(num, 'strategies', '.py').stem}").make()
+
+
 def _jsonable(x):
     if isinstance(x, dict):
         return {str(k): _jsonable(v) for k, v in x.items()}
@@ -75,7 +79,7 @@ def _headline(report: dict) -> dict:
     }
 
 
-def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame) -> dict:
+def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
     """Independent re-derivation of every entry from the signal frame.
 
     Each trade must enter exactly at the close_time of a bar where the matching
@@ -114,6 +118,22 @@ def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame) -> dict:
             | (london_exit.dt.hour().cast(pl.Int32) * 60 + london_exit.dt.minute().cast(pl.Int32) > 16 * 60)
         )
         out["force_flat_violations"] = late.height
+    for tf in getattr(strategy, "trend_timeframes", ()):
+        # Independent path: bars straight from the 1s data via lib.data.resample
+        # (not the strategy's own 1m-derived bars), last bar closed <= entry.
+        htf = resample(base_1s, tf).with_columns(
+            mid=(pl.col("bid_close") + pl.col("ask_close")) / 2
+        ).with_columns(
+            trend=pl.col("mid").rolling_mean(strategy.fast_n) - pl.col("mid").rolling_mean(strategy.slow_n)
+        ).select(pl.col("close_time").alias("htf_close_time"), "trend")
+        chk = trades.sort("entry_time").join_asof(
+            htf, left_on="entry_time", right_on="htf_close_time", strategy="backward")
+        wrong = chk.filter(
+            pl.col("trend").is_null()
+            | ((pl.col("direction") == "long") & (pl.col("trend") <= 0))
+            | ((pl.col("direction") == "short") & (pl.col("trend") >= 0))
+        )
+        out[f"trend_{tf}_mismatch"] = wrong.height
     if "signal_sl_pips" in keyed.columns:
         out["sl_mismatch_vs_signal_bar"] = keyed.filter(
             (pl.col("sl_pips") - pl.col("signal_sl_pips")).abs() > 1e-9).height
@@ -147,7 +167,7 @@ def random_walk_baseline(trades: pl.DataFrame) -> dict:
 
 def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
     path = _find(num, "strategies", ".py")
-    strategy = import_module(f"research.strategies.{path.stem}").make()
+    strategy = _load(num)
     run_dir = ROOT / "runs" / path.stem
     run_dir.mkdir(exist_ok=True)
 
@@ -169,7 +189,7 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
         "full_year": _headline(report),
         "halves": halves,
         "random_walk_baseline": random_walk_baseline(trades),
-        "lookahead_audit": lookahead_audit(strategy, bars, trades),
+        "lookahead_audit": lookahead_audit(strategy, bars, trades, engine.base_1s),
         "monthly": report["monthly"].to_dicts(),
     }
     (run_dir / "results.json").write_text(json.dumps(_jsonable(result), indent=2))
@@ -183,10 +203,12 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
 
 def main(nums: list[str]) -> None:
     base = load_1s_data(str(DATA), verbose=False)
-    bars = resample(base, "5m")
-    engine = Engine(bars, base)
+    engines: dict[str, Engine] = {}   # one Engine per signal timeframe
     for num in nums:
-        r = run(num, engine, bars)
+        tf = _load(num).timeframe
+        if tf not in engines:
+            engines[tf] = Engine(resample(base, tf), base)
+        r = run(num, engines[tf], engines[tf].signal_df)
         fy = r["full_year"]
         print(f"\n=== {r['run']} ===")
         print(json.dumps(_jsonable({
