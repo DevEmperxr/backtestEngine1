@@ -110,12 +110,15 @@ def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s:
     out = {"n_window_signals": n_signals, "n_trades": trades.height, **problems}
 
     if getattr(strategy, "force_flat", False):
-        # no position may survive past the first bar boundary at/after 16:00 London
-        london_exit = trades["exit_time"].dt.convert_time_zone("Europe/London")
-        london_entry = trades["entry_time"].dt.convert_time_zone("Europe/London")
+        # no position may survive past the session end (default 16:00 London)
+        end_tz = getattr(strategy, "window_end_tz", "Europe/London")
+        end_t = getattr(strategy, "window_end", None)
+        end_min = 16 * 60 if end_t is None else end_t.hour * 60 + end_t.minute
+        local_exit = trades["exit_time"].dt.convert_time_zone(end_tz)
+        local_entry = trades["entry_time"].dt.convert_time_zone(end_tz)
         late = trades.filter(
-            (london_exit.dt.date() != london_entry.dt.date())
-            | (london_exit.dt.hour().cast(pl.Int32) * 60 + london_exit.dt.minute().cast(pl.Int32) > 16 * 60)
+            (local_exit.dt.date() != local_entry.dt.date())
+            | (local_exit.dt.hour().cast(pl.Int32) * 60 + local_exit.dt.minute().cast(pl.Int32) > end_min)
         )
         out["force_flat_violations"] = late.height
     for tf in getattr(strategy, "trend_timeframes", ()):

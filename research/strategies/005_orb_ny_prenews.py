@@ -39,12 +39,14 @@ class OrbStrategy(Strategy):
     def __init__(
         self, *, range_start: time = RANGE_START, range_end: time = RANGE_END,
         tp_range_mult: float = 1.5, timeframe: str = "1m", force_flat: bool = True,
+        window_end: time = WINDOW_END, window_end_tz: str = LONDON,
     ) -> None:
         # sl/tp are per trade (columns); the ctor values are only chart fallbacks
         super().__init__(10.0, 15.0, timeframe)
         self.range_start, self.range_end = range_start, range_end
         self.tp_range_mult = tp_range_mult
         self.force_flat = force_flat
+        self.window_end, self.window_end_tz = window_end, window_end_tz
         self.range_bars = int((range_end.hour * 60 + range_end.minute)
                               - (range_start.hour * 60 + range_start.minute))
 
@@ -58,7 +60,8 @@ class OrbStrategy(Strategy):
             in_range=(start_ny.dt.time() >= self.range_start) & (close_ny.dt.time() <= self.range_end)
                      & (close_ny.dt.date() == start_ny.dt.date()),
             # entry happens at close_time; strictly after the range has closed
-            in_window=session_window(pl.col("close_time"), NY, self.range_end, LONDON, WINDOW_END)
+            in_window=session_window(pl.col("close_time"), NY, self.range_end,
+                                     self.window_end_tz, self.window_end)
                       & (close_ny.dt.time() > self.range_end)
                       & (close_ny.dt.weekday() <= 5),
         )
