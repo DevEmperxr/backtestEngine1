@@ -104,3 +104,11 @@ over 68 trades).
 
 
 Raw numbers: [results.json](results.json) · plots: [equity](equity.png), [monthly](monthly.png), [MC drawdown](mc_drawdown.png)
+
+## Erratum (2026-10-05, added during run 004; nothing above was changed)
+The random-walk null above, SL/(SL+TP) = 40%, ignores the spread: a long enters at
+the ask and exits at the bid, so TP needs a mid move of TP + spread and SL only
+SL − spread. The spread-adjusted null is ≈ (SL − spread)/(SL + TP) = **39.0%** here,
+against an actual 40.2% (z ≈ +0.4 standard errors). **The conclusion is unchanged:**
+indistinguishable from a random entry. `run_experiment.py` uses the corrected formula
+from 004 on.

@@ -146,12 +146,17 @@ def random_walk_baseline(trades: pl.DataFrame) -> dict:
     """What an edge-free entry would score with these exits.
 
     Under a driftless random walk a bracket of SL/TP pips is hit TP-first with
-    probability SL/(SL+TP), and its expected gross P&L is 0 (so expected net =
+    probability ~(SL - spread)/(SL+TP) (the spread is paid against you on both
+    legs; the plain SL/(SL+TP) used for 001-003 ignored it), and its expected gross P&L is 0 (so expected net =
     -spread). Time-exited trades break the win-rate formula, so it is reported
     over SL/TP-resolved trades only; gross expectancy is compared to 0 over all.
     """
     bracket = trades.filter(pl.col("exit_reason").is_in(["sl", "tp"]))
-    exp_win = (bracket["sl_pips"] / (bracket["sl_pips"] + bracket["tp_pips"])).mean()
+    # TP needs a mid move of tp + spread, SL only sl - spread (entry at the far
+    # side, exit at the near side) -> null TP-first rate (sl - spread)/(sl + tp).
+    # spread_pips_paid (half in + half out) ~ one full spread.
+    exp_win = ((bracket["sl_pips"] - bracket["spread_pips_paid"])
+               / (bracket["sl_pips"] + bracket["tp_pips"])).mean()
     act_win = (bracket["exit_reason"] == "tp").mean()
     gross = trades["pips"] + trades["spread_pips_paid"]
     return {

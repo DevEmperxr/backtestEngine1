@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05
 **File:** research/strategies/004_sma_mtf_align_1m.py
-**Status:** exploring
+**Status:** discarded
 
 ## Hypothesis
 *(written and committed before any code or backtest — pre-registration)*
@@ -55,16 +55,62 @@ costs bite harder.
   tuning of SMA periods, the timeframes, or SL/TP after seeing results is a new trial.
 
 ## Headline result
-_(filled after the run)_
+- trades: 393, win rate: 35.4%, net pips: **−180.7** (expectancy −0.46 pips/trade)
+- profit factor 0.82 (avg win +5.8 / avg loss −3.9), max DD −2.0%, Sharpe −2.07
+- exits: 131 TP / 244 SL / 18 force-flat at 16:00
+- 418 in-window aligned signals; 393 taken (the rest fired while a trade was open)
+- verdict: `unprofitable` (not withheld)
 
 ## Adversarial checks
-_(filled after the run)_
+- gross vs net: gross **−87.8**, spread 93.0 (avg 0.24 pips/trade, ~6% of the 4-pip risk)
+  → "no edge — gross P&L not positive".
+- bootstrap CI (expectancy): **[−0.91, +0.02] pips/trade**, almost entirely negative;
+  just touches zero.
+- MC drawdown: observed −1.97% vs median −2.14%, rank 79% → flagged `fragile` (the real
+  ordering was milder than most shuffles). Moot: there's no edge to size.
+- ex-best-month: dropping Feb (+23.2) → −203.9; ex top 5% trades → −300.7.
+- **H1/H2 split:** H1 −76.1 (win 36.2%), H2 −104.6 (win 34.5%). Negative in both halves,
+  so the loss is consistent, not a one-period accident.
+- **random-walk null (spread-adjusted):** TP-first rate 34.9% vs **37.6%** null
+  (z ≈ −1.1). Slightly worse than random, not significantly.
+- **lookahead audit: passed.** 393/393 entries at the close of a matching 1m cross
+  inside the window; 0 force-flat violations; **independent re-check vs 5m/15m bars
+  rebuilt from the 1s data with `lib.data.resample`: 0 trend mismatches on either
+  timeframe.**
 
 ## Visual check
-_(filled after the run)_
+Static render of 4 random trades (seed 7) on 1m bars: [sample_trades.png](sample_trades.png),
+with the 5m/15m trend values at entry in each title. Entries sit one bar after a 1m
+SMA cross; trend signs match the direction; SL/TP at 4/6 pips. Nothing wrong
+mechanically. Interactive `strategy.visualize` not run (no notebook).
+
+Observations (post hoc, **not** evidence, any action on them = a new trial):
+the 1m cross often fires *after* the short-term move is done, so entries are late;
+and "aligned" sometimes means a trend of a fraction of a pip (e.g. 5m +0.15p), so
+the filter doesn't demand a strong trend.
 
 ## Interpretation
-_(filled after the run)_
+The trend filter did not create an edge. Gross P&L is negative in both halves, and
+the TP rate is a little below the spread-adjusted random baseline. If anything,
+trend-aligned 1m crosses are slightly *worse* than random, which fits the
+"late entry" observation: by the time a 1m SMA20/50 cross confirms a move that
+the 5m and 15m already show, much of the move is spent.
+
+**Flipping the signal would not help:** reversed gross would be ≈ +0.22 pips/trade,
+against ≈ 0.24 pips/trade of spread, so net ≈ 0. It would also be a data-snooped
+trial.
+
+Across 001–004 (4 trials), every SMA-crossover variant in this window is at or
+below random-entry quality. That is consistent with the prior and with the
+intraday-FX literature.
 
 ## Decision
-_(filled after the run)_
+**discard**.
+**Why:** gross −87.8 pips (no edge before costs); expectancy CI [−0.91, +0.02];
+negative in both halves; TP rate 34.9% vs 37.6% spread-adjusted null. The
+multi-timeframe filter did not lift the 1m cross above random. Recommend closing
+the SMA-crossover line in this window rather than tuning periods, timeframes or
+exits (each would be another trial on the same year of data).
+
+
+Raw numbers: [results.json](results.json) · plots: [equity](equity.png), [monthly](monthly.png), [MC drawdown](mc_drawdown.png)
