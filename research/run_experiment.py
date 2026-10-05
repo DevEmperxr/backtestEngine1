@@ -146,6 +146,8 @@ def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s:
         out.update(_round_audit(strategy, trades, base_1s))
     elif kind == "band_rsi":
         out.update(_band_audit(strategy, trades, base_1s))
+    elif kind == "bb15x5":
+        out.update(_bb15x5_audit(strategy, trades, base_1s))
     if "signal_sl_pips" in keyed.columns:
         out["sl_mismatch_vs_signal_bar"] = keyed.filter(
             (pl.col("sl_pips") - pl.col("signal_sl_pips")).abs() > 1e-9).height
@@ -264,6 +266,44 @@ def _band_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
             ok = c[i] > mid[i] + k * sd[i] - tol and r[i] > strategy.rsi_hi - 1e-6
         bad += not ok
     return {"band_signal_bar_invalid": bad}
+
+
+def _bb15x5_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
+    """15m bands and 5m SMAs recomputed with numpy on bars rebuilt from 1s. Each
+    trade needs (a) a closed 15m bar outside the band on the faded side with
+    close_time in [entry - setup_life, entry], and (b) a 5m SMA fast/slow cross in
+    the trade direction on the signal bar (the 5m bar closing at entry)."""
+    from datetime import timedelta
+    b15 = _mid_bars(base_1s, strategy.bb_tf)
+    c15 = b15["close"].to_numpy()
+    n, k = strategy.bb_n, strategy.bb_k
+    lo_out, hi_out = np.zeros(len(c15), bool), np.zeros(len(c15), bool)
+    for i in range(n - 1, len(c15)):
+        w = c15[i - n + 1:i + 1]
+        m, s = w.mean(), w.std(ddof=1)
+        lo_out[i], hi_out[i] = c15[i] < m - k * s, c15[i] > m + k * s
+    ct15 = b15["close_time"].to_list()
+    b5 = _mid_bars(base_1s, strategy.timeframe)
+    c5 = b5["close"].to_numpy()
+
+    def sma_np(x, p):
+        out = np.full(len(x), np.nan)
+        cs = np.cumsum(np.insert(x, 0, 0.0))
+        out[p - 1:] = (cs[p:] - cs[:-p]) / p
+        return out
+    f, sl = sma_np(c5, strategy.fast_n), sma_np(c5, strategy.slow_n)
+    idx5 = {t: i for i, t in enumerate(b5["close_time"].to_list())}
+    life = timedelta(minutes=strategy.setup_life_min)
+    no_setup = no_cross = 0
+    for et, d in zip(trades["entry_time"].to_list(), trades["direction"].to_list()):
+        flags = lo_out if d == "long" else hi_out
+        no_setup += not any(flags[j] and et - life <= ct15[j] <= et for j in range(len(ct15))
+                            if et - life - timedelta(minutes=15) <= ct15[j] <= et)
+        i = idx5[et]
+        prev, now = f[i - 1] - sl[i - 1], f[i] - sl[i]
+        ok = (prev <= 0 < now) if d == "long" else (prev >= 0 > now)
+        no_cross += not ok
+    return {"bb15x5_no_setup_in_life": no_setup, "bb15x5_no_cross_on_signal_bar": no_cross}
 
 
 def random_walk_baseline(trades: pl.DataFrame) -> dict:

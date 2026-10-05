@@ -24,7 +24,7 @@ settings, and trials 10–11 on the same year.
   mid = SMA(20) of 15m closes, bands = mid ± 2 × SD(20).
 - **setup (long):** a closed 15m bar's close < its lower band. Setup time = that bar's close_time.
   Short: close > upper band. A later qualifying 15m close refreshes the setup.
-- setup **valid for 60 min** (5m rows with close_time ≤ setup time + 60m), and
+- setup **valid for 120 min** (amended from 60, see below) (5m rows with close_time ≤ setup time + 120m), and
   **cancelled** if any 5m bar since the setup reached the current 15m middle band
   (high ≥ mid for a long setup / low ≤ mid for a short) before the confirming cross.
 - **confirmation:** 5m SMA(9) crosses above SMA(21) of 5m mid close (long) / below (short),
@@ -39,9 +39,17 @@ settings, and trials 10–11 on the same year.
 - full adversarial suite; H1/H2; spread-adjusted random-walk null.
 - independent audit: 15m and 5m bars rebuilt from 1s with `lib.data.resample`, bands
   and SMAs recomputed with numpy; for every trade, confirm a qualifying 15m close
-  ≤ 60 min before entry and a matching 5m cross on the signal bar.
+  ≤ 120 min before entry and a matching 5m cross on the signal bar.
 - **raised bar (trial 10 on 2024):** CI excludes 0 AND both halves positive AND TP rate
   ≥ 2 SE above the spread-adjusted null.
+
+## Amendment (2026-10-05, before any P&L was computed)
+A signal count on the registered rules (no P&L looked at) gave only 56 signals in
+2024: the verdict would be withheld by construction. The user chose to amend the
+setup life from **60 to 120 minutes**. Nothing else changed. New signal count: 101
+(both 010 and 011). Also seen, still pre-P&L: median TP 5.8 pips vs median SL 11.7
+(010) / 9.2 (011). The confirmation arrives late, so the remaining distance to the
+middle band is small. Break-even win rate is therefore ~65–70%.
 
 ## Headline result
 _(filled after the run)_
