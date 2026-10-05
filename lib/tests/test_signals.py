@@ -3,7 +3,9 @@
 import polars as pl
 import pytest
 
-from lib.signals import crossover, sma
+from datetime import datetime, time, timezone
+
+from lib.signals import atr, crossover, session_window, sma
 
 
 # --------------------------------------------------------------------------- #
@@ -106,3 +108,72 @@ def test_crossover_boolean_dtype_regression():
     )["a"]
     assert acted.dtype == pl.Boolean
     assert acted.null_count() == 0
+
+
+# --------------------------------------------------------------------------- #
+# atr
+# --------------------------------------------------------------------------- #
+
+def test_atr_hand_checked_with_gap_and_null_warmup():
+    df = pl.DataFrame({
+        "h": [1.0, 2.0, 5.0, 4.0],
+        "l": [0.0, 1.0, 4.0, 3.0],
+        "c": [0.5, 1.5, 4.5, 3.5],
+    })
+    out = df.select(a=atr(pl.col("h"), pl.col("l"), pl.col("c"), 2))["a"].to_list()
+    # TR: [1 (no prev), max(1,1.5,0.5)=1.5, max(1,3.5,2.5)=3.5, max(1,0.5,1.5)=1.5]
+    assert out[0] is None
+    assert out[1:] == pytest.approx([1.25, 2.5, 2.5])
+
+
+def test_atr_row_t_ignores_later_bars():
+    base = pl.DataFrame({"h": [1.0, 2.0, 3.0], "l": [0.0, 1.0, 2.0], "c": [0.5, 1.5, 2.5]})
+    later = pl.concat([base, pl.DataFrame({"h": [99.0], "l": [-99.0], "c": [0.0]})])
+    f = lambda d: d.select(a=atr(pl.col("h"), pl.col("l"), pl.col("c"), 2))["a"].to_list()
+    assert f(later)[:3] == f(base)
+
+
+def test_atr_rejects_bad_n():
+    with pytest.raises(ValueError):
+        atr(pl.col("h"), pl.col("l"), pl.col("c"), 0)
+
+
+# --------------------------------------------------------------------------- #
+# session_window — 07:00 New York -> 16:00 London
+# --------------------------------------------------------------------------- #
+
+UTC = timezone.utc
+
+
+def _in_ny_london(*stamps):
+    df = pl.DataFrame({"ts": list(stamps)}, schema={"ts": pl.Datetime("us", "UTC")})
+    expr = session_window(pl.col("ts"), "America/New_York", time(7), "Europe/London", time(16))
+    out = df.select(w=expr)
+    assert out.schema["w"] == pl.Boolean
+    return out["w"].to_list()
+
+
+def test_session_window_winter_is_12_to_16_utc():
+    d = lambda h, m=0: datetime(2024, 1, 10, h, m, tzinfo=UTC)
+    assert _in_ny_london(d(11, 55), d(12), d(15, 55), d(16)) == [False, True, True, False]
+
+
+def test_session_window_summer_is_11_to_15_utc():
+    d = lambda h, m=0: datetime(2024, 7, 10, h, m, tzinfo=UTC)
+    assert _in_ny_london(d(10, 55), d(11), d(14, 55), d(15)) == [False, True, True, False]
+
+
+def test_session_window_dst_mismatch_week_is_5h():
+    # 2024-03-20: US already on EDT (07:00 NY = 11:00 UTC), UK still GMT (16:00 = 16:00 UTC)
+    d = lambda h, m=0: datetime(2024, 3, 20, h, m, tzinfo=UTC)
+    assert _in_ny_london(d(10, 55), d(11), d(15, 55), d(16)) == [False, True, True, False]
+
+
+def test_session_window_late_evening_and_early_morning_are_out():
+    # the bug this guards: 01:00 London is "before 16:00 London" and its NY time
+    # (20:00 the previous day) is "after 07:00 NY" -- naive hour checks say IN
+    assert _in_ny_london(
+        datetime(2024, 1, 11, 1, 0, tzinfo=UTC),
+        datetime(2024, 1, 10, 23, 0, tzinfo=UTC),
+        datetime(2024, 1, 10, 5, 0, tzinfo=UTC),
+    ) == [False, False, False]

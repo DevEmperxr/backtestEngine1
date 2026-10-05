@@ -499,8 +499,16 @@ df = df.with_columns(long_signal=cross_up, short_signal=cross_down)
   This is the spec §0.4 / §6 function — the result never degrades to object-dtype
   Python bools (the trap where a later `~` does a bitwise invert).
 
-📋 later, with the strategies that need them: 4H `trend_filter` (lookahead-safe
-`merge_asof`), DST-aware `session_flag`.
+- **`atr(high, low, close, n)`** ✅ → simple `n`-bar mean of the true range
+  (prev close via a backward shift — lookahead-safe); first `n-1` null.
+- **`session_window(ts, start_tz, start, end_tz, end)`** ✅ → `pl.Boolean`,
+  `ts` in [`start` local to `start_tz`, `end` local to `end_tz`), each zone's own
+  DST. Both bounds are built on `ts`'s date in `start_tz`, so 01:00 London is
+  never "before 16:00 London and after 07:00 NY". E.g. 07:00 New York → 16:00
+  London = 12–16 UTC winter, 11–15 UTC summer, 11–16 UTC in the DST-mismatch weeks.
+
+📋 later, with the strategy that needs it: 4H `trend_filter` (lookahead-safe
+`merge_asof`).
 
 > **Session flags & DST:** derive session membership from the London-local *hour*
 > (`.dt.convert_time_zone("Europe/London")`), not a fixed UTC hour — the London
