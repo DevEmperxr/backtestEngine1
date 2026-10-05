@@ -325,7 +325,8 @@ class Strategy(ABC):
                 for row in window_trades.iter_rows(named=True):
                     direction = 1 if row["direction"] == "long" else -1
                     stop, target = _sl_tp_levels(
-                        direction, row["entry_price"], st.sl_pips, st.tp_pips
+                        direction, row["entry_price"],
+                        row.get("sl_pips") or st.sl_pips, row.get("tp_pips") or st.tp_pips,
                     )
                     positions.append(chart.position_tool(
                         entry=row["entry_price"], stop=stop, target=target,
@@ -417,10 +418,13 @@ class Engine:
         "pips": pl.Float64,
         "exit_reason": pl.String,
         "spread_pips_paid": pl.Float64,
+        "sl_pips": pl.Float64,
+        "tp_pips": pl.Float64,
     }
     _TRADE_COLUMNS = (
         "entry_time", "entry_price", "direction",
         "exit_time", "exit_price", "pips", "exit_reason", "spread_pips_paid",
+        "sl_pips", "tp_pips",
     )
 
     def __init__(self, signal_df: pl.DataFrame, base_1s: pl.DataFrame) -> None:
@@ -454,8 +458,17 @@ class Engine:
 
         Columns: entry_time, entry_price, direction ("long"/"short"), exit_time,
         exit_price, pips, exit_reason in {"sl", "tp", "opposite_signal",
-        "end_of_data"}, spread_pips_paid (half-spread in + half-spread out, pips —
-        so gross = net pips + spread_pips_paid).
+        "exit_signal", "end_of_data"}, spread_pips_paid (half-spread in +
+        half-spread out, pips — so gross = net pips + spread_pips_paid), sl_pips,
+        tp_pips (the distances this trade actually used).
+
+        Optional columns `generate_signals` may add:
+          * `exit_signal` (pl.Boolean, level) — True on bar k closes any open
+            position at bar k+1's open, raced against SL/TP like an opposite
+            signal; never reverses. E.g. a session-end force-flat.
+          * `sl_pips` + `tp_pips` (numeric, together) — per-trade distances,
+            read at the SIGNAL bar (entry_bar - 1), so they may only use info
+            through that bar's close. Override the strategy's fixed values.
         """
         sig = strategy.generate_signals(self.signal_df)
         for col in ("long_signal", "short_signal"):
@@ -468,6 +481,17 @@ class Engine:
         if (sig["long_signal"] & sig["short_signal"]).any():
             raise ValueError("ambiguous bar: long_signal and short_signal both True")
 
+        # Optional per-trade SL/TP: both or neither, numeric. Read at the SIGNAL
+        # bar (entry_bar - 1) in resolve() — never the entry bar (§0.1).
+        has_sl, has_tp = "sl_pips" in sig.columns, "tp_pips" in sig.columns
+        if has_sl != has_tp:
+            raise ValueError("per-trade sl_pips / tp_pips columns must be given together")
+        per_trade_levels = has_sl
+        if per_trade_levels:
+            for col in ("sl_pips", "tp_pips"):
+                if not sig.schema[col].is_numeric():
+                    raise ValueError(f"{col} column must be numeric, got {sig.schema[col]}")
+
         # Rising edges only — enter on a fresh False->True transition, not on
         # every bar a state signal stays True. shift(1, fill_value=False) keeps a
         # genuine Boolean dtype; `~` is a real logical-not here (spec §0.4).
@@ -476,12 +500,27 @@ class Engine:
             _entry_short=pl.col("short_signal") & ~pl.col("short_signal").shift(1, fill_value=False),
         )
 
+        # Optional `exit_signal` (level, not edge): True on bar k closes any open
+        # position at bar k+1's open — same timing as an opposite-signal exit.
+        has_exit_signal = "exit_signal" in sig.columns
+        if has_exit_signal:
+            if sig.schema["exit_signal"] != pl.Boolean:
+                raise ValueError(
+                    f"exit_signal must be pl.Boolean dtype, got {sig.schema['exit_signal']} (spec §0.4)"
+                )
+            if (sig["exit_signal"] & (sig["_entry_long"] | sig["_entry_short"])).any():
+                raise ValueError("ambiguous bar: an entry edge and exit_signal both True")
+
         sig_ts = sig["timestamp"].to_list()                       # for the log
         sig_ts_ns = sig["timestamp"].dt.epoch("ns").to_numpy()    # for searchsorted
         ask_open = sig["ask_open"].to_list()
         bid_open = sig["bid_open"].to_list()
         entry_long = sig["_entry_long"].to_list()
         entry_short = sig["_entry_short"].to_list()
+        flat = sig["exit_signal"].to_list() if has_exit_signal else None
+        if per_trade_levels:
+            sl_col = sig["sl_pips"].cast(pl.Float64).to_list()
+            tp_col = sig["tp_pips"].cast(pl.Float64).to_list()
 
         base_ts = self.base_1s["timestamp"]
         n_sig = sig.height
@@ -497,9 +536,19 @@ class Engine:
             # (the close and the re-open are the same side of the book, §0.3).
             entry_price = ask_open[entry_bar] if direction == 1 else bid_open[entry_bar]
             entry_half_spread = (ask_open[entry_bar] - bid_open[entry_bar]) / 2 / PIP
-            sl_level, tp_level = _sl_tp_levels(
-                direction, entry_price, strategy.sl_pips, strategy.tp_pips
-            )
+            if per_trade_levels:
+                # The signal bar's values: only info through its close (§0.1).
+                sl_pips, tp_pips = sl_col[entry_bar - 1], tp_col[entry_bar - 1]
+                if not (sl_pips is not None and tp_pips is not None
+                        and sl_pips > 0 and tp_pips > 0
+                        and np.isfinite(sl_pips) and np.isfinite(tp_pips)):
+                    raise ValueError(
+                        f"per-trade sl_pips/tp_pips must be finite and > 0 on a signal "
+                        f"bar, got ({sl_pips!r}, {tp_pips!r}) at {sig_ts[entry_bar - 1]}"
+                    )
+            else:
+                sl_pips, tp_pips = strategy.sl_pips, strategy.tp_pips
+            sl_level, tp_level = _sl_tp_levels(direction, entry_price, sl_pips, tp_pips)
 
             # First 1s row at/after entry — the entry second is exposed to its
             # own range (open first, then the range unfolds, §0.2).
@@ -509,17 +558,22 @@ class Engine:
             else:                                    # short exits by buying -> ask
                 exit_high, exit_low = self._ask_high, self._ask_low
 
-            # Opposite-signal exit (spec §2.2) — race it against SL/TP. First
-            # opposite rising edge at bar k >= entry_bar, acted on at k+1's open.
+            # Signal-driven exits — race them against SL/TP: the first bar
+            # k >= entry_bar with an opposite rising edge (spec §2.2, only if
+            # exit_on_opposite_signal) or exit_signal True, acted on at k+1's open.
             end_idx = n_base
             signal_exit = None
             opp_bar = None
-            if strategy.exit_on_opposite_signal:
+            signal_reason = None
+            use_opp = strategy.exit_on_opposite_signal
+            if use_opp or flat is not None:
                 opp_edge = entry_short if direction == 1 else entry_long
                 k = entry_bar
-                while k < n_sig and not opp_edge[k]:
+                while k < n_sig and not ((use_opp and opp_edge[k]) or (flat is not None and flat[k])):
                     k += 1
                 if k < n_sig and k + 1 < n_sig:
+                    # exit_signal wins the label (and blocks reversal) if both fire on k.
+                    signal_reason = "exit_signal" if flat is not None and flat[k] else "opposite_signal"
                     # Walk only up to (not including) bar k+1's open: the signal
                     # exit fills at that open, BEFORE the bar's range unfolds, so
                     # the position never sees k+1's intrabar SL/TP (§0.2).
@@ -543,7 +597,7 @@ class Engine:
                 exit_price = float(exit_price)
             elif signal_exit is not None:  # nothing touched first -> signal wins
                 exit_time, exit_price, exit_ns = signal_exit[0], float(signal_exit[1]), signal_exit[2]
-                exit_reason = "opposite_signal"
+                exit_reason = signal_reason
             else:  # _NO_TOUCH, no signal exit -> force close at end of data (§2.4)
                 exit_time = base_ts[n_base - 1]
                 exit_price = float(self._bid_close[-1] if direction == 1 else self._ask_close[-1])
@@ -559,7 +613,7 @@ class Engine:
             # it into `pips`, so gross = net + spread_pips_paid).
             if exit_reason in ("sl", "tp"):
                 exit_half_spread = (self._ask_close[hit_idx] - self._bid_close[hit_idx]) / 2 / PIP
-            elif exit_reason == "opposite_signal":
+            elif exit_reason in ("opposite_signal", "exit_signal"):
                 exit_half_spread = (ask_open[opp_bar + 1] - bid_open[opp_bar + 1]) / 2 / PIP
             else:  # end_of_data
                 exit_half_spread = (self._ask_close[-1] - self._bid_close[-1]) / 2 / PIP
@@ -573,6 +627,8 @@ class Engine:
                 "pips": float(pips),
                 "exit_reason": exit_reason,
                 "spread_pips_paid": float(entry_half_spread + exit_half_spread),
+                "sl_pips": float(sl_pips),
+                "tp_pips": float(tp_pips),
             }
 
             resume_t = int(np.searchsorted(sig_ts_ns, exit_ns, side="left"))

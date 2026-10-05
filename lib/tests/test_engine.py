@@ -521,6 +521,186 @@ def test_reverse_off_is_unchanged_one_trade_then_jump():
 
 
 # --------------------------------------------------------------------------- #
+# Engine — optional exit_signal (force-flat) and per-trade sl_pips/tp_pips
+# --------------------------------------------------------------------------- #
+
+class _ColumnStrategy(_ManualStrategy):
+    """_ManualStrategy plus any extra columns supplied verbatim (exit_signal,
+    sl_pips, tp_pips); SL/TP-only exits unless a subclass overrides."""
+    exit_on_opposite_signal = False
+
+    def __init__(self, longs, shorts, **extra):
+        super().__init__(longs, shorts)
+        self._extra = extra
+
+    def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
+        out = super().generate_signals(df)
+        return out.with_columns(**{k: pl.Series(v) for k, v in self._extra.items()})
+
+
+def test_exit_signal_closes_at_next_bar_open_on_the_right_side():
+    base = _flat_path(1200)                                # never touches SL/TP
+    sig = _sig_at_noon(8)
+    longs = [F, Tr, F, F, F, F, F, F]                      # long enters at bar 2
+    flat = [F, F, F, Tr, F, F, F, F]                       # exit_signal on bar 3 -> bar 4 open
+    row = Engine(sig, base).backtest(
+        _ColumnStrategy(longs, [F] * 8, exit_signal=flat)
+    ).row(0, named=True)
+    assert row["exit_reason"] == "exit_signal"
+    assert row["exit_time"] == sig["timestamp"][4]
+    assert row["exit_price"] == sig["bid_open"][4]         # closing a long -> bid
+    assert row["spread_pips_paid"] == pytest.approx(2.0)   # 1.0 in + bar-4 open half-spread 1.0
+
+
+def test_exit_signal_short_closes_at_ask():
+    base = _flat_path(1200)
+    sig = _sig_at_noon(8)
+    row = Engine(sig, base).backtest(
+        _ColumnStrategy([F] * 8, [F, Tr, F, F, F, F, F, F],
+                        exit_signal=[F, F, F, Tr, F, F, F, F])
+    ).row(0, named=True)
+    assert row["exit_reason"] == "exit_signal"
+    assert row["exit_price"] == sig["ask_open"][4]
+
+
+def test_exit_signal_before_entry_bar_is_ignored():
+    # a flat flag on bars before entry_bar must not close the new trade
+    base = _flat_path(1200)
+    sig = _sig_at_noon(8)
+    trades = Engine(sig, base).backtest(
+        _ColumnStrategy([F, F, Tr, F, F, F, F, F], [F] * 8,     # edge on 2 -> entry bar 3
+                        exit_signal=[Tr, Tr, F, F, F, Tr, F, F])
+    )
+    row = trades.row(0, named=True)
+    assert row["entry_time"] == sig["timestamp"][3]
+    assert row["exit_time"] == sig["timestamp"][6]
+
+
+def test_exit_signal_on_entry_bar_exits_at_the_following_open():
+    base = _flat_path(1200)
+    sig = _sig_at_noon(8)
+    row = Engine(sig, base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F, F, F], [F] * 8,
+                        exit_signal=[F, F, Tr, F, F, F, F, F])  # entry bar 2 itself flagged
+    ).row(0, named=True)
+    assert row["entry_time"] == sig["timestamp"][2]
+    assert row["exit_time"] == sig["timestamp"][3]
+
+
+def test_sl_before_exit_signal_wins():
+    bid = [(1.1005, 1.0998)] * 3 + [(1.0990, 1.0980)] + [(1.1005, 1.0998)] * 6
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    sig = _sig_at_noon(8)
+    row = Engine(sig, base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F, F, F], [F] * 8,
+                        exit_signal=[F, F, F, F, Tr, F, F, F])
+    ).row(0, named=True)
+    assert row["exit_reason"] == "sl"
+    assert row["exit_time"] == base["timestamp"][3]
+
+
+def test_sl_on_the_exit_signal_bar_itself_does_not_count():
+    # §0.2 — same ordering rule as the opposite-signal exit
+    k1_open = datetime(2024, 6, 3, 12, 15, 0, tzinfo=UTC)
+    bid = [(1.1000, 1.1000)] * 5 + [(1.1000, 1.0980)] + [(1.1000, 1.1000)] * 14
+    base = _path_base(bid, _shift_hl(bid, 0.0002), start=k1_open - timedelta(seconds=5))
+    sig = _sig_at_noon(8)
+    row = Engine(sig, base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F, F, F], [F] * 8,
+                        exit_signal=[F, F, F, F, Tr, F, F, F])  # -> exit at bar 5 = 12:15:00
+    ).row(0, named=True)
+    assert row["exit_reason"] == "exit_signal"
+    assert row["exit_time"] == sig["timestamp"][5]
+
+
+class _ReversingColumnStrategy(_ColumnStrategy):
+    exit_on_opposite_signal = True
+    reverse_on_opposite_signal = True
+
+
+def test_exit_signal_never_reverses_and_beats_a_later_opposite_edge():
+    base = _flat_path(2000)
+    sig = _sig_at_noon(8)
+    trades = Engine(sig, base).backtest(
+        _ReversingColumnStrategy([F, Tr, F, F, F, F, F, F], [F, F, F, F, F, Tr, F, F],
+                                 exit_signal=[F, F, F, Tr, F, F, F, F])
+    )
+    a = trades.row(0, named=True)
+    assert a["exit_reason"] == "exit_signal" and a["exit_time"] == sig["timestamp"][4]
+    # flat after the forced exit: the later short edge opens a NEW trade, not a reversal
+    assert trades["direction"].to_list() == ["long", "short"]
+    assert trades["entry_time"][1] == sig["timestamp"][6]
+
+
+def test_exit_signal_must_be_boolean():
+    sig = _sig_at_noon(8)
+    with pytest.raises(ValueError, match="exit_signal must be pl.Boolean"):
+        Engine(sig, _flat_path(20)).backtest(
+            _ColumnStrategy([F] * 8, [F] * 8, exit_signal=[0] * 8)
+        )
+
+
+def test_exit_signal_and_entry_edge_on_same_bar_is_ambiguous():
+    sig = _sig_at_noon(8)
+    with pytest.raises(ValueError, match="entry edge and exit_signal"):
+        Engine(sig, _flat_path(20)).backtest(
+            _ColumnStrategy([F, Tr, F, F, F, F, F, F], [F] * 8,
+                            exit_signal=[F, Tr, F, F, F, F, F, F])
+        )
+
+
+def test_per_trade_levels_read_at_the_signal_bar_not_the_entry_bar():
+    # TP of 5 pips is reachable (bid high 1.1008 vs ask entry 1.1002); the
+    # entry bar's own 50-pip value must NOT be the one used.
+    bid = [(1.1005, 1.0998)] * 3 + [(1.1008, 1.1000)] + [(1.1001, 1.0999)] * 6
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    sig = _sig_at_noon(6)
+    row = Engine(sig, base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6,
+                        sl_pips=[1.0, 20.0, 50.0, 1.0, 1.0, 1.0],
+                        tp_pips=[1.0, 5.0, 50.0, 1.0, 1.0, 1.0])
+    ).row(0, named=True)
+    assert (row["sl_pips"], row["tp_pips"]) == (20.0, 5.0)
+    assert row["exit_reason"] == "tp"
+    assert row["exit_price"] == pytest.approx(1.1002 + 5 * PIP)
+
+
+def test_fixed_levels_are_logged_when_no_per_trade_columns():
+    row = Engine(_sig_at_noon(8), _flat_path(1200)).backtest(
+        _ManualStrategy([F, Tr, F, F, F, F, F, F], [F] * 8)
+    ).row(0, named=True)
+    assert (row["sl_pips"], row["tp_pips"]) == (10.0, 20.0)
+
+
+@pytest.mark.parametrize("bad", [0.0, -1.0, None, float("nan")])
+def test_per_trade_levels_reject_bad_values_on_a_signal_bar(bad):
+    sig = _sig_at_noon(6)
+    with pytest.raises(ValueError, match="finite and > 0"):
+        Engine(sig, _flat_path(20)).backtest(
+            _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6,
+                            sl_pips=pl.Series([1.0, bad, 1, 1, 1, 1], dtype=pl.Float64),
+                            tp_pips=[1.0] * 6)
+        )
+
+
+def test_per_trade_levels_bad_values_off_signal_bars_are_fine():
+    # warmup nulls on bars that never trigger an entry must not raise
+    trades = Engine(_sig_at_noon(6), _flat_path(1200)).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6,
+                        sl_pips=pl.Series([None, 10.0, None, None, None, None], dtype=pl.Float64),
+                        tp_pips=pl.Series([None, 20.0, None, None, None, None], dtype=pl.Float64))
+    )
+    assert trades.height == 1
+
+
+def test_per_trade_levels_require_both_columns():
+    with pytest.raises(ValueError, match="together"):
+        Engine(_sig_at_noon(6), _flat_path(20)).backtest(
+            _ColumnStrategy([F] * 6, [F] * 6, sl_pips=[1.0] * 6)
+        )
+
+
+# --------------------------------------------------------------------------- #
 # spread_pips_paid — round-trip cost recorded per trade (spec §3.2 step 0)
 # --------------------------------------------------------------------------- #
 

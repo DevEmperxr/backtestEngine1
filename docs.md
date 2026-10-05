@@ -345,6 +345,20 @@ entry second is exposed to its own range, §0.2). Three things race:
 - **end of data** — nothing else fired → force-close (§2.4),
   `exit_reason "end_of_data"`, `exit_price` = last `bid_close`/`ask_close`.
 
+**Optional strategy columns** (added 2026-10-05 for research runs 001–003):
+
+- **`exit_signal`** (`pl.Boolean`, a *level*) — True on bar k closes any open
+  position at bar k+1's open (long → `bid_open`, short → `ask_open`), raced
+  against SL/TP with the same §0.2 ordering as the opposite-signal exit (an SL
+  that only prints at/after that open doesn't steal it). `exit_reason
+  "exit_signal"`; never reverses. Only bars ≥ the entry bar count. An entry edge
+  and `exit_signal` on the same bar → `ValueError`. Use: session-end force-flat.
+- **`sl_pips` + `tp_pips`** (numeric, both or neither) — per-trade distances
+  overriding the strategy's fixed ones. Read at the **signal bar**
+  (`entry_bar - 1`, also for reversals), never the entry bar, so they may only
+  use info through that bar's close. Must be finite and `> 0` on any bar that
+  triggers an entry (`ValueError` otherwise); nulls elsewhere (warmup) are fine.
+
 **Reversal** (`strategy.reverse_on_opposite_signal`) — when a trade exits
 `opposite_signal`, the engine immediately opens the opposite position at that
 same bar/open (`entry_time == previous exit_time`, `entry_price == previous
@@ -359,12 +373,13 @@ After a non-reversing exit the scan resumes at the first signal bar **at/after
 never overlap in wall-clock time** and an edge that fired mid-hold is skipped.
 
 **Trade log columns:** `entry_time, entry_price, direction ("long"/"short"),
-exit_time, exit_price, pips, exit_reason ∈ {sl, tp, opposite_signal, end_of_data},
-spread_pips_paid`.
+exit_time, exit_price, pips, exit_reason ∈ {sl, tp, opposite_signal, exit_signal,
+end_of_data}, spread_pips_paid, sl_pips, tp_pips` (the last two = the distances
+this trade actually used).
 `pips` = `(exit-entry)/PIP` long / `(entry-exit)/PIP` short — entry-at-ask /
 exit-at-bid bakes the spread in. `spread_pips_paid` = half-spread at the entry
 open + half-spread at the exit instant (1s bar close for sl/tp/eod, signal bar
-for opposite_signal), in pips — so **gross P&L = net `pips` + `spread_pips_paid`**
+for opposite_signal/exit_signal), in pips — so **gross P&L = net `pips` + `spread_pips_paid`**
 (used by `evaluate.adversarial`).
 
 ### `Engine.evaluate(trades, *, starting_balance=10_000, pip_value=1.0, seed=None, **kw)` ✅
@@ -420,9 +435,9 @@ mirrored.
 
 ### Trade log columns
 
-`entry_time, entry_price, direction, exit_time, exit_price, pips, exit_reason`
+`entry_time, entry_price, direction, exit_time, exit_price, pips, exit_reason, spread_pips_paid, sl_pips, tp_pips`
 
-`exit_reason ∈ {sl, tp, opposite_signal, end_of_data}` plus `spread_pips_paid`.
+`exit_reason ∈ {sl, tp, opposite_signal, exit_signal, end_of_data}` plus `spread_pips_paid`, `sl_pips`, `tp_pips`.
 An open position at end of data is **force-closed**, never silently dropped.
 
 ### Out of scope for the engine
