@@ -35,10 +35,14 @@ class Bb15Cross5FadeStrategy(Strategy):
         fast_n: int = 9, slow_n: int = 21, setup_life_min: int = 60,
         tp_frac: float = 0.8, stop_mode: str = "extreme", stop_buffer_pips: float = 2.0,
         atr_n: int = 14, atr_sl_mult: float = 2.5, timeframe: str = "5m",
+        confirm: str = "sma_cross",
     ) -> None:
         super().__init__(10.0, 10.0, timeframe)   # per-trade columns override these
-        if stop_mode not in ("extreme", "atr"):
-            raise ValueError(f"stop_mode must be 'extreme' or 'atr', got {stop_mode!r}")
+        if stop_mode not in ("extreme", "atr", "signal_bar"):
+            raise ValueError(f"stop_mode must be 'extreme', 'atr' or 'signal_bar', got {stop_mode!r}")
+        if confirm not in ("sma_cross", "engulf_outside"):
+            raise ValueError(f"confirm must be 'sma_cross' or 'engulf_outside', got {confirm!r}")
+        self.confirm = confirm
         self.bb_tf, self.bb_n, self.bb_k = bb_tf, bb_n, bb_k
         self.fast_n, self.slow_n = fast_n, slow_n
         self.setup_life_min, self.tp_frac = setup_life_min, tp_frac
@@ -50,7 +54,7 @@ class Bb15Cross5FadeStrategy(Strategy):
         mid = lambda f: (pl.col(f"bid_{f}") + pl.col(f"ask_{f}")) / 2
         c15 = pl.col("close")
         out = df.with_columns(
-            mid_close=mid("close"), mid_high=mid("high"), mid_low=mid("low"),
+            mid_open=mid("open"), mid_close=mid("close"), mid_high=mid("high"), mid_low=mid("low"),
             in_window=session_window(pl.col("close_time"), NY, time(7, 0), LONDON, time(16, 0))
                       & (pl.col("close_time").dt.convert_time_zone(NY).dt.weekday() <= 5),
         )
@@ -80,7 +84,15 @@ class Bb15Cross5FadeStrategy(Strategy):
             sma_fast=sma(pl.col("mid_close"), self.fast_n),
             sma_slow=sma(pl.col("mid_close"), self.slow_n),
         )
-        cross_up, cross_down = crossover(pl.col("sma_fast"), pl.col("sma_slow"))
+        if self.confirm == "sma_cross":
+            cross_up, cross_down = crossover(pl.col("sma_fast"), pl.col("sma_slow"))
+        else:
+            # "outside" engulfing on this bar vs the previous one (bars t-1, t only):
+            # bullish = green and closes above the prior high; bearish mirrored
+            cross_up = ((pl.col("mid_close") > pl.col("mid_open"))
+                        & (pl.col("mid_close") > pl.col("mid_high").shift(1)))
+            cross_down = ((pl.col("mid_close") < pl.col("mid_open"))
+                          & (pl.col("mid_close") < pl.col("mid_low").shift(1)))
         active_long = (
             (pl.col("close_time") - pl.col("setup_long_t") <= life)
             & (pl.col("touch_mid_up_t").is_null() | (pl.col("touch_mid_up_t") <= pl.col("setup_long_t")))
@@ -106,6 +118,13 @@ class Bb15Cross5FadeStrategy(Strategy):
         long_ = out["long_signal"].to_numpy()
         short_ = out["short_signal"].to_numpy()
         sl = np.full(out.height, np.nan)
+        if self.stop_mode == "signal_bar":
+            # beyond the confirming (engulfing) bar itself
+            lo, hi, cl = (out[c].to_numpy() for c in ("mid_low", "mid_high", "mid_close"))
+            buf = self.stop_buffer_pips * PIP
+            sl[long_] = (cl[long_] - (lo[long_] - buf)) / PIP
+            sl[short_] = ((hi[short_] + buf) - cl[short_]) / PIP
+            return pl.Series("sl_pips", sl).fill_nan(None)
         if self.stop_mode == "atr":
             a = out["atr_pips"].to_numpy()
             m = long_ | short_

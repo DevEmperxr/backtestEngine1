@@ -285,6 +285,7 @@ def _bb15x5_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict
     ct15 = b15["close_time"].to_list()
     b5 = _mid_bars(base_1s, strategy.timeframe)
     c5 = b5["close"].to_numpy()
+    o5, h5, l5 = (b5[k].to_numpy() for k in ("open", "high", "low"))
 
     def sma_np(x, p):
         out = np.full(len(x), np.nan)
@@ -300,10 +301,17 @@ def _bb15x5_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict
         no_setup += not any(flags[j] and et - life <= ct15[j] <= et for j in range(len(ct15))
                             if et - life - timedelta(minutes=15) <= ct15[j] <= et)
         i = idx5[et]
-        prev, now = f[i - 1] - sl[i - 1], f[i] - sl[i]
-        ok = (prev <= 0 < now) if d == "long" else (prev >= 0 > now)
+        if getattr(strategy, "confirm", "sma_cross") == "engulf_outside":
+            # green and close above the prior bar's high (bearish mirrored)
+            if d == "long":
+                ok = c5[i] > o5[i] and c5[i] > h5[i - 1]
+            else:
+                ok = c5[i] < o5[i] and c5[i] < l5[i - 1]
+        else:
+            prev, now = f[i - 1] - sl[i - 1], f[i] - sl[i]
+            ok = (prev <= 0 < now) if d == "long" else (prev >= 0 > now)
         no_cross += not ok
-    return {"bb15x5_no_setup_in_life": no_setup, "bb15x5_no_cross_on_signal_bar": no_cross}
+    return {"bb15x5_no_setup_in_life": no_setup, "bb15x5_no_confirm_on_signal_bar": no_cross}
 
 
 def random_walk_baseline(trades: pl.DataFrame) -> dict:
