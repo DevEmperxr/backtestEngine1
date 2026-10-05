@@ -55,16 +55,50 @@ Seen before registering (no P&L): 3,569 signals in 2024; median TP 7.4 pips, med
   above the spread-adjusted null.
 
 ## Headline result
-_(filled after the run)_
+- trades: **1,057** (3,569 signals), win rate 46.8%, net **−15.9** pips (expectancy −0.02/trade)
+- profit factor 1.00, avg win +8.7 / avg loss −7.7, max DD −3.1%, Sharpe −0.05
+- exits: 439 TP / 527 SL / 91 force-flat
+- verdict: `unprofitable`
 
 ## Adversarial checks
-_(filled after the run)_
+- gross vs net: gross **+221.1**, spread 237.0 → "edge existed, costs ate it". Gross
+  +0.21 pips/trade vs 0.22 spread.
+- bootstrap CI (expectancy): **[−0.60, +0.57]**. With ~1,000 trades this is the tightest
+  CI so far: any real edge here is smaller than ~0.6 pips/trade.
+- MC drawdown: −3.06% vs median −3.40%, rank 67% → `fragile` flag; moot.
+- ex-best-month: drop Dec (+71.7) → −87.5; ex top 1% (11) → −381.3; ex top 5% → −1,281.5.
+- **H1/H2:** H1 −133.0 (gross ≤ 0), H2 +117.1. Not stable.
+- **Pre-registered split:** entries before 16:00 London 864 trades, −62.1; at/after 16:00
+  London 193 trades, **+46.2** (CI [−0.97, +1.55]).
+- **random-walk null (spread-adjusted):** TP-first 45.5% vs 46.5% (z ≈ −0.65).
+- **vs 012 (narrow window):** −157.8 → −15.9. The wider window dilutes the loss, but the TP
+  rate is still at the null.
+- **Raised bar:** no on all three counts.
+- **lookahead audit: passed.** 1,057/1,057 entries; independent 15m-setup and engulfing
+  re-checks: 0 failures; 0 SL mismatches; 0 force-flat violations (vs 16:00 NY).
 
 ## Visual check
-_(filled after the run)_
+[sample_trades.png](sample_trades.png): entries now start from the London open
+(e.g. 01-23 08:05 London); setup → outside-engulfing → entry logic, the TP at 80% of the way
+to the 15m mid and the SL are as registered; force-flat at 16:00 NY. Nothing wrong
+mechanically. Interactive `strategy.visualize` not run.
 
 ## Interpretation
-_(filled after the run)_
+No edge. With 1,000+ trades this is now a fairly *informative* null, not just a noisy
+one. Win rates sit on the random-walk baseline, gross P&L is about +0.1–0.2 pips/trade
+(within noise of zero) and smaller than the spread, and the CI rules out anything
+larger than ~0.6 pips/trade.
+
+The pre-registered split is the one consistent detail. In both runs the trades entered
+**after 16:00 London** were positive (+46 and +94), while those entered before were
+negative. It's the same direction as 006 and 007 (reversion after the London fix). But
+each CI includes zero, and it's the *third* look at the post-fix period on 2024 data,
+so it adds weight to carrying 007 forward to new data, not evidence on its own.
 
 ## Decision
-_(filled after the run)_
+**discard**.
+**Why:** net −15.9 over 1,057 trades; CI [−0.60, +0.57]; gross +0.21/trade < spread; TP rate at
+the null; H1 negative. Fails the raised bar on every count.
+
+
+Raw numbers: [results.json](results.json) · plots: [equity](equity.png), [monthly](monthly.png), [MC drawdown](mc_drawdown.png)

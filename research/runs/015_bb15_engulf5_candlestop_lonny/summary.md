@@ -54,16 +54,45 @@ Seen before registering (no P&L): 3,569 signals in 2024; median TP 7.4 pips, med
   above the spread-adjusted null.
 
 ## Headline result
-_(filled after the run)_
+- trades: **1,229**, win rate 39.7%, net **−153.2** pips (expectancy −0.12/trade)
+- profit factor 0.96, avg win +8.5 / avg loss −5.8, max DD −3.2%, Sharpe −0.55
+- exits: 436 TP / 722 SL / 71 force-flat
+- verdict: `unprofitable`
 
 ## Adversarial checks
-_(filled after the run)_
+- gross vs net: gross **+123.6**, spread 276.8 → "edge existed, costs ate it" (+0.10/trade gross).
+- bootstrap CI (expectancy): **[−0.58, +0.35]**.
+- MC drawdown: −3.22% vs median −3.80%, rank 76% → `fragile` flag; moot.
+- ex-best-month: drop Sep (+71.5) → −224.6; ex top 5% → −1,502.6.
+- **H1/H2:** H1 −143.5, H2 −9.7. Negative in both.
+- **Pre-registered split:** before 16:00 London 993 trades, −247.5 (gross ≤ 0); at/after
+  16:00 London 236 trades, **+94.3** (CI [−0.55, +1.37]).
+- **random-walk null (spread-adjusted):** TP-first 37.7% vs 38.7% (z ≈ −0.75).
+- **vs 013:** −149.3 → −153.2. No change.
+- **Raised bar:** no on all three counts.
+- **lookahead audit: passed** (same checks as 014, all 0).
 
 ## Visual check
-_(filled after the run)_
+[sample_trades.png](sample_trades.png): entries now start from the London open
+(e.g. 01-23 08:05 London); setup → outside-engulfing → entry logic, the TP at 80% of the way
+to the 15m mid and the SL are as registered; force-flat at 16:00 NY. Nothing wrong
+mechanically. Interactive `strategy.visualize` not run.
 
 ## Interpretation
-_(filled after the run)_
+No edge. With 1,000+ trades this is now a fairly *informative* null, not just a noisy
+one. Win rates sit on the random-walk baseline, gross P&L is about +0.1–0.2 pips/trade
+(within noise of zero) and smaller than the spread, and the CI rules out anything
+larger than ~0.6 pips/trade.
+
+The pre-registered split is the one consistent detail. In both runs the trades entered
+**after 16:00 London** were positive (+46 and +94), while those entered before were
+negative. It's the same direction as 006 and 007 (reversion after the London fix). But
+each CI includes zero, and it's the *third* look at the post-fix period on 2024 data,
+so it adds weight to carrying 007 forward to new data, not evidence on its own.
 
 ## Decision
-_(filled after the run)_
+**discard**.
+**Why:** net −153.2; CI [−0.58, +0.35]; both halves negative; TP rate at the null.
+
+
+Raw numbers: [results.json](results.json) · plots: [equity](equity.png), [monthly](monthly.png), [MC drawdown](mc_drawdown.png)
