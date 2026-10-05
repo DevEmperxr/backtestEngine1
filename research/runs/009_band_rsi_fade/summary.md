@@ -18,7 +18,7 @@ support was found, so this is the weakest-grounded of the three.
 - 5m bars, mid close. Bollinger: SMA(20) ± 2 × rolling SD(20). RSI(14), Wilder smoothing.
 - long: close < lower band AND RSI < 30. short: close > upper band AND RSI > 70.
 - entry window / force-flat: [07:00 NY, 16:00 London), flat at 16:00 London (as 001).
-- entry at the next 5m open; .
+- entry at the next 5m open; `exit_on_opposite_signal = False`.
 - **TP** = |signal close − SMA(20)| (back to the middle band), per trade.
 - **SL** = 2.5 × ATR(14) at the signal bar (same rule as 003), per trade.
 

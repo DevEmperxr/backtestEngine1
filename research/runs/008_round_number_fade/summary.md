@@ -24,7 +24,7 @@ project has tested round numbers yet.
   both, skip it.)
 - entry window and force-flat: entry time (= signal bar close_time) in [07:00 NY,
   16:00 London), Mon–Fri; flat at 16:00 London.
-- entry at the next 1m open; ; one position at a time.
+- entry at the next 1m open; `exit_on_opposite_signal = False`; one position at a time.
 - **SL** at L ± 4 pips beyond the level (4 = 2.5 × median 1m ATR in the window, the
   rule used in 004): sl_pips = |signal close − (L ± 4 pips)| / pip.
 - **TP** = 1.5 × sl_pips.
