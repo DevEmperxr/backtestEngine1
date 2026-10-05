@@ -825,3 +825,13 @@ def test_sl_tp_levels_uses_pip_constant():
     sl, tp = _sl_tp_levels(1, 1.2000, 5, 5)
     assert sl == pytest.approx(1.2000 - 5 * PIP)
     assert tp == pytest.approx(1.2000 + 5 * PIP)
+
+
+class _ReorderingStrategy(_ManualStrategy):
+    def generate_signals(self, df):
+        return super().generate_signals(df).reverse()
+
+
+def test_backtest_rejects_reordered_signal_frame():
+    with pytest.raises(ValueError, match="keep the rows of signal_df"):
+        Engine(_sig_at_noon(6), _flat_path(20)).backtest(_ReorderingStrategy([F] * 6, [F] * 6))

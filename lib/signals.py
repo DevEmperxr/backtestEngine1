@@ -123,3 +123,19 @@ def higher_tf_join(
     return df.join_asof(
         htf, left_on="close_time", right_on="_htf_close_time", strategy="backward"
     ).drop("_htf_close_time")
+
+
+def rsi(values: pl.Expr, n: int) -> pl.Expr:
+    """Wilder's RSI over `n` bars, 0-100.
+
+    Gains/losses are bar-to-bar changes; both are smoothed with Wilder's
+    recursive average (alpha = 1/n, adjust=False — equivalent to the classic
+    seed-then-smooth form after warmup). Only bars <= t feed row t. The first
+    `n` outputs are null (n changes need n+1 prices). All-gain → 100.
+    """
+    if n < 1:
+        raise ValueError(f"n must be >= 1, got {n}")
+    d = values.diff()
+    gain = d.clip(lower_bound=0).ewm_mean(alpha=1 / n, adjust=False, min_samples=n)
+    loss = (-d).clip(lower_bound=0).ewm_mean(alpha=1 / n, adjust=False, min_samples=n)
+    return pl.when(loss == 0).then(100.0).otherwise(100 - 100 / (1 + gain / loss))

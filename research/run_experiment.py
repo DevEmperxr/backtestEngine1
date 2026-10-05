@@ -26,7 +26,7 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 
-from lib.data import load_1s_data, resample
+from lib.data import PIP, load_1s_data, resample
 from lib.engine import Engine
 from lib.evaluate import plot_equity, plot_mc_drawdown, plot_monthly
 
@@ -139,6 +139,13 @@ def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s:
         out[f"trend_{tf}_mismatch"] = wrong.height
     if hasattr(strategy, "range_start"):
         out.update(_orb_audit(strategy, trades, base_1s))
+    kind = getattr(strategy, "audit_kind", None)
+    if kind == "fix_fade":
+        out.update(_fix_audit(strategy, trades, base_1s))
+    elif kind == "round_number":
+        out.update(_round_audit(strategy, trades, base_1s))
+    elif kind == "band_rsi":
+        out.update(_band_audit(strategy, trades, base_1s))
     if "signal_sl_pips" in keyed.columns:
         out["sl_mismatch_vs_signal_bar"] = keyed.filter(
             (pl.col("sl_pips") - pl.col("signal_sl_pips")).abs() > 1e-9).height
@@ -178,6 +185,85 @@ def _orb_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
         "orb_not_first_breakout": t.filter(pl.col("entry_time") != pl.col("first_close")).height,
         "orb_days_with_multiple_trades": t.group_by("d").len().filter(pl.col("len") > 1).height,
     }
+
+
+def _mid_bars(base_1s: pl.DataFrame, tf: str) -> pl.DataFrame:
+    """Bars rebuilt from the 1s data, mid OHLC in pips (audit-only helper)."""
+    return resample(base_1s, tf).with_columns(
+        **{f: (pl.col(f"bid_{f}") + pl.col(f"ask_{f}")) / 2 / PIP for f in ("open", "high", "low", "close")}
+    ).select("timestamp", "close_time", "open", "high", "low", "close")
+
+
+def _fix_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
+    """Entry exactly at the fix (London clock), direction = -sign(fix close - close
+    `lookback_min` earlier), recomputed by wall-clock lookup on rebuilt 1m bars."""
+    b = _mid_bars(base_1s, "1m")
+    close_at = dict(zip(b["close_time"].to_list(), b["close"].to_list()))
+    from datetime import timedelta
+    london = trades["entry_time"].dt.convert_time_zone("Europe/London").dt.time().to_list()
+    wrong_time = sum(t != strategy.fix_time for t in london)
+    wrong_dir = missing = 0
+    for et, d in zip(trades["entry_time"].to_list(), trades["direction"].to_list()):
+        c1, c0 = close_at.get(et), close_at.get(et - timedelta(minutes=strategy.lookback_min))
+        if c1 is None or c0 is None:
+            missing += 1
+            continue
+        want = "long" if c1 - c0 < 0 else "short"
+        wrong_dir += (d != want)
+    return {"fix_entry_not_at_fix": wrong_time, "fix_direction_mismatch": wrong_dir,
+            "fix_bars_missing": missing}
+
+
+def _round_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
+    """The signal bar (closing at entry) must have a step-pip level touched from the
+    open side and closed back, on the traded side. Plain Python scan of levels."""
+    import math
+    b = _mid_bars(base_1s, "1m")
+    rows = {r["close_time"]: r for r in b.iter_rows(named=True)}
+    step, bad = strategy.step_pips, 0
+    for et, d in zip(trades["entry_time"].to_list(), trades["direction"].to_list()):
+        r = rows.get(et)
+        o, h, l, c = (round(r[k], 4) for k in ("open", "high", "low", "close"))
+        lo_m, hi_m = math.floor(l / step) * step, math.ceil(h / step) * step
+        levels = range(int(lo_m), int(hi_m) + step, step)
+        if d == "short":
+            ok = any(o < m <= h and c < m for m in levels)
+        else:
+            ok = any(l <= m < o and c > m for m in levels)
+        bad += not ok
+    return {"round_signal_bar_invalid": bad}
+
+
+def _band_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
+    """Bollinger + Wilder RSI recomputed with explicit numpy loops on rebuilt bars;
+    the signal bar must satisfy both conditions on the traded side (1e-9 tol)."""
+    b = _mid_bars(base_1s, strategy.timeframe)
+    c = b["close"].to_numpy()
+    n, k, rn = strategy.bb_n, strategy.bb_k, strategy.rsi_n
+    mid = np.full(len(c), np.nan)
+    sd = np.full(len(c), np.nan)
+    for i in range(n - 1, len(c)):
+        w = c[i - n + 1:i + 1]
+        mid[i], sd[i] = w.mean(), w.std(ddof=1)
+    r = np.full(len(c), np.nan)
+    g = lo = None
+    for i in range(1, len(c)):
+        ch = c[i] - c[i - 1]
+        gi, li = max(ch, 0.0), max(-ch, 0.0)
+        g = gi if g is None else g + (gi - g) / rn
+        lo = li if lo is None else lo + (li - lo) / rn
+        if i >= rn:
+            r[i] = 100.0 if lo == 0 else 100 - 100 / (1 + g / lo)
+    idx = {t: i for i, t in enumerate(b["close_time"].to_list())}
+    bad, tol = 0, 1e-9
+    for et, d in zip(trades["entry_time"].to_list(), trades["direction"].to_list()):
+        i = idx[et]
+        if d == "long":
+            ok = c[i] < mid[i] - k * sd[i] + tol and r[i] < strategy.rsi_lo + 1e-6
+        else:
+            ok = c[i] > mid[i] + k * sd[i] - tol and r[i] > strategy.rsi_hi - 1e-6
+        bad += not ok
+    return {"band_signal_bar_invalid": bad}
 
 
 def random_walk_baseline(trades: pl.DataFrame) -> dict:
@@ -226,7 +312,7 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
                         "bootstrap_ci": r["adversarial"]["bootstrap_ci"],
                         "gross_vs_net": r["adversarial"]["gross_vs_net"]}
 
-    for name, part in (strategy.report_splits(trades).items()
+    for name, part in (strategy.report_splits(trades, strategy.generate_signals(bars)).items()
                        if hasattr(strategy, "report_splits") else ()):
         r = engine.evaluate(part, starting_balance=10_000, pip_value=1.0, seed=SEED)
         halves[f"split_{name}"] = {"summary": r["summary"], "verdict": r["verdict"],

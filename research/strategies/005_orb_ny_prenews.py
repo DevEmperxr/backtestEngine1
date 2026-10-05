@@ -70,7 +70,7 @@ class OrbStrategy(Strategy):
             range_lo_d=pl.col("mid_low").min(),
             n_range_bars=pl.len(),
         ).filter(pl.col("n_range_bars") >= self.range_bars)
-        out = out.join(rng, on="ny_date", how="left").with_columns(
+        out = out.join(rng, on="ny_date", how="left", maintain_order="left").with_columns(
             # The range is only known once its last bar has closed: hide it on
             # every bar that isn't strictly after 08:30 NY (no lookahead, not even
             # on the chart).
@@ -100,7 +100,7 @@ class OrbStrategy(Strategy):
         return out
 
     @staticmethod
-    def report_splits(trades: pl.DataFrame) -> dict[str, pl.DataFrame]:
+    def report_splits(trades: pl.DataFrame, sig: pl.DataFrame | None = None) -> dict[str, pl.DataFrame]:
         d = trades["entry_time"].dt.convert_time_zone(NY).dt.date()
         news = d.is_in(NEWS_DATES)
         return {"news_nfp_cpi": trades.filter(news), "non_news": trades.filter(~news)}

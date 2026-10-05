@@ -471,6 +471,10 @@ class Engine:
             through that bar's close. Override the strategy's fixed values.
         """
         sig = strategy.generate_signals(self.signal_df)
+        # A reordered / filtered / duplicated frame (e.g. a join that does not
+        # keep row order) would silently misalign t and t+1 below.
+        if not sig["timestamp"].equals(self.signal_df["timestamp"]):
+            raise ValueError("generate_signals must keep the rows of signal_df, in order")
         for col in ("long_signal", "short_signal"):
             if col not in sig.columns:
                 raise ValueError(f"generate_signals did not add a {col!r} column")

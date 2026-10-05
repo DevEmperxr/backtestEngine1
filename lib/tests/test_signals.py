@@ -7,7 +7,7 @@ from datetime import datetime, time, timezone
 
 from datetime import timedelta
 
-from lib.signals import atr, crossover, higher_tf_join, session_window, sma
+from lib.signals import atr, crossover, higher_tf_join, rsi, session_window, sma
 
 
 # --------------------------------------------------------------------------- #
@@ -221,3 +221,30 @@ def test_higher_tf_join_features_and_nesting_check():
     bad = df.with_columns(close_time=pl.col("timestamp") + timedelta(minutes=7))
     with pytest.raises(ValueError, match="nest"):
         _join5(bad)
+
+
+# --------------------------------------------------------------------------- #
+# rsi
+# --------------------------------------------------------------------------- #
+
+def _rsi(xs, n):
+    return pl.DataFrame({"x": xs}).select(r=rsi(pl.col("x"), n))["r"].to_list()
+
+
+def test_rsi_warmup_and_extremes():
+    up = _rsi([1.0, 2, 3, 4, 5], 2)
+    assert up[:2] == [None, None] and up[2:] == [100.0, 100.0, 100.0]
+    down = _rsi([5.0, 4, 3, 2, 1], 2)
+    assert down[2:] == pytest.approx([0.0, 0.0, 0.0])
+
+
+def test_rsi_hand_checked_wilder():
+    # diffs: +1, -1, +2 ; n=2, alpha=1/2, adjust=False, ewm seeded at first diff
+    # gain ewm: 1, 0.5, 1.25 ; loss ewm: 0, 0.5, 0.25 ; rsi[3] = 100-100/(1+5) = 83.33
+    out = _rsi([1.0, 2, 1, 3], 2)
+    assert out[3] == pytest.approx(100 - 100 / 6)
+
+
+def test_rsi_row_t_ignores_later_bars():
+    a = [1.0, 2, 1.5, 3, 2.5, 2]
+    assert _rsi(a + [100.0], 3)[:6] == _rsi(a, 3)
