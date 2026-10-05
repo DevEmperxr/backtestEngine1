@@ -1,0 +1,100 @@
+"""018 — Fade the day's 005 opening-range breakout at the 16:00 London fix if
+that breakout trade is still open; TP at the breakout's SL level, SL at its TP
+level, flat at 16:00 New York.
+
+See research/runs/018_orb_fix_fade/summary.md.
+"""
+
+from __future__ import annotations
+
+from datetime import time
+from importlib import import_module
+
+import numpy as np
+import polars as pl
+
+from lib.data import PIP
+from lib.engine import Strategy, _sl_tp_levels
+from lib.signals import session_window
+
+_orb = import_module("research.strategies.005_orb_ny_prenews")
+NY, LONDON = _orb.NY, "Europe/London"
+
+
+class OrbFixFadeStrategy(Strategy):
+    line_columns = ["mid_close"]
+    marker_columns = ["long_signal", "short_signal"]
+    region_columns = ["in_window"]
+
+    exit_on_opposite_signal = False
+    reverse_on_opposite_signal = False
+    force_flat = True
+    audit_kind = "orb_fix_fade"
+
+    def __init__(self, *, fix_time: time = time(16, 0), timeframe: str = "1m") -> None:
+        super().__init__(10.0, 10.0, timeframe)   # per-trade columns override these
+        self.fix_time = fix_time
+        self.window_end, self.window_end_tz = time(16, 0), NY
+        self.orb = _orb.make()                     # 005, unchanged
+
+    def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
+        orb = self.orb.generate_signals(df)
+        close_l = pl.col("close_time").dt.convert_time_zone(LONDON)
+        out = df.with_columns(
+            mid_close=(pl.col("bid_close") + pl.col("ask_close")) / 2,
+            in_window=session_window(pl.col("close_time"), LONDON, self.fix_time, NY, time(16, 0))
+                      & (close_l.dt.weekday() <= 5),
+            is_fix=(close_l.dt.time() == self.fix_time) & (close_l.dt.weekday() <= 5),
+        )
+        n = out.height
+        is_fix = out["is_fix"].to_numpy()
+        fix_idx = np.flatnonzero(is_fix)
+        bl, bh = df["bid_low"].to_numpy(), df["bid_high"].to_numpy()
+        al, ah = df["ask_low"].to_numpy(), df["ask_high"].to_numpy()
+        ao, bo = df["ask_open"].to_numpy(), df["bid_open"].to_numpy()
+        mid = out["mid_close"].to_numpy()
+        o_long, o_short = orb["long_signal"].to_numpy(), orb["short_signal"].to_numpy()
+        o_sl, o_tp = orb["sl_pips"].to_numpy(), orb["tp_pips"].to_numpy()
+
+        long_sig = np.zeros(n, bool)
+        short_sig = np.zeros(n, bool)
+        sl = np.full(n, np.nan)
+        tp = np.full(n, np.nan)
+        for i in np.flatnonzero(o_long | o_short):
+            e = i + 1                                     # breakout entry bar (t+1)
+            k = np.searchsorted(fix_idx, e)               # first fix bar at/after entry
+            if e >= n or k >= len(fix_idx):
+                continue
+            f = fix_idx[k]
+            d = 1 if o_long[i] else -1
+            entry = ao[e] if d == 1 else bo[e]
+            b_sl, b_tp = _sl_tp_levels(d, entry, o_sl[i], o_tp[i])
+            # bars e..f only (all closed by 16:00 London): was either level touched?
+            if d == 1:      # long exits against the bid
+                touched = (bl[e:f + 1] <= b_sl).any() or (bh[e:f + 1] >= b_tp).any()
+            else:           # short exits against the ask
+                touched = (ah[e:f + 1] >= b_sl).any() or (al[e:f + 1] <= b_tp).any()
+            if touched:
+                continue
+            # fade: opposite direction; TP at the breakout's SL, SL at its TP
+            fade_tp = abs(b_sl - mid[f]) / PIP
+            fade_sl = abs(mid[f] - b_tp) / PIP
+            right_side = (b_sl > mid[f] > b_tp) if d == -1 else (b_sl < mid[f] < b_tp)
+            if not right_side or fade_tp <= 0 or fade_sl <= 0:
+                continue
+            if d == 1:
+                short_sig[f] = True
+            else:
+                long_sig[f] = True
+            sl[f], tp[f] = fade_sl, fade_tp
+        return out.with_columns(
+            long_signal=pl.Series(long_sig) & pl.col("in_window"),
+            short_signal=pl.Series(short_sig) & pl.col("in_window"),
+            sl_pips=pl.Series(sl).fill_nan(None),
+            tp_pips=pl.Series(tp).fill_nan(None),
+            exit_signal=~pl.col("in_window"),
+        )
+
+
+def make() -> OrbFixFadeStrategy:
+    return OrbFixFadeStrategy(fix_time=time(16, 0))

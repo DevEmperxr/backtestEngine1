@@ -79,7 +79,11 @@ def _jsonable(x):
         return x.isoformat()
     if hasattr(x, "item"):
         return x.item()
-    return x
+    if isinstance(x, (str, int, float, bool)) or x is None:
+        return x
+    if hasattr(x, "__dict__"):           # e.g. a nested Strategy (018 wraps 005)
+        return {"type": type(x).__name__, **_jsonable(vars(x))}
+    return repr(x)
 
 
 def _headline(report: dict) -> dict:
@@ -165,11 +169,13 @@ def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s:
         out.update(_band_audit(strategy, trades, base_1s))
     elif kind == "bb15x5":
         out.update(_bb15x5_audit(strategy, trades, base_1s))
+    elif kind == "orb_fix_fade":
+        out.update(_orbfade_audit(strategy, bars, trades, base_1s))
     if "signal_sl_pips" in keyed.columns:
         out["sl_mismatch_vs_signal_bar"] = keyed.filter(
             (pl.col("sl_pips") - pl.col("signal_sl_pips")).abs() > 1e-9).height
     out["ok"] = all(v == 0 for k, v in out.items()
-                    if k not in ("n_window_signals", "n_trades"))
+                    if k not in ("n_window_signals", "n_trades") and not k.startswith("info_"))
     return out
 
 
@@ -355,6 +361,40 @@ def _bb15x5_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict
             ok = (prev <= 0 < now) if d == "long" else (prev >= 0 > now)
         no_cross += not ok
     return {"bb15x5_no_setup_in_life": no_setup, "bb15x5_no_confirm_on_signal_bar": no_cross}
+
+
+def _orbfade_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
+    """Run the underlying 005 breakout through the real Engine (separate code path
+    from 018's own touch check). Every fade must sit on a day where the breakout
+    exited `exit_signal` at the fix, opposite direction, entry = that exit time,
+    fade TP/SL levels = breakout SL/TP levels (tol 1.5 pips: distances are measured
+    from the signal-bar mid, the entry fills at bid/ask). Also counts breakout
+    days still open at the fix that produced no fade."""
+    orb_trades = Engine(bars, base_1s).backtest(strategy.orb)
+    held = orb_trades.filter(pl.col("exit_reason") == "exit_signal")
+    lt = held["exit_time"].dt.convert_time_zone("Europe/London").dt.time()
+    held = held.filter(lt == strategy.fix_time)
+    by_time = {r["exit_time"]: r for r in held.iter_rows(named=True)}
+    tol = 1.5 * PIP
+    no_match = wrong_dir = bad_levels = 0
+    for r in trades.iter_rows(named=True):
+        b = by_time.get(r["entry_time"])
+        if b is None:
+            no_match += 1
+            continue
+        if r["direction"] == b["direction"]:
+            wrong_dir += 1
+            continue
+        d = 1 if b["direction"] == "long" else -1
+        b_sl = b["entry_price"] - d * b["sl_pips"] * PIP
+        b_tp = b["entry_price"] + d * b["tp_pips"] * PIP
+        f_tp = r["entry_price"] - d * r["tp_pips"] * PIP    # fade direction is -d
+        f_sl = r["entry_price"] + d * r["sl_pips"] * PIP
+        bad_levels += not (abs(f_tp - b_sl) <= tol and abs(f_sl - b_tp) <= tol)
+    return {"fade_no_matching_open_breakout": no_match, "fade_same_direction_as_breakout": wrong_dir,
+            "fade_levels_not_mirrored": bad_levels,
+            "info_breakouts_open_at_fix": held.height,
+            "info_open_breakouts_without_fade": held.height - (trades.height - no_match)}
 
 
 def random_walk_baseline(trades: pl.DataFrame) -> dict:
