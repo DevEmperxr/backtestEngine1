@@ -1,6 +1,12 @@
 """Run pre-registered research experiments end to end.
 
     python -m research.run_experiment 001 002 003
+    python -m research.run_experiment 016:a 016:b --year 2025
+
+`NNN:v` calls the strategy file's `make_v()` instead of `make()`. `--year Y`
+backtests data/EURUSD_1s_Y.csv (default 2024) and, for any year other than 2024
+or any variant, writes into research/runs/NNN_*/<v|main>_<Y>/ so runs never
+overwrite each other.
 
 For each NNN: imports research/strategies/NNN_*.py, calls its `make()`,
 backtests on the 2024 EURUSD data through `Engine`, evaluates through
@@ -17,8 +23,8 @@ outputs, once.
 
 from __future__ import annotations
 
+import argparse
 import json
-import sys
 from datetime import datetime, timezone
 from importlib import import_module
 from pathlib import Path
@@ -31,9 +37,9 @@ from lib.engine import Engine
 from lib.evaluate import plot_equity, plot_mc_drawdown, plot_monthly
 
 ROOT = Path(__file__).resolve().parent
-DATA = ROOT.parent / "data" / "EURUSD_1s_2024.csv"
+DATA_DIR = ROOT.parent / "data"
 SEED = 0
-SPLIT = datetime(2024, 7, 1, tzinfo=timezone.utc)   # H1 = Jan-Jun, H2 = Jul-Dec (by entry)
+YEAR = 2024                                     # set by main(); H1/H2 split at Jul 1 of it
 
 
 def _find(num: str, folder: str, suffix: str) -> Path:
@@ -43,8 +49,19 @@ def _find(num: str, folder: str, suffix: str) -> Path:
     return hits[0]
 
 
-def _load(num: str):
-    return import_module(f"research.strategies.{_find(num, 'strategies', '.py').stem}").make()
+def _load(spec: str):
+    num, _, variant = spec.partition(":")
+    mod = import_module(f"research.strategies.{_find(num, 'strategies', '.py').stem}")
+    return getattr(mod, f"make_{variant}" if variant else "make")()
+
+
+def _run_dir(spec: str) -> Path:
+    num, _, variant = spec.partition(":")
+    d = ROOT / "runs" / _find(num, "strategies", ".py").stem
+    if variant or YEAR != 2024:
+        d = d / f"{variant or 'main'}_{YEAR}"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
 
 
 def _jsonable(x):
@@ -212,8 +229,34 @@ def _fix_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
             continue
         want = "long" if c1 - c0 < 0 else "short"
         wrong_dir += (d != want)
-    return {"fix_entry_not_at_fix": wrong_time, "fix_direction_mismatch": wrong_dir,
-            "fix_bars_missing": missing}
+    out = {"fix_entry_not_at_fix": wrong_time, "fix_direction_mismatch": wrong_dir,
+           "fix_bars_missing": missing}
+    n = getattr(strategy, "filter_days", None)
+    if n:
+        # every weekday fix in the data, |r| recomputed here; threshold = median
+        # of the n strictly-earlier fix days (plain Python, independent of polars)
+        lt = b["close_time"].dt.convert_time_zone("Europe/London")
+        fixes = b.filter((lt.dt.time() == strategy.fix_time) & (lt.dt.weekday() <= 5))["close_time"].to_list()
+        absr = {}
+        for t in fixes:
+            c0 = close_at.get(t - timedelta(minutes=strategy.lookback_min))
+            if c0 is not None:
+                absr[t] = abs(close_at[t] - c0)
+        days = sorted(absr)
+        pos = {t: i for i, t in enumerate(days)}
+        below = 0
+        for et in trades["entry_time"].to_list():
+            i = pos.get(et)
+            past = [absr[d] for d in days[max(0, i - n):i]] if i is not None else []
+            if len(past) < n:
+                below += 1
+                continue
+            past.sort()
+            m = len(past)
+            med = past[m // 2] if m % 2 else (past[m // 2 - 1] + past[m // 2]) / 2
+            below += not (absr[et] > med)
+        out["fix_filter_threshold_violations"] = below
+    return out
 
 
 def _round_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
@@ -343,18 +386,18 @@ def random_walk_baseline(trades: pl.DataFrame) -> dict:
 
 
 def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
-    path = _find(num, "strategies", ".py")
+    path = _find(num.partition(":")[0], "strategies", ".py")
     strategy = _load(num)
-    run_dir = ROOT / "runs" / path.stem
-    run_dir.mkdir(exist_ok=True)
+    run_dir = _run_dir(num)
+    split = datetime(YEAR, 7, 1, tzinfo=timezone.utc)   # H1 = Jan-Jun, H2 = Jul-Dec (by entry)
 
     trades = engine.backtest(strategy)
     trades.write_parquet(run_dir / "trades.parquet")
     report = engine.evaluate(trades, starting_balance=10_000, pip_value=1.0, seed=SEED)
 
     halves = {}
-    for name, part in (("H1_jan_jun", trades.filter(pl.col("entry_time") < SPLIT)),
-                       ("H2_jul_dec", trades.filter(pl.col("entry_time") >= SPLIT))):
+    for name, part in (("H1_jan_jun", trades.filter(pl.col("entry_time") < split)),
+                       ("H2_jul_dec", trades.filter(pl.col("entry_time") >= split))):
         r = engine.evaluate(part, starting_balance=10_000, pip_value=1.0, seed=SEED)
         halves[name] = {"summary": r["summary"], "verdict": r["verdict"],
                         "bootstrap_ci": r["adversarial"]["bootstrap_ci"],
@@ -368,7 +411,8 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
                                    "gross_vs_net": r["adversarial"]["gross_vs_net"]}
 
     result = {
-        "run": path.stem,
+        "run": f"{path.stem} [{num}] {YEAR}",
+        "data_file": f"EURUSD_1s_{YEAR}.csv",
         "strategy": {k: v for k, v in vars(strategy).items()},
         "full_year": _headline(report),
         "halves": halves,
@@ -385,8 +429,10 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
     return result
 
 
-def main(nums: list[str]) -> None:
-    base = load_1s_data(str(DATA), verbose=False)
+def main(nums: list[str], year: int = 2024) -> None:
+    global YEAR
+    YEAR = year
+    base = load_1s_data(str(DATA_DIR / f"EURUSD_1s_{year}.csv"), verbose=False)
     engines: dict[str, Engine] = {}   # one Engine per signal timeframe
     for num in nums:
         tf = _load(num).timeframe
@@ -411,4 +457,8 @@ def main(nums: list[str]) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["001", "002", "003"])
+    ap = argparse.ArgumentParser()
+    ap.add_argument("specs", nargs="*", default=["001", "002", "003"])
+    ap.add_argument("--year", type=int, default=2024)
+    a = ap.parse_args()
+    main(a.specs, a.year)
