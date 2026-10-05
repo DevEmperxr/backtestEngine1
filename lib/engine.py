@@ -88,6 +88,45 @@ def _sl_tp_levels(direction, entry_price, sl_pips, tp_pips, pip=PIP):
     return entry_price + offset_sl, entry_price - offset_tp
 
 
+def _sl_tp_levels_pct(direction, entry_price, sl_pct, tp_pct):
+    """Absolute SL/TP price levels from PERCENTAGE distances, not pips.
+
+    For instruments whose price isn't confined to a narrow band the way
+    EURUSD is (crypto, equities, ...) a fixed pip distance is the wrong
+    model: a $0.50 stop is enormous risk at SOL=$9 and negligible at
+    SOL=$260 -- the same absolute distance means something different at
+    every price level. A percentage distance means the same thing (the same
+    fraction of risk) regardless of the instrument's price level or how much
+    it's moved since the backtest started. Same long/short mirroring as
+    `_sl_tp_levels`. Returns (sl_level, tp_level).
+    """
+    offset_sl = entry_price * sl_pct
+    offset_tp = entry_price * tp_pct
+    if direction == 1:
+        return entry_price - offset_sl, entry_price + offset_tp
+    return entry_price + offset_sl, entry_price - offset_tp
+
+
+def _price_diff_metric(diff: float, mode: str, entry_price: float, pip: float = PIP) -> float:
+    """Scale a realized price difference into the trade's reporting unit:
+    a pip count for "pips" mode (unchanged from before this existed), a
+    fractional return (relative to entry price) for "pct" mode. Used for
+    both the trade's P&L and its spread cost, so `gross == net + spread_paid`
+    holds in either mode -- `evaluate.adversarial` relies on that invariant.
+    """
+    return diff / pip if mode == "pips" else diff / entry_price
+
+
+def _spread_metric(ask: float, bid: float, mode: str, pip: float = PIP) -> float:
+    """Half the bid/ask spread, in the trade's reporting unit (see
+    `_price_diff_metric`) -- "pct" mode normalizes by the local mid, since
+    there's no single `entry_price` to anchor to at an exit."""
+    half = (ask - bid) / 2
+    if mode == "pips":
+        return half / pip
+    return half / ((ask + bid) / 2)
+
+
 def _windowed_signals(
     strategy: "Strategy", bars: pl.DataFrame, start_idx: int, end_idx: int, warmup_bars: int
 ) -> pl.DataFrame:
@@ -144,10 +183,25 @@ class Strategy(ABC):
 
     Attributes
     ----------
-    sl_pips : float
-        Stop-loss distance in pips (> 0).
-    tp_pips : float
-        Take-profit distance in pips (> 0).
+    sl_pips, tp_pips : float | None
+        Stop-loss / take-profit distance in pips (> 0). Mutually exclusive
+        with `sl_pct`/`tp_pct` — pick exactly one mode. Appropriate for an
+        instrument whose price stays in a narrow band across the whole
+        backtest (EURUSD and other FX majors): a fixed pip distance means
+        roughly the same thing throughout.
+    sl_pct, tp_pct : float | None
+        Stop-loss / take-profit distance as a FRACTION of entry price (e.g.
+        `0.02` = 2%), not a fixed pip count. Mutually exclusive with
+        `sl_pips`/`tp_pips`. Use this for anything whose price isn't
+        confined to a narrow band (crypto, equities, ...) — a fixed pip/$
+        distance is simply the wrong model when the instrument's own price
+        can move by an order of magnitude across the backtest: the same
+        absolute distance is enormous risk at one price level and negligible
+        at another. A percentage distance means the same fraction of risk
+        regardless of price level. `distance_mode` reports which was chosen
+        ("pips" or "pct"). See `lib/engine.py`'s `_price_diff_metric`/
+        `_spread_metric` for how this propagates through trade P&L
+        reporting.
     timeframe : str
         Resampled timeframe this strategy operates on ("5m", "1h", ...). Drives
         the no-lookahead "bar t's close" calculation below.
@@ -173,19 +227,48 @@ class Strategy(ABC):
     marker_columns: list[str] = []
     region_columns: list[str] = []
 
-    def __init__(self, sl_pips: float, tp_pips: float, timeframe: str) -> None:
-        if not (sl_pips > 0):
-            raise ValueError(f"sl_pips must be > 0, got {sl_pips!r}")
-        if not (tp_pips > 0):
-            raise ValueError(f"tp_pips must be > 0, got {tp_pips!r}")
+    def __init__(
+        self,
+        sl_pips: float | None = None,
+        tp_pips: float | None = None,
+        timeframe: str | None = None,
+        *,
+        sl_pct: float | None = None,
+        tp_pct: float | None = None,
+    ) -> None:
+        pip_given = sl_pips is not None or tp_pips is not None
+        pct_given = sl_pct is not None or tp_pct is not None
+        if pip_given and pct_given:
+            raise ValueError("pass either sl_pips/tp_pips or sl_pct/tp_pct, not both")
+        if not pip_given and not pct_given:
+            raise ValueError("must pass sl_pips/tp_pips or sl_pct/tp_pct")
         if not isinstance(timeframe, str) or not timeframe:
             raise ValueError(f"timeframe must be a non-empty str, got {timeframe!r}")
         if self.reverse_on_opposite_signal and not self.exit_on_opposite_signal:
             raise ValueError(
                 "reverse_on_opposite_signal requires exit_on_opposite_signal"
             )
-        self.sl_pips = float(sl_pips)
-        self.tp_pips = float(tp_pips)
+
+        if pct_given:
+            if sl_pct is None or tp_pct is None:
+                raise ValueError("sl_pct and tp_pct must both be given together")
+            if not (sl_pct > 0):
+                raise ValueError(f"sl_pct must be > 0, got {sl_pct!r}")
+            if not (tp_pct > 0):
+                raise ValueError(f"tp_pct must be > 0, got {tp_pct!r}")
+            self.distance_mode = "pct"
+            self.sl_pct, self.tp_pct = float(sl_pct), float(tp_pct)
+            self.sl_pips = self.tp_pips = None
+        else:
+            if sl_pips is None or tp_pips is None:
+                raise ValueError("sl_pips and tp_pips must both be given together")
+            if not (sl_pips > 0):
+                raise ValueError(f"sl_pips must be > 0, got {sl_pips!r}")
+            if not (tp_pips > 0):
+                raise ValueError(f"tp_pips must be > 0, got {tp_pips!r}")
+            self.distance_mode = "pips"
+            self.sl_pips, self.tp_pips = float(sl_pips), float(tp_pips)
+            self.sl_pct = self.tp_pct = None
         self.timeframe = timeframe
 
     @abstractmethod
@@ -324,10 +407,19 @@ class Strategy(ABC):
                 )
                 for row in window_trades.iter_rows(named=True):
                     direction = 1 if row["direction"] == "long" else -1
-                    stop, target = _sl_tp_levels(
-                        direction, row["entry_price"],
-                        row.get("sl_pips") or st.sl_pips, row.get("tp_pips") or st.tp_pips,
-                    )
+                    # the trade log always carries the resolved distance for
+                    # whichever mode THIS trade actually used (per-trade
+                    # override or the strategy's fixed value) -- no fallback
+                    # to `st.sl_pips`/`st.tp_pips` needed, and for a pct-mode
+                    # strategy those would be None anyway.
+                    if row["distance_mode"] == "pct":
+                        stop, target = _sl_tp_levels_pct(
+                            direction, row["entry_price"], row["sl_pct"], row["tp_pct"],
+                        )
+                    else:
+                        stop, target = _sl_tp_levels(
+                            direction, row["entry_price"], row["sl_pips"], row["tp_pips"],
+                        )
                     positions.append(chart.position_tool(
                         entry=row["entry_price"], stop=stop, target=target,
                         # tz-naive -- same gotcha as the main plot path
@@ -420,11 +512,14 @@ class Engine:
         "spread_pips_paid": pl.Float64,
         "sl_pips": pl.Float64,
         "tp_pips": pl.Float64,
+        "sl_pct": pl.Float64,
+        "tp_pct": pl.Float64,
+        "distance_mode": pl.String,
     }
     _TRADE_COLUMNS = (
         "entry_time", "entry_price", "direction",
         "exit_time", "exit_price", "pips", "exit_reason", "spread_pips_paid",
-        "sl_pips", "tp_pips",
+        "sl_pips", "tp_pips", "sl_pct", "tp_pct", "distance_mode",
     )
 
     def __init__(self, signal_df: pl.DataFrame, base_1s: pl.DataFrame) -> None:
@@ -459,16 +554,31 @@ class Engine:
         Columns: entry_time, entry_price, direction ("long"/"short"), exit_time,
         exit_price, pips, exit_reason in {"sl", "tp", "opposite_signal",
         "exit_signal", "end_of_data"}, spread_pips_paid (half-spread in +
-        half-spread out, pips — so gross = net pips + spread_pips_paid), sl_pips,
-        tp_pips (the distances this trade actually used).
+        half-spread out, same unit as `pips` — so gross = net pips +
+        spread_pips_paid), sl_pips/tp_pips OR sl_pct/tp_pct (whichever this
+        run actually used -- the other pair is null), distance_mode
+        ("pips" or "pct", constant for the whole run -- see `Strategy`'s
+        docstring).
+
+        `pips` is mode-dependent: a traditional pip count when
+        `distance_mode == "pips"`, a fractional return (relative to entry
+        price) when `"pct"`. Same column name, same "multiply by pip_value
+        to get $" contract either way (`lib/evaluate.py` needs zero changes
+        for `"pct"` mode — `pip_value` just becomes "$ per 1.0 (=100%)
+        return").
 
         Optional columns `generate_signals` may add:
           * `exit_signal` (pl.Boolean, level) — True on bar k closes any open
             position at bar k+1's open, raced against SL/TP like an opposite
             signal; never reverses. E.g. a session-end force-flat.
-          * `sl_pips` + `tp_pips` (numeric, together) — per-trade distances,
-            read at the SIGNAL bar (entry_bar - 1), so they may only use info
-            through that bar's close. Override the strategy's fixed values.
+          * `sl_pips` + `tp_pips` (numeric, together) — per-trade distances in
+            pips, read at the SIGNAL bar (entry_bar - 1), so they may only use
+            info through that bar's close. Overrides the strategy's fixed
+            values; requires the strategy itself be in "pips" mode.
+          * `sl_pct` + `tp_pct` (numeric, together) — same idea, as fractional
+            distances instead of pips. Mutually exclusive with sl_pips/tp_pips
+            (per-trade or strategy-level) — a run is one mode throughout, so
+            `pips`/`spread_pips_paid` stay one consistent, summable unit.
         """
         sig = strategy.generate_signals(self.signal_df)
         # A reordered / filtered / duplicated frame (e.g. a join that does not
@@ -485,16 +595,30 @@ class Engine:
         if (sig["long_signal"] & sig["short_signal"]).any():
             raise ValueError("ambiguous bar: long_signal and short_signal both True")
 
-        # Optional per-trade SL/TP: both or neither, numeric. Read at the SIGNAL
-        # bar (entry_bar - 1) in resolve() — never the entry bar (§0.1).
-        has_sl, has_tp = "sl_pips" in sig.columns, "tp_pips" in sig.columns
-        if has_sl != has_tp:
+        # Optional per-trade SL/TP: both or neither, numeric, one unit only.
+        # Read at the SIGNAL bar (entry_bar - 1) in resolve() — never the
+        # entry bar (§0.1). distance_mode is fixed for the WHOLE run (never
+        # mixed trade-to-trade) so `pips`/`spread_pips_paid` stay one
+        # consistent, summable unit across the returned trade log.
+        has_sl_pips, has_tp_pips = "sl_pips" in sig.columns, "tp_pips" in sig.columns
+        has_sl_pct, has_tp_pct = "sl_pct" in sig.columns, "tp_pct" in sig.columns
+        if has_sl_pips != has_tp_pips:
             raise ValueError("per-trade sl_pips / tp_pips columns must be given together")
-        per_trade_levels = has_sl
-        if per_trade_levels:
-            for col in ("sl_pips", "tp_pips"):
+        if has_sl_pct != has_tp_pct:
+            raise ValueError("per-trade sl_pct / tp_pct columns must be given together")
+        if (has_sl_pips or has_tp_pips) and (has_sl_pct or has_tp_pct):
+            raise ValueError(
+                "per-trade sl_pips/tp_pips and sl_pct/tp_pct are mutually exclusive"
+            )
+        per_trade_pips = has_sl_pips
+        per_trade_pct = has_sl_pct
+        if per_trade_pips or per_trade_pct:
+            distance_mode = "pips" if per_trade_pips else "pct"
+            for col in (("sl_pips", "tp_pips") if per_trade_pips else ("sl_pct", "tp_pct")):
                 if not sig.schema[col].is_numeric():
                     raise ValueError(f"{col} column must be numeric, got {sig.schema[col]}")
+        else:
+            distance_mode = strategy.distance_mode
 
         # Rising edges only — enter on a fresh False->True transition, not on
         # every bar a state signal stays True. shift(1, fill_value=False) keeps a
@@ -522,9 +646,12 @@ class Engine:
         entry_long = sig["_entry_long"].to_list()
         entry_short = sig["_entry_short"].to_list()
         flat = sig["exit_signal"].to_list() if has_exit_signal else None
-        if per_trade_levels:
+        if per_trade_pips:
             sl_col = sig["sl_pips"].cast(pl.Float64).to_list()
             tp_col = sig["tp_pips"].cast(pl.Float64).to_list()
+        elif per_trade_pct:
+            sl_col = sig["sl_pct"].cast(pl.Float64).to_list()
+            tp_col = sig["tp_pct"].cast(pl.Float64).to_list()
 
         base_ts = self.base_1s["timestamp"]
         n_sig = sig.height
@@ -539,20 +666,25 @@ class Engine:
             # long fills at ask, short at bid — for a fresh entry AND a reversal
             # (the close and the re-open are the same side of the book, §0.3).
             entry_price = ask_open[entry_bar] if direction == 1 else bid_open[entry_bar]
-            entry_half_spread = (ask_open[entry_bar] - bid_open[entry_bar]) / 2 / PIP
-            if per_trade_levels:
+            entry_half_spread = _spread_metric(ask_open[entry_bar], bid_open[entry_bar], distance_mode)
+            if per_trade_pips or per_trade_pct:
                 # The signal bar's values: only info through its close (§0.1).
-                sl_pips, tp_pips = sl_col[entry_bar - 1], tp_col[entry_bar - 1]
-                if not (sl_pips is not None and tp_pips is not None
-                        and sl_pips > 0 and tp_pips > 0
-                        and np.isfinite(sl_pips) and np.isfinite(tp_pips)):
+                sl_dist, tp_dist = sl_col[entry_bar - 1], tp_col[entry_bar - 1]
+                if not (sl_dist is not None and tp_dist is not None
+                        and sl_dist > 0 and tp_dist > 0
+                        and np.isfinite(sl_dist) and np.isfinite(tp_dist)):
                     raise ValueError(
-                        f"per-trade sl_pips/tp_pips must be finite and > 0 on a signal "
-                        f"bar, got ({sl_pips!r}, {tp_pips!r}) at {sig_ts[entry_bar - 1]}"
+                        f"per-trade sl/tp distance must be finite and > 0 on a signal "
+                        f"bar, got ({sl_dist!r}, {tp_dist!r}) at {sig_ts[entry_bar - 1]}"
                     )
+            elif distance_mode == "pct":
+                sl_dist, tp_dist = strategy.sl_pct, strategy.tp_pct
             else:
-                sl_pips, tp_pips = strategy.sl_pips, strategy.tp_pips
-            sl_level, tp_level = _sl_tp_levels(direction, entry_price, sl_pips, tp_pips)
+                sl_dist, tp_dist = strategy.sl_pips, strategy.tp_pips
+            if distance_mode == "pct":
+                sl_level, tp_level = _sl_tp_levels_pct(direction, entry_price, sl_dist, tp_dist)
+            else:
+                sl_level, tp_level = _sl_tp_levels(direction, entry_price, sl_dist, tp_dist)
 
             # First 1s row at/after entry — the entry second is exposed to its
             # own range (open first, then the range unfolds, §0.2).
@@ -607,20 +739,22 @@ class Engine:
                 exit_price = float(self._bid_close[-1] if direction == 1 else self._ask_close[-1])
                 exit_ns, exit_reason = int(self._ts_ns[n_base - 1]), "end_of_data"
 
-            if direction == 1:
-                pips = (exit_price - entry_price) / PIP
-            else:
-                pips = (entry_price - exit_price) / PIP
+            raw_diff = (exit_price - entry_price) if direction == 1 else (entry_price - exit_price)
+            pips = _price_diff_metric(raw_diff, distance_mode, entry_price)
 
             # Half-spread paid getting out, at the exit instant (spec §3.2 needs
             # the round-trip spread cost; entry-at-ask/exit-at-bid already bakes
             # it into `pips`, so gross = net + spread_pips_paid).
             if exit_reason in ("sl", "tp"):
-                exit_half_spread = (self._ask_close[hit_idx] - self._bid_close[hit_idx]) / 2 / PIP
+                exit_half_spread = _spread_metric(
+                    self._ask_close[hit_idx], self._bid_close[hit_idx], distance_mode
+                )
             elif exit_reason in ("opposite_signal", "exit_signal"):
-                exit_half_spread = (ask_open[opp_bar + 1] - bid_open[opp_bar + 1]) / 2 / PIP
+                exit_half_spread = _spread_metric(
+                    ask_open[opp_bar + 1], bid_open[opp_bar + 1], distance_mode
+                )
             else:  # end_of_data
-                exit_half_spread = (self._ask_close[-1] - self._bid_close[-1]) / 2 / PIP
+                exit_half_spread = _spread_metric(self._ask_close[-1], self._bid_close[-1], distance_mode)
 
             trade = {
                 "entry_time": entry_time,
@@ -631,8 +765,11 @@ class Engine:
                 "pips": float(pips),
                 "exit_reason": exit_reason,
                 "spread_pips_paid": float(entry_half_spread + exit_half_spread),
-                "sl_pips": float(sl_pips),
-                "tp_pips": float(tp_pips),
+                "sl_pips": float(sl_dist) if distance_mode == "pips" else None,
+                "tp_pips": float(tp_dist) if distance_mode == "pips" else None,
+                "sl_pct": float(sl_dist) if distance_mode == "pct" else None,
+                "tp_pct": float(tp_dist) if distance_mode == "pct" else None,
+                "distance_mode": distance_mode,
             }
 
             resume_t = int(np.searchsorted(sig_ts_ns, exit_ns, side="left"))

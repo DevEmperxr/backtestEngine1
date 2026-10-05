@@ -11,8 +11,11 @@ from lib.data import PIP, DataQualityError
 from lib.engine import (
     Engine,
     Strategy,
+    _price_diff_metric,
     _resolve_exit,
     _sl_tp_levels,
+    _sl_tp_levels_pct,
+    _spread_metric,
 )
 
 UTC = timezone.utc
@@ -76,6 +79,89 @@ def test_exit_on_opposite_signal_default_and_override():
 def test_init_rejects_bad_args(kwargs):
     with pytest.raises(ValueError):
         _MiniStrategy(**kwargs)
+
+
+# --------------------------------------------------------------------------- #
+# sl_pct/tp_pct -- percentage-based SL/TP (an alternative to sl_pips/tp_pips,
+# for instruments like crypto whose price isn't confined to a narrow band the
+# way EURUSD is -- a fixed pip/$ distance means something different at every
+# price level, a percentage distance means the same fraction of risk always).
+# --------------------------------------------------------------------------- #
+
+class _FlexStrategy(Strategy):
+    """Forwards constructor kwargs straight to Strategy.__init__ -- for
+    testing the pips/pct mode selection and validation directly."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
+        return df.with_columns(long_signal=pl.lit(False), short_signal=pl.lit(False))
+
+
+def test_pct_mode_stores_args_and_sets_distance_mode():
+    s = _FlexStrategy(sl_pct=0.01, tp_pct=0.02, timeframe="1h")
+    assert (s.sl_pct, s.tp_pct) == (0.01, 0.02)
+    assert s.sl_pips is None and s.tp_pips is None
+    assert s.distance_mode == "pct"
+
+
+def test_pips_mode_leaves_pct_attrs_none_and_distance_mode_pips():
+    s = _FlexStrategy(sl_pips=10, tp_pips=20, timeframe="5m")
+    assert s.distance_mode == "pips"
+    assert s.sl_pct is None and s.tp_pct is None
+
+
+def test_cannot_pass_both_pips_and_pct():
+    with pytest.raises(ValueError, match="not both"):
+        _FlexStrategy(sl_pips=10, tp_pips=20, sl_pct=0.01, tp_pct=0.02, timeframe="5m")
+
+
+def test_must_pass_one_distance_mode():
+    with pytest.raises(ValueError, match="must pass"):
+        _FlexStrategy(timeframe="5m")
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"sl_pct": 0, "tp_pct": 0.02, "timeframe": "5m"},
+        {"sl_pct": 0.01, "tp_pct": -0.01, "timeframe": "5m"},
+        {"sl_pct": 0.01, "timeframe": "5m"},  # tp_pct missing
+    ],
+)
+def test_pct_mode_rejects_bad_args(kwargs):
+    with pytest.raises(ValueError):
+        _FlexStrategy(**kwargs)
+
+
+def test_sl_tp_levels_pct_long():
+    sl, tp = _sl_tp_levels_pct(1, 100.0, 0.02, 0.05)
+    assert sl == pytest.approx(98.0)
+    assert tp == pytest.approx(105.0)
+
+
+def test_sl_tp_levels_pct_short():
+    sl, tp = _sl_tp_levels_pct(-1, 100.0, 0.02, 0.05)
+    assert sl == pytest.approx(102.0)
+    assert tp == pytest.approx(95.0)
+
+
+def test_price_diff_metric_pips_mode_matches_the_original_pip_math():
+    assert _price_diff_metric(0.0010, "pips", entry_price=1.1) == pytest.approx(10.0)
+
+
+def test_price_diff_metric_pct_mode_is_a_fractional_return():
+    assert _price_diff_metric(2.0, "pct", entry_price=100.0) == pytest.approx(0.02)
+
+
+def test_spread_metric_pips_mode_matches_the_original_pip_math():
+    assert _spread_metric(1.1002, 1.1000, "pips") == pytest.approx(1.0)  # 2-pip spread -> 1 pip half
+
+
+def test_spread_metric_pct_mode_normalizes_by_the_local_mid():
+    # ask=102, bid=98 -> mid=100, half=2 -> 2% half-spread
+    assert _spread_metric(102.0, 98.0, "pct") == pytest.approx(0.02)
 
 
 def test_generate_signals_returns_boolean_columns():
@@ -698,6 +784,117 @@ def test_per_trade_levels_require_both_columns():
         Engine(_sig_at_noon(6), _flat_path(20)).backtest(
             _ColumnStrategy([F] * 6, [F] * 6, sl_pips=[1.0] * 6)
         )
+
+
+# --------------------------------------------------------------------------- #
+# sl_pct/tp_pct end to end -- same mechanics as sl_pips/tp_pips above (fixed
+# strategy-level and per-trade column override), just a different unit. The
+# headline property: SL/TP trigger at the PERCENTAGE level, not a pip count,
+# and the trade log's pips/spread_pips_paid/sl_pips/tp_pips/sl_pct/tp_pct/
+# distance_mode columns all reflect that correctly.
+# --------------------------------------------------------------------------- #
+
+class _ManualPctStrategy(Strategy):
+    """Like _ManualStrategy (above), but sl_pct/tp_pct instead of sl_pips/tp_pips."""
+
+    exit_on_opposite_signal = False
+
+    def __init__(self, longs, shorts, timeframe="5m", sl_pct=0.01, tp_pct=0.02):
+        super().__init__(timeframe=timeframe, sl_pct=sl_pct, tp_pct=tp_pct)
+        self._longs, self._shorts = longs, shorts
+
+    def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
+        return df.with_columns(
+            long_signal=pl.Series(self._longs, dtype=pl.Boolean),
+            short_signal=pl.Series(self._shorts, dtype=pl.Boolean),
+        )
+
+
+class _ColumnPctStrategy(_ManualPctStrategy):
+    """_ManualPctStrategy plus any extra columns supplied verbatim."""
+
+    def __init__(self, longs, shorts, **extra):
+        super().__init__(longs, shorts)
+        self._extra = extra
+
+    def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
+        out = super().generate_signals(df)
+        return out.with_columns(**{k: pl.Series(v) for k, v in self._extra.items()})
+
+
+def test_pct_mode_sl_triggers_at_the_percentage_level_not_a_pip_count():
+    entry_ask = 1.1002  # _sig_at_noon's constant ask_open
+    sl_pct, tp_pct = 0.001, 0.05  # tp far away -- never reached
+    sl_level = entry_ask * (1 - sl_pct)
+    bid = [(1.1005, 1.0998)] * 3 + [(1.1005, sl_level - 0.00001)] + [(1.1005, 1.0998)] * 6
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    sig = _sig_at_noon(10)
+    row = Engine(sig, base).backtest(
+        _ManualPctStrategy([F, Tr] + [F] * 8, [F] * 10, sl_pct=sl_pct, tp_pct=tp_pct)
+    ).row(0, named=True)
+
+    assert row["exit_reason"] == "sl"
+    assert row["exit_price"] == pytest.approx(sl_level)
+    assert row["distance_mode"] == "pct"
+    assert (row["sl_pct"], row["tp_pct"]) == pytest.approx((sl_pct, tp_pct))
+    assert row["sl_pips"] is None and row["tp_pips"] is None
+    expected_pips = (sl_level - entry_ask) / entry_ask  # a loss, as a fraction of entry
+    assert row["pips"] == pytest.approx(expected_pips)
+
+
+def test_per_trade_pct_levels_read_at_the_signal_bar_not_the_entry_bar():
+    # mirrors test_per_trade_levels_read_at_the_signal_bar_not_the_entry_bar
+    # above, but with sl_pct/tp_pct columns instead of sl_pips/tp_pips.
+    bid = [(1.1005, 1.0998)] * 3 + [(1.1008, 1.1000)] + [(1.1001, 1.0999)] * 6
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    sig = _sig_at_noon(6)
+    row = Engine(sig, base).backtest(
+        _ColumnPctStrategy(
+            [F, Tr, F, F, F, F], [F] * 6,
+            sl_pct=[0.5, 0.02, 10.0, 0.5, 0.5, 0.5],
+            tp_pct=[0.5, 0.0005, 10.0, 0.5, 0.5, 0.5],
+        )
+    ).row(0, named=True)
+    assert (row["sl_pct"], row["tp_pct"]) == pytest.approx((0.02, 0.0005))
+    assert row["exit_reason"] == "tp"
+    assert row["exit_price"] == pytest.approx(1.1002 * 1.0005)
+    assert row["sl_pips"] is None and row["tp_pips"] is None
+    assert row["distance_mode"] == "pct"
+
+
+def test_per_trade_pips_and_pct_columns_are_mutually_exclusive():
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        Engine(_sig_at_noon(6), _flat_path(20)).backtest(
+            _ColumnStrategy(
+                [F] * 6, [F] * 6,
+                sl_pips=[1.0] * 6, tp_pips=[1.0] * 6,
+                sl_pct=[0.01] * 6, tp_pct=[0.01] * 6,
+            )
+        )
+
+
+def test_spread_in_pct_mode_is_fractional_and_gross_equals_net_plus_spread():
+    # same invariant as test_spread_pips_paid_flat_market_is_full_spread_and_
+    # equals_minus_pips below, just in "pct" mode: a motionless market, SL/TP
+    # never reached -> end_of_data, net pips is purely the cost of crossing
+    # the spread once each way, and gross (net + spread_pips_paid) must be ~0.
+    base = _flat_path(1200)  # bid 1.1000, ask 1.1002 everywhere -- 2-pip spread
+    sig = _sig_at_noon(8)
+    row = Engine(sig, base).backtest(
+        _ManualPctStrategy([F, Tr] + [F] * 6, [F] * 8, sl_pct=0.5, tp_pct=0.5)
+    ).row(0, named=True)
+
+    assert row["distance_mode"] == "pct"
+    assert row["exit_reason"] == "end_of_data"
+    # Unlike pip-mode (where this is EXACTLY zero -- pips and spread_pips_paid
+    # share the same linear PIP divisor throughout, so it cancels
+    # algebraically), pct-mode's `pips` normalizes by entry_price while the
+    # spread normalizes by the local mid at each point -- a deliberate,
+    # reasonable choice (mid is the fairer reference for a cost), but not
+    # quite the same number as entry_price. The residual is on the order of
+    # spread^2/price^2 -- genuinely negligible (here ~1e-8), not a bug.
+    gross = row["pips"] + row["spread_pips_paid"]
+    assert gross == pytest.approx(0.0, abs=1e-6)
 
 
 # --------------------------------------------------------------------------- #
