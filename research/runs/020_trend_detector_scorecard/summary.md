@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-06
 **Files:** lib/signals.py (detector primitives), research/regime/trend_scorecard.py
-**Status:** exploring
+**Status:** done: no persistent-trend detector found
 **Brick 1 of the "fade the stretch back to the MA20 in a trending market" programme** (the user's trade B).
 
 ## Question
@@ -72,10 +72,44 @@ definitions in bars: **5m, 15m and 1h** (20 bars back, 20 bars ahead: ~1h40m, ~5
 - Time-of-day slot for 1h = the hour.
 
 ## Results
-_(filled after the run)_
+2023, readings in the user's window. [results_2023.json](results_2023.json). ρ = Spearman(detector_t, FER_t).
+
+| detector | 5m ρ (n=12,612) | 15m ρ (n=4,204) | 1h ρ (n=840) |
+|---|---|---|---|
+| ER20 | +0.016 | −0.001 | **−0.113** (95% [−0.21, −0.01]) |
+| ADX14 | +0.010 | −0.034 | −0.056 |
+| SLOPE | +0.004 | −0.011 | −0.071 |
+| R2_20 | +0.022 | −0.018 | **−0.150** (95% [−0.25, −0.05]; null range [−0.134, +0.083]) |
+| CHOP14_inv | +0.023 | +0.010 | −0.026 |
+| VR4_100 | +0.016 | −0.009 | +0.004 |
+| AC1_50 | +0.038 | +0.012 | +0.063 |
+| time-of-day baseline | +0.021 | −0.030 | +0.003 |
+
+- **No detector is "useful" or even "weak" (in the positive direction) on any timeframe.**
+  Every 99.8% CI includes 0, and every 5m/15m ρ sits inside its sign-randomised null range.
+- 1h exception, in the **opposite** direction: a clean 20-hour trend (high R²/ER) was followed
+  by a *less* efficient next 20 hours: R2_20 ρ −0.150 (negative in H1 −0.149 and H2 −0.144,
+  below the minimum of its 20 null ρ's), ER20 −0.113. The 95% CIs exclude 0; the registered
+  99.8% CIs do not ([−0.296, +0.021] and [−0.257, +0.020]).
+- Mean future ER ≈ 0.24–0.26 at all timeframes; the time of day adds nothing either.
 
 ## Interpretation
-_(filled after the run)_
+**In 2023 EURUSD, "is it trending now?" does not predict "will it trend over the next 20
+bars?" on 5m, 15m or 1h.** All seven detectors describe the past well (that's what they are
+built for), but trendiness has no measurable persistence at these horizons. That holds
+whether trend is measured by slope, ADX, efficiency, linearity, choppiness, variance ratio
+or autocorrelation. A trend filter built on "it has been trending, so it will keep trending"
+has nothing to stand on here.
+
+The only signal points the other way, at 1h: after a clean 20-hour trend, the next ~20
+hours tend to be choppier (exhaustion / consolidation). It is not significant at the
+registered 21-test level, so it is a hypothesis to check on other years, not a finding.
+It is, however, the direction the user's trade B would want: trends that have run
+cleanly tend to stall.
 
 ## Decision
-_(filled after the run)_
+**No detector adopted as a "trend persists" filter.** Carry forward one hypothesis for
+confirmation on other years: *1h R²/ER over the last 20 hours is negatively related to the
+next 20 hours' efficiency* (trend exhaustion). Brick 2 (does the 5m stretch revert to the
+MA20 more when the 1h has been trending?) can still be tested directly, but "1h trending"
+there must be read as "the last 20 hours trended", not as a state expected to continue.
