@@ -1,0 +1,76 @@
+{
+  "scramble_2023": {
+    "rows_before_cutoff": 187188,
+    "signals_before_cutoff": 2316,
+    "differences": {
+      "long_signal": 0,
+      "short_signal": 0,
+      "sl_pips": 0,
+      "tp_pips": 0,
+      "ctx_class": 0,
+      "swing_hi": 0,
+      "swing_lo": 0,
+      "ma5": 0,
+      "atr5": 0,
+      "in_window": 0,
+      "exit_signal": 0
+    },
+    "clean_after_cutoff_signals": 2310,
+    "dirty_after_cutoff_signals": 2112
+  },
+  "on_time_2023": {
+    "n": 207,
+    "net": 320.5,
+    "per_trade": 1.55,
+    "ci95": [
+      0.22,
+      2.9
+    ]
+  },
+  "one_minute_late_2023": {
+    "n": 200,
+    "net": 304.9,
+    "per_trade": 1.52,
+    "ci95": [
+      0.17,
+      2.89
+    ]
+  },
+  "scramble_2024": {
+    "rows_before_cutoff": 185932,
+    "signals_before_cutoff": 2211,
+    "differences": {
+      "long_signal": 0,
+      "short_signal": 0,
+      "sl_pips": 0,
+      "tp_pips": 0,
+      "ctx_class": 0,
+      "swing_hi": 0,
+      "swing_lo": 0,
+      "ma5": 0,
+      "atr5": 0,
+      "in_window": 0,
+      "exit_signal": 0
+    },
+    "clean_after_cutoff_signals": 2220,
+    "dirty_after_cutoff_signals": 2100
+  },
+  "on_time_2024": {
+    "n": 225,
+    "net": 140.0,
+    "per_trade": 0.62,
+    "ci95": [
+      -0.39,
+      1.64
+    ]
+  },
+  "one_minute_late_2024": {
+    "n": 225,
+    "net": 249.1,
+    "per_trade": 1.11,
+    "ci95": [
+      0.13,
+      2.15
+    ]
+  }
+}
