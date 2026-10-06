@@ -109,3 +109,9 @@ trades. Same total as 046, smoother, more reliant on big winners. Next fair step
 User chose B and C. New engine feature: partial take-profit (partial_tp_pips + partial_frac, one row per trade, size-weighted
 pips; 8 tests). A +263.5 / B +205.4 / C +210.7. Of 91 trades that reached the middle band, running them made +922 vs +948
 for taking profit: no edge past the average (random-walk expectation). Keep A: take profit at the middle band.
+
+## 051 — FINAL CHECK: London fade A (046) + runner exits B/C (050) on test years 2021+2022 — 2026-10-06
+User request, pre-registered pass bar. A: 2021 −3.0, 2022 +107.5 -> pooled +104.5 on 434 trades, +0.24/trade [CI −0.81, +1.35],
+target-first above chance both years (40.7 vs 38.5, 39.8 vs 37.4) -> PASS (not strong). Edge ~80% smaller than on
+practice years (+1.11), drawdown −234. B −276, C −74.5 on the test years -> FAIL; A stays. All 4 years A: +559.6 on 843
+trades, +0.66/trade [−0.03, +1.35]. EURUSD 2021/2022 now used for the London fade.

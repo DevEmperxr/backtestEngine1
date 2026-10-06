@@ -28,3 +28,6 @@ Notes:
 2025 are used only when the user asks for a final check. Already used before this rule:
 EURUSD 2021/2022/2025 (fix-fade runs 016–019) and EURGBP 2021/2022 (run 027, Idea 1 only).
 Still clean: EURGBP 2025, and 2021/2022/2025 for every other cross.
+
+## Test-year use log
+- 2026-10-06, run 051: EURUSD 2021 + 2022 used for the London-open sideways fade (046) and its runner exits (050 B/C).
