@@ -84,3 +84,8 @@ The user will trade in a prop firm that bans news trading. From now on every str
 research/regime/news.py apply_news_blackout(sig, currencies, 60): no entries from 1 h before to 1 h after
 each red release for the pair's currencies, open trades closed 1 h before, unknown-time red days skipped.
 New baseline for the two-window strategy = 045 (+469 on 2023+2024). Note: the calendar ends 2025-04-07.
+
+## 046 — London-open sideways fade standalone (news blackout on), EURUSD 2023+2024 — 2026-10-06
++455.1 on 409 trades (+263.5 / +191.6), +1.11/trade [CI +0.29, +1.92], fair Sharpe 1.81, PF 1.33, max DD −131,
+7/8 quarters positive, target-first 49% vs 39% chance both years, +351 with doubled costs, +240 without best 10.
+Same as its part of 045. Best EURUSD lead; in-sample. Next: final check on 2021/2022/2025 (to 2025-04-07) if the user agrees.

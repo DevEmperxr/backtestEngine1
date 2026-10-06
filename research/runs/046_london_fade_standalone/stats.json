@@ -1,0 +1,58 @@
+{
+  "stats": {
+    "trades": 409,
+    "trades_per_month": 17.0,
+    "win_rate_%": 48.9,
+    "avg_win_pips": 9.1,
+    "avg_loss_pips": -6.5,
+    "payoff_ratio": 1.39,
+    "profit_factor": 1.33,
+    "expectancy_pips": 1.11,
+    "avg_R": 0.19,
+    "best_trade": 26.2,
+    "worst_trade": -15.1,
+    "median_stop_pips": 6.1,
+    "median_target_pips": 8.9,
+    "exits_tp_sl_time_%": [
+      48,
+      50,
+      2
+    ],
+    "median_hold_min": 28,
+    "p90_hold_min": 113,
+    "max_losing_streak": 7,
+    "max_drawdown_%": -1.29,
+    "max_drawdown_pips": -130.6,
+    "longest_drawdown_days": 308,
+    "months_positive": "15/24",
+    "sharpe_traded_days": 2.51,
+    "sharpe_all_days": 1.81,
+    "sortino_all_days": 2.4,
+    "days_with_trades": "276/522",
+    "total_pips": 455.1,
+    "per_trade_ci95": [
+      0.29,
+      1.92
+    ]
+  },
+  "slices": {
+    "2023": "n=199, +263.5 pips, +1.32/trade",
+    "2024": "n=210, +191.6 pips, +0.91/trade",
+    "quarter 2023-Q1": "n=52, +57.4 pips, +1.10/trade",
+    "quarter 2023-Q2": "n=45, -46.6 pips, -1.04/trade",
+    "quarter 2023-Q3": "n=49, +53.3 pips, +1.09/trade",
+    "quarter 2023-Q4": "n=53, +199.5 pips, +3.76/trade",
+    "quarter 2024-Q1": "n=49, +53.2 pips, +1.09/trade",
+    "quarter 2024-Q2": "n=46, +52.8 pips, +1.15/trade",
+    "quarter 2024-Q3": "n=66, +56.5 pips, +0.86/trade",
+    "quarter 2024-Q4": "n=49, +29.1 pips, +0.59/trade",
+    "long": "n=187, +335.3 pips, +1.79/trade",
+    "short": "n=222, +119.8 pips, +0.54/trade",
+    "entry 03:xx NY": "n=225, +286.4 pips, +1.27/trade",
+    "entry 04:xx NY": "n=184, +168.7 pips, +0.92/trade",
+    "without best 5": "+335.6",
+    "without best 10": "+239.6",
+    "2024 without its best 5": "+87.9",
+    "costs x2 (extra spread)": "+351.4"
+  }
+}
