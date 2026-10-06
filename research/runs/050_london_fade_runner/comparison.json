@@ -1,0 +1,96 @@
+{
+  "sheets": {
+    "A all out at MA": {
+      "trades": 199,
+      "net_pips": 263.5,
+      "per_trade": 1.32,
+      "per_trade_ci95": [
+        0.08,
+        2.64
+      ],
+      "win_rate_%": 49.2,
+      "profit_factor": 1.35,
+      "max_dd_pips": -130.6,
+      "max_losing_streak": 7,
+      "months_positive": "6/12",
+      "fair_sharpe": 1.87,
+      "H1 / H2": [
+        10.8,
+        252.7
+      ],
+      "without best 10": 71.8,
+      "median_hold_min": 29,
+      "exits tp/be/sl/time": [
+        97,
+        0,
+        100,
+        2
+      ]
+    },
+    "B runner (BE)": {
+      "trades": 191,
+      "net_pips": 205.4,
+      "per_trade": 1.08,
+      "per_trade_ci95": [
+        -0.45,
+        2.68
+      ],
+      "win_rate_%": 33.0,
+      "profit_factor": 1.28,
+      "max_dd_pips": -164.9,
+      "max_losing_streak": 7,
+      "months_positive": "7/12",
+      "fair_sharpe": 1.33,
+      "H1 / H2": [
+        -49.9,
+        255.3
+      ],
+      "without best 10": -43.0,
+      "median_hold_min": 52,
+      "exits tp/be/sl/time": [
+        37,
+        30,
+        97,
+        27
+      ]
+    },
+    "C half + runner": {
+      "trades": 191,
+      "net_pips": 210.7,
+      "per_trade": 1.1,
+      "per_trade_ci95": [
+        -0.27,
+        2.49
+      ],
+      "win_rate_%": 48.7,
+      "profit_factor": 1.29,
+      "max_dd_pips": -146.8,
+      "max_losing_streak": 7,
+      "months_positive": "7/12",
+      "fair_sharpe": 1.52,
+      "H1 / H2": [
+        -28.5,
+        239.3
+      ],
+      "without best 10": 11.5,
+      "median_hold_min": 52,
+      "exits tp/be/sl/time": [
+        37,
+        30,
+        97,
+        27
+      ]
+    }
+  },
+  "after_middle_band": {
+    "same entries A & B": 190,
+    "A winners (reached the middle band)": 91,
+    "  of those, B went on to the opposite band": 37,
+    "  of those, B came back to break-even": 30,
+    "  of those, B closed at 08:00 NY": 24,
+    "  A pips on them / B pips on them": [
+      948.3,
+      922.1
+    ]
+  }
+}

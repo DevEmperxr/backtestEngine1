@@ -104,3 +104,8 @@ reverting. Discarded; third time (022/024/048) a stop tied to the sweep candle l
 User request ("let winners win"). +232.7 on 212 trades (046: +263.5; 048: +119.1). Win rate 23%, PF 1.36, max DD −86.8
 (046: −130.6), 8/12 months positive, halves +110 / +122. But CI includes 0 and it's negative without its best 10
 trades. Same total as 046, smoother, more reliant on big winners. Next fair step: both 046 and 049 unchanged on 2024.
+
+## 050 — London fade runner past the middle band (B: BE + run to opposite band, C: half off + runner), 2023 — 2026-10-06
+User chose B and C. New engine feature: partial take-profit (partial_tp_pips + partial_frac, one row per trade, size-weighted
+pips; 8 tests). A +263.5 / B +205.4 / C +210.7. Of 91 trades that reached the middle band, running them made +922 vs +948
+for taking profit: no edge past the average (random-walk expectation). Keep A: take profit at the middle band.
