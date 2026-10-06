@@ -40,18 +40,22 @@ class SweepFadeStrategy(Strategy):
     def __init__(
         self, *, mode: str = "sweep", stretch_atr: float = 2.0, pivot_k: int = 3,
         er_trend: float = 0.32, stop_buffer_pips: float = 1.0, timeframe: str = "1m",
-        stop_mode: str = "sweep", stop_atr_mult: float = 1.5,
+        stop_mode: str = "sweep", stop_atr_mult: float = 1.5, buffer_atr: float = 0.5,
+        max_hold_bars: int | None = None, be_frac: float | None = None,
     ) -> None:
         super().__init__(10.0, 10.0, timeframe)   # per-trade columns override these
         if mode not in ("sweep", "control"):
             raise ValueError(f"mode must be 'sweep' or 'control', got {mode!r}")
-        if stop_mode not in ("sweep", "atr"):
-            raise ValueError(f"stop_mode must be 'sweep' or 'atr', got {stop_mode!r}")
+        if stop_mode not in ("sweep", "atr", "sweep_buffer"):
+            raise ValueError(f"stop_mode must be 'sweep', 'atr' or 'sweep_buffer', got {stop_mode!r}")
         if timeframe not in ("1m", "5m"):
             raise ValueError(f"timeframe must be '1m' or '5m', got {timeframe!r}")
         # stop_mode "sweep" = 1 pip beyond the signal bar (022); "atr" = stop_atr_mult x
         # ATR14 of the last closed 5m bar (023A). timeframe "5m" = sweep read on 5m bars (023B).
         self.stop_mode, self.stop_atr_mult = stop_mode, stop_atr_mult
+        # 024: "sweep_buffer" = beyond the sweep bar + buffer_atr x 5m ATR; optional
+        # time stop (max_hold_bars) and break-even at be_frac of the TP distance.
+        self.buffer_atr, self.max_hold_bars, self.be_frac = buffer_atr, max_hold_bars, be_frac
         self.mode, self.stretch_atr, self.pivot_k = mode, stretch_atr, pivot_k
         self.er_trend, self.stop_buffer_pips = er_trend, stop_buffer_pips
         self.window_end, self.window_end_tz = time(16, 0), LONDON
@@ -109,6 +113,9 @@ class SweepFadeStrategy(Strategy):
         if self.stop_mode == "sweep":
             sl_s = (pl.col("mh") - pl.col("mc")) / PIP + buf
             sl_l = (pl.col("mc") - pl.col("ml")) / PIP + buf
+        elif self.stop_mode == "sweep_buffer":
+            sl_s = (pl.col("mh") - pl.col("mc")) / PIP + self.buffer_atr * pl.col("atr5") / PIP
+            sl_l = (pl.col("mc") - pl.col("ml")) / PIP + self.buffer_atr * pl.col("atr5") / PIP
         else:
             sl_s = sl_l = self.stop_atr_mult * pl.col("atr5") / PIP
         out = out.with_columns(
@@ -124,6 +131,11 @@ class SweepFadeStrategy(Strategy):
                        .when(pl.col("short_signal") | pl.col("long_signal")).then(pl.lit("sideways")),
             exit_signal=~pl.col("in_window"),
         )
+        sig_any = pl.col("long_signal") | pl.col("short_signal")
+        if self.max_hold_bars is not None:
+            out = out.with_columns(max_hold_bars=pl.when(sig_any).then(pl.lit(float(self.max_hold_bars))))
+        if self.be_frac is not None:
+            out = out.with_columns(be_trigger_pips=pl.when(sig_any).then(self.be_frac * pl.col("tp_pips")))
         return out
 
     @staticmethod

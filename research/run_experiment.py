@@ -548,6 +548,9 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
         m5, a5 = ma5[cts5[jj]], atr5[cts5[jj]]
         if getattr(strategy, "stop_mode", "sweep") == "atr":
             bad_stop += abs(sl_by_entry[et] - strategy.stop_atr_mult * a5 / PIP) > 1e-6
+        elif getattr(strategy, "stop_mode", "sweep") == "sweep_buffer":
+            dist = (H[i] - C[i]) if d == "short" else (C[i] - L[i])
+            bad_stop += abs(sl_by_entry[et] - (dist + strategy.buffer_atr * a5) / PIP) > 1e-6
         if d == "short":
             bad_stretch += not (H[i] >= m5 + strategy.stretch_atr * a5 - 1e-9)
             if strategy.mode == "sweep":
@@ -558,8 +561,16 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
             if strategy.mode == "sweep":
                 sw = conf_lo[i - 1]
                 bad_sweep += not (sw is not None and L[i] < sw and C[i] > sw)
-    return {"sweep_bad_stretch": bad_stretch, "sweep_not_a_sweep": bad_sweep,
-            "sweep_missing_bars": missing, "sweep_bad_atr_stop": bad_stop}
+    out = {"sweep_bad_stretch": bad_stretch, "sweep_not_a_sweep": bad_sweep,
+           "sweep_missing_bars": missing, "sweep_bad_atr_stop": bad_stop}
+    mh = getattr(strategy, "max_hold_bars", None)
+    if mh:
+        held = (trades["exit_time"] - trades["entry_time"]).dt.total_seconds()
+        out["sweep_held_past_max"] = int((held > mh * 60 + 1e-9).sum())
+    if getattr(strategy, "be_frac", None):
+        be = trades.filter(pl.col("exit_reason") == "breakeven")
+        out["sweep_breakeven_not_at_entry"] = int(((be["exit_price"] - be["entry_price"]).abs() > 1e-9).sum())
+    return out
 
 
 def random_walk_baseline(trades: pl.DataFrame) -> dict:

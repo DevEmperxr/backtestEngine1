@@ -27,6 +27,7 @@ _PRICE_COLUMNS = tuple(
 _NO_TOUCH = 0
 _HIT_SL = 1
 _HIT_TP = 2
+_HIT_BE = 3   # stop hit after it was moved to break-even
 
 
 @njit(cache=True)
@@ -70,6 +71,36 @@ def _resolve_exit(exit_high, exit_low, start_idx, end_idx,
         if tp_hit:
             return k, tp_level, _HIT_TP
 
+    return end_idx, 0.0, _NO_TOUCH
+
+
+@njit(cache=True)
+def _resolve_exit_be(exit_high, exit_low, start_idx, end_idx,
+                     direction, sl_level, tp_level, be_trigger, be_level):
+    """`_resolve_exit` with a break-even move: once the exit-side price reaches
+    `be_trigger` in the trade's favour (long: exit_high >= trigger; short:
+    exit_low <= trigger), the stop becomes `be_level` (the entry price) from the
+    NEXT 1s bar on. Within one 1s bar the current stop is checked first, then the
+    target, then the move: the conservative order. Returns reason 3 (_HIT_BE)
+    when the moved stop is hit, exit_price = be_level."""
+    armed = False
+    sl = sl_level
+    for k in range(start_idx, end_idx):
+        if direction == 1:
+            sl_hit = exit_low[k] <= sl
+            tp_hit = exit_high[k] >= tp_level
+            trig = exit_high[k] >= be_trigger
+        else:
+            sl_hit = exit_high[k] >= sl
+            tp_hit = exit_low[k] <= tp_level
+            trig = exit_low[k] <= be_trigger
+        if sl_hit:
+            return k, sl, (_HIT_BE if armed else _HIT_SL)
+        if tp_hit:
+            return k, tp_level, _HIT_TP
+        if trig and not armed:
+            armed = True
+            sl = be_level
     return end_idx, 0.0, _NO_TOUCH
 
 
@@ -469,6 +500,12 @@ class Engine:
           * `sl_pips` + `tp_pips` (numeric, together) — per-trade distances,
             read at the SIGNAL bar (entry_bar - 1), so they may only use info
             through that bar's close. Override the strategy's fixed values.
+          * `max_hold_bars` (positive integer, signal bar) — exit at the open of
+            bar entry_bar + max_hold_bars if nothing fired first; exit_reason
+            "max_hold". Null = off for that trade.
+          * `be_trigger_pips` (> 0, signal bar) — once the exit-side price moves
+            this far in favour, the stop becomes the entry price; a hit is
+            exit_reason "breakeven". Null = off for that trade.
         """
         sig = strategy.generate_signals(self.signal_df)
         # A reordered / filtered / duplicated frame (e.g. a join that does not
@@ -522,6 +559,13 @@ class Engine:
         entry_long = sig["_entry_long"].to_list()
         entry_short = sig["_entry_short"].to_list()
         flat = sig["exit_signal"].to_list() if has_exit_signal else None
+        # Optional per-trade management columns, read at the SIGNAL bar like sl/tp;
+        # null on a signal bar = feature off for that trade.
+        for col in ("max_hold_bars", "be_trigger_pips"):
+            if col in sig.columns and not sig.schema[col].is_numeric():
+                raise ValueError(f"{col} column must be numeric, got {sig.schema[col]}")
+        mh_col = sig["max_hold_bars"].cast(pl.Float64).to_list() if "max_hold_bars" in sig.columns else None
+        be_col = sig["be_trigger_pips"].cast(pl.Float64).to_list() if "be_trigger_pips" in sig.columns else None
         if per_trade_levels:
             sl_col = sig["sl_pips"].cast(pl.Float64).to_list()
             tp_col = sig["tp_pips"].cast(pl.Float64).to_list()
@@ -589,15 +633,46 @@ class Engine:
                     )
                     opp_bar = k
 
-            hit_idx, exit_price, reason = _resolve_exit(
-                exit_high, exit_low, start_idx, end_idx, direction, sl_level, tp_level
-            )
+            # Max holding time: exit at the open of bar entry_bar + hold (same §0.2
+            # timing as a signal exit, acted on at "k+1" with k = entry_bar + hold - 1),
+            # unless a signal exit came earlier.
+            hold = mh_col[entry_bar - 1] if mh_col is not None else None
+            if hold is not None and hold == hold:
+                if not (hold >= 1 and float(hold).is_integer()):
+                    raise ValueError(f"max_hold_bars must be a positive integer, got {hold!r}")
+                k_hold = entry_bar + int(hold) - 1
+                if k_hold + 1 < n_sig and (opp_bar is None or k_hold < opp_bar):
+                    signal_reason = "max_hold"
+                    end_idx = int(np.searchsorted(self._ts_ns, sig_ts_ns[k_hold + 1], side="left"))
+                    signal_exit = (
+                        sig_ts[k_hold + 1],
+                        bid_open[k_hold + 1] if direction == 1 else ask_open[k_hold + 1],
+                        int(sig_ts_ns[k_hold + 1]),
+                    )
+                    opp_bar = k_hold
+
+            be = be_col[entry_bar - 1] if be_col is not None else None
+            if be is not None and be == be:
+                if not be > 0:
+                    raise ValueError(f"be_trigger_pips must be > 0, got {be!r}")
+                be_trigger = entry_price + direction * be * PIP
+                hit_idx, exit_price, reason = _resolve_exit_be(
+                    exit_high, exit_low, start_idx, end_idx, direction, sl_level, tp_level,
+                    be_trigger, entry_price,
+                )
+            else:
+                hit_idx, exit_price, reason = _resolve_exit(
+                    exit_high, exit_low, start_idx, end_idx, direction, sl_level, tp_level
+                )
 
             if reason == _HIT_SL:  # SL genuinely happened first
                 exit_time, exit_ns, exit_reason = base_ts[hit_idx], int(self._ts_ns[hit_idx]), "sl"
                 exit_price = float(exit_price)
             elif reason == _HIT_TP:
                 exit_time, exit_ns, exit_reason = base_ts[hit_idx], int(self._ts_ns[hit_idx]), "tp"
+                exit_price = float(exit_price)
+            elif reason == _HIT_BE:
+                exit_time, exit_ns, exit_reason = base_ts[hit_idx], int(self._ts_ns[hit_idx]), "breakeven"
                 exit_price = float(exit_price)
             elif signal_exit is not None:  # nothing touched first -> signal wins
                 exit_time, exit_price, exit_ns = signal_exit[0], float(signal_exit[1]), signal_exit[2]
@@ -615,9 +690,9 @@ class Engine:
             # Half-spread paid getting out, at the exit instant (spec §3.2 needs
             # the round-trip spread cost; entry-at-ask/exit-at-bid already bakes
             # it into `pips`, so gross = net + spread_pips_paid).
-            if exit_reason in ("sl", "tp"):
+            if exit_reason in ("sl", "tp", "breakeven"):
                 exit_half_spread = (self._ask_close[hit_idx] - self._bid_close[hit_idx]) / 2 / PIP
-            elif exit_reason in ("opposite_signal", "exit_signal"):
+            elif exit_reason in ("opposite_signal", "exit_signal", "max_hold"):
                 exit_half_spread = (ask_open[opp_bar + 1] - bid_open[opp_bar + 1]) / 2 / PIP
             else:  # end_of_data
                 exit_half_spread = (self._ask_close[-1] - self._bid_close[-1]) / 2 / PIP

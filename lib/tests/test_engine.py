@@ -835,3 +835,84 @@ class _ReorderingStrategy(_ManualStrategy):
 def test_backtest_rejects_reordered_signal_frame():
     with pytest.raises(ValueError, match="keep the rows of signal_df"):
         Engine(_sig_at_noon(6), _flat_path(20)).backtest(_ReorderingStrategy([F] * 6, [F] * 6))
+
+
+
+# --------------------------------------------------------------------------- #
+# Engine — optional per-trade max_hold_bars and be_trigger_pips (research 024)
+# --------------------------------------------------------------------------- #
+
+def test_max_hold_exits_at_open_after_n_bars():
+    base = _flat_path(1200)
+    sig = _sig_at_noon(8)
+    row = Engine(sig, base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F, F, F], [F] * 8,
+                        max_hold_bars=pl.Series([None, 2.0, None, None, None, None, None, None]))
+    ).row(0, named=True)
+    assert row["exit_reason"] == "max_hold"
+    assert row["entry_time"] == sig["timestamp"][2]
+    assert row["exit_time"] == sig["timestamp"][4]          # open of entry_bar + 2
+    assert row["exit_price"] == sig["bid_open"][4]
+
+
+def test_max_hold_null_is_off_and_sl_before_hold_wins():
+    base = _flat_path(1200)
+    sig = _sig_at_noon(8)
+    off = Engine(sig, base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F, F, F], [F] * 8,
+                        max_hold_bars=pl.Series([None] * 8, dtype=pl.Float64))
+    ).row(0, named=True)
+    assert off["exit_reason"] == "end_of_data"
+    bid = [(1.1005, 1.0998)] * 3 + [(1.0990, 1.0980)] + [(1.1005, 1.0998)] * 6
+    base2 = _path_base(bid, _shift_hl(bid, 0.0002))
+    row = Engine(sig, base2).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F, F, F], [F] * 8,
+                        max_hold_bars=pl.Series([None, 3.0, None, None, None, None, None, None]))
+    ).row(0, named=True)
+    assert row["exit_reason"] == "sl"
+
+
+def test_max_hold_must_be_positive_integer():
+    with pytest.raises(ValueError, match="max_hold_bars"):
+        Engine(_sig_at_noon(8), _flat_path(1200)).backtest(
+            _ColumnStrategy([F, Tr, F, F, F, F, F, F], [F] * 8,
+                            max_hold_bars=pl.Series([None, 1.5, None, None, None, None, None, None]))
+        )
+
+
+def test_breakeven_moves_stop_to_entry_after_trigger():
+    # long enters at ask 1.1002; trigger 5 pips -> bid >= 1.1007; then bid falls
+    # back to 1.1002 -> breakeven exit at the entry price, 0 pips.
+    bid = [(1.1001, 1.0999), (1.1008, 1.1004), (1.1006, 1.1003), (1.1003, 1.1001), (1.1001, 1.1000)]
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    sig = _sig_at_noon(6)
+    row = Engine(sig, base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6,
+                        be_trigger_pips=pl.Series([None, 5.0, None, None, None, None]))
+    ).row(0, named=True)
+    assert row["exit_reason"] == "breakeven"
+    assert row["exit_price"] == pytest.approx(row["entry_price"])
+    assert row["pips"] == pytest.approx(0.0)
+    assert row["exit_time"] == base["timestamp"][3]
+
+
+def test_breakeven_not_triggered_keeps_original_stop():
+    bid = [(1.1001, 1.0999), (1.1004, 1.1000), (1.0995, 1.0985)]
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    row = Engine(_sig_at_noon(6), base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6,
+                        be_trigger_pips=pl.Series([None, 5.0, None, None, None, None]))
+    ).row(0, named=True)
+    assert row["exit_reason"] == "sl"
+    assert row["exit_price"] == pytest.approx(1.1002 - 10 * PIP)
+
+
+def test_breakeven_same_second_checks_old_stop_first():
+    # one 1s bar spans the trigger (high) and the original stop (low): old stop wins
+    bid = [(1.1001, 1.0999), (1.1008, 1.0991)]
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    row = Engine(_sig_at_noon(6), base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6,
+                        be_trigger_pips=pl.Series([None, 5.0, None, None, None, None]))
+    ).row(0, named=True)
+    assert row["exit_reason"] == "sl"
