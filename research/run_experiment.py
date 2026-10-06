@@ -760,4 +760,6 @@ if __name__ == "__main__":
     a = ap.parse_args()
     if a.pair.upper().endswith("JPY"):
         raise SystemExit("JPY pairs need a 0.01 pip; lib.data.PIP is EURUSD-style 0.0001")
+    if a.pair.upper().startswith(("XAU", "XAG")):
+        raise SystemExit("metals need their own pip size (gold ~0.1); lib.data.PIP is EURUSD-style 0.0001")
     main(a.specs, a.year, a.pair)
