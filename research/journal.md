@@ -54,3 +54,10 @@ Format: `- **00N** \`name\` (date) — hypothesis → decision + why. [details](
 - **039** `london_sideways_wide_stop_eurgbp` (2026-10-06) — London-open sideways fade on EURGBP with a 3× ATR stop (user: "bigger trades") → **fails**: 351 trades −203.5 (−142 / −61) vs −191 with the 1.5× stop; win rate 35% → 54% but gross fell +178 → +96. A stop change doesn't beat costs. [details](runs/039_london_sideways_wide_stop_eurgbp/summary.md)
 - **040** `eurusd_playbook` (2026-10-06) — the three EURUSD leads combined on one account, 2023+2024 (IN-SAMPLE pieces; descriptive): Idea 2 trend 2R +72.9, London-open sideways fade +460.4, fix fade +426.1 → **combined +959.4 on 746 trades** (+439 / +520), 18/24 months positive, monthly correlations ≈ 0 (−0.24 to +0.01), max 2 positions open. A real check needs the reserved years (user's call). [details](runs/040_eurusd_playbook/summary.md)
 - **041** `playbook_trade_shapes` (2026-10-06) — trade-shape stats for the 040 playbook (in-sample) + a fair Sharpe counting all weekdays (`lib.evaluate.sharpe_all_days`, new): fair Sharpe Idea 2 0.37, London fade 1.74, fix fade 1.39, **combined 2.24** (framework's traded-days version: 0.89 / 2.34 / 2.18 / 2.53). Combined: 50% win, payoff 1.29, PF 1.31, max DD −196 pips, longest underwater 135 days. [details](runs/041_playbook_trade_shapes/summary.md)
+
+## 042 — Idea 1, two entry windows only (London-open sideways + NY-open trending), EURUSD 2023+2024 — 2026-10-06
+User request: keep only the two time filters. One strategy (023A rules), one position at a time.
+Combined +595.3 on 591 trades (+297.7 / +297.5), per trade +1.01 [CI +0.21, +1.79], fair Sharpe 1.77,
+19/24 months positive, max DD −126 pips. London fade +462 (both years +); NY open +133 (2023 −24.5,
+2024 +157.5). In 033 the NY slice made +95.5 in 2023; ~15 extra trades a year that are no longer blocked
+flip it, so it is fragile. In-sample; the reserved years are the real test. See runs/042_idea1_two_windows/summary.md.
