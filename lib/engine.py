@@ -104,6 +104,20 @@ def _resolve_exit_be(exit_high, exit_low, start_idx, end_idx,
     return end_idx, 0.0, _NO_TOUCH
 
 
+@njit(cache=True)
+def _first_touch(exit_high, exit_low, start_idx, end_idx, direction, level):
+    """First 1s index in [start_idx, end_idx) whose exit-side price reaches `level`
+    in the trade's favour (long: exit_high >= level; short: exit_low <= level);
+    end_idx if none. Used for partial take-profits."""
+    for k in range(start_idx, end_idx):
+        if direction == 1:
+            if exit_high[k] >= level:
+                return k
+        elif exit_low[k] <= level:
+            return k
+    return end_idx
+
+
 def _sl_tp_levels(direction, entry_price, sl_pips, tp_pips, pip=PIP):
     """Absolute SL/TP price levels for a position.
 
@@ -510,6 +524,16 @@ class Engine:
           * `be_trigger_pips` (> 0, signal bar) — once the exit-side price moves
             this far in favour, the stop becomes the entry price; a hit is
             exit_reason "breakeven". Null = off for that trade.
+          * `partial_tp_pips` + `partial_frac` (numeric, together, signal bar) —
+            close `partial_frac` (0 < f < 1) of the position with a resting limit
+            at entry + partial_tp_pips in favour (0 < partial < tp_pips). Filled
+            at that level on the first 1s touch strictly before the final exit
+            second (in the final second only if the final exit is the TP: price
+            went through it). A same-second stop wins, so no partial. The log
+            stays one row per trade: `pips` and `spread_pips_paid` are
+            size-weighted over both pieces, exit_* describe the remainder, and
+            the log gains `partial_filled` (bool) and `partial_time`.
+            Null = off for that trade.
         """
         sig = strategy.generate_signals(self.signal_df)
         # A reordered / filtered / duplicated frame (e.g. a join that does not
@@ -568,6 +592,16 @@ class Engine:
         for col in ("max_hold_bars", "be_trigger_pips"):
             if col in sig.columns and not sig.schema[col].is_numeric():
                 raise ValueError(f"{col} column must be numeric, got {sig.schema[col]}")
+        has_pt, has_pf = "partial_tp_pips" in sig.columns, "partial_frac" in sig.columns
+        if has_pt != has_pf:
+            raise ValueError("partial_tp_pips / partial_frac columns must be given together")
+        has_partial = has_pt
+        if has_partial:
+            for col in ("partial_tp_pips", "partial_frac"):
+                if not sig.schema[col].is_numeric():
+                    raise ValueError(f"{col} column must be numeric, got {sig.schema[col]}")
+            pt_col = sig["partial_tp_pips"].cast(pl.Float64).to_list()
+            pf_col = sig["partial_frac"].cast(pl.Float64).to_list()
         mh_col = sig["max_hold_bars"].cast(pl.Float64).to_list() if "max_hold_bars" in sig.columns else None
         be_col = sig["be_trigger_pips"].cast(pl.Float64).to_list() if "be_trigger_pips" in sig.columns else None
         if per_trade_levels:
@@ -701,6 +735,31 @@ class Engine:
             else:  # end_of_data
                 exit_half_spread = (self._ask_close[-1] - self._bid_close[-1]) / 2 / PIP
 
+            spread_paid = entry_half_spread + exit_half_spread
+            partial_filled, partial_time = False, None
+            pt = pt_col[entry_bar - 1] if has_partial else None
+            if pt is not None and pt == pt:
+                pf = pf_col[entry_bar - 1]
+                if not (pf is not None and 0 < pf < 1):
+                    raise ValueError(f"partial_frac must be in (0, 1), got {pf!r}")
+                if not 0 < pt < tp_pips:
+                    raise ValueError(f"partial_tp_pips must be in (0, tp_pips), got {pt!r} (tp {tp_pips!r})")
+                if exit_reason in ("sl", "breakeven"):
+                    scan_end = hit_idx                 # same-second stop wins
+                elif exit_reason == "tp":
+                    scan_end = hit_idx + 1             # price went through the partial level
+                elif exit_reason in ("opposite_signal", "exit_signal", "max_hold"):
+                    scan_end = end_idx
+                else:                                  # end_of_data
+                    scan_end = n_base
+                p_idx = _first_touch(exit_high, exit_low, start_idx, scan_end, direction,
+                                     entry_price + direction * pt * PIP)
+                if p_idx < scan_end:
+                    partial_filled, partial_time = True, base_ts[p_idx]
+                    p_half_spread = (self._ask_close[p_idx] - self._bid_close[p_idx]) / 2 / PIP
+                    pips = pf * pt + (1 - pf) * pips
+                    spread_paid = entry_half_spread + pf * p_half_spread + (1 - pf) * exit_half_spread
+
             trade = {
                 "entry_time": entry_time,
                 "entry_price": float(entry_price),
@@ -709,10 +768,13 @@ class Engine:
                 "exit_price": exit_price,
                 "pips": float(pips),
                 "exit_reason": exit_reason,
-                "spread_pips_paid": float(entry_half_spread + exit_half_spread),
+                "spread_pips_paid": float(spread_paid),
                 "sl_pips": float(sl_pips),
                 "tp_pips": float(tp_pips),
             }
+            if has_partial:
+                trade["partial_filled"] = partial_filled
+                trade["partial_time"] = partial_time
 
             resume_t = int(np.searchsorted(sig_ts_ns, exit_ns, side="left"))
             reversal = None
@@ -747,14 +809,16 @@ class Engine:
                 entry_bar, direction = reversal      # keep flipping while opposite exits
 
         ts_dtype = self.base_1s["timestamp"].dtype
+        extra = {"partial_filled": pl.Boolean, "partial_time": ts_dtype} if has_partial else {}
         return pl.DataFrame(
             trades,
             schema={
                 "entry_time": ts_dtype,
                 "exit_time": ts_dtype,
                 **self._TRADE_SCHEMA_TAIL,
+                **extra,
             },
-        ).select(*self._TRADE_COLUMNS)
+        ).select(*self._TRADE_COLUMNS, *extra)
 
     def evaluate(
         self,

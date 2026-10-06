@@ -916,3 +916,98 @@ def test_breakeven_same_second_checks_old_stop_first():
                         be_trigger_pips=pl.Series([None, 5.0, None, None, None, None]))
     ).row(0, named=True)
     assert row["exit_reason"] == "sl"
+
+
+# --------------------------------------------------------------------------- #
+# Engine — optional partial take-profit (research 050)
+# --------------------------------------------------------------------------- #
+
+def _partial(n=6, pt=5.0, pf=0.5, **extra):
+    return dict(partial_tp_pips=pl.Series([None, pt] + [None] * (n - 2)),
+                partial_frac=pl.Series([None, pf] + [None] * (n - 2)), **extra)
+
+
+def test_partial_then_breakeven_blends_pips():
+    # long at ask 1.1002, sl 10 / tp 20. Bid reaches 1.1007 (+5) -> half closed at +5;
+    # trigger BE at the same level; bid falls back to entry -> rest at 0. Blend = +2.5.
+    bid = [(1.1001, 1.0999), (1.1008, 1.1004), (1.1006, 1.1003), (1.1003, 1.1001), (1.1001, 1.1000)]
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    t = Engine(_sig_at_noon(6), base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6,
+                        **_partial(be_trigger_pips=pl.Series([None, 5.0, None, None, None, None]))))
+    row = t.row(0, named=True)
+    assert row["exit_reason"] == "breakeven"
+    assert row["partial_filled"] is True
+    assert row["partial_time"] == base["timestamp"][1]
+    assert row["pips"] == pytest.approx(2.5)
+    # spread blended: entry 1 + 0.5 * 1 (partial second) + 0.5 * 1 (exit second) = 2 pips
+    assert row["spread_pips_paid"] == pytest.approx(2.0)
+
+
+def test_partial_then_full_target():
+    # price runs to the 20-pip target: half at +5, half at +20 -> +12.5
+    bid = [(1.1001, 1.0999), (1.1008, 1.1004), (1.1015, 1.1006), (1.1023, 1.1012)]
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    row = Engine(_sig_at_noon(6), base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6, **_partial())).row(0, named=True)
+    assert row["exit_reason"] == "tp"
+    assert row["partial_filled"] is True
+    assert row["pips"] == pytest.approx(12.5)
+
+
+def test_partial_and_target_in_same_second_both_fill():
+    bid = [(1.1001, 1.0999), (1.1025, 1.1001)]
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    row = Engine(_sig_at_noon(6), base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6, **_partial())).row(0, named=True)
+    assert row["exit_reason"] == "tp" and row["partial_filled"] is True
+    assert row["pips"] == pytest.approx(12.5)
+
+
+def test_partial_not_reached_full_stop():
+    bid = [(1.1001, 1.0999), (1.1004, 1.1000), (1.0995, 1.0985)]
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    row = Engine(_sig_at_noon(6), base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6, **_partial())).row(0, named=True)
+    assert row["exit_reason"] == "sl" and row["partial_filled"] is False
+    assert row["partial_time"] is None
+    assert row["pips"] == pytest.approx(-10.0)
+
+
+def test_partial_same_second_as_stop_stop_wins():
+    bid = [(1.1001, 1.0999), (1.1008, 1.0991)]
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    row = Engine(_sig_at_noon(6), base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6, **_partial())).row(0, named=True)
+    assert row["exit_reason"] == "sl" and row["partial_filled"] is False
+    assert row["pips"] == pytest.approx(-10.0)
+
+
+def test_partial_before_signal_exit():
+    # half at +5, rest closed by exit_signal at the next bar's open (bid_open 1.1000 -> -2 pips)
+    bid = [(1.1001, 1.0999), (1.1008, 1.1004)] + [(1.1004, 1.1001)] * 900
+    base = _path_base(bid, _shift_hl(bid, 0.0002))
+    sig = _sig_at_noon(8)
+    row = Engine(sig, base).backtest(
+        _ColumnStrategy([F, Tr, F, F, F, F, F, F], [F] * 8,
+                        exit_signal=[F, F, Tr, F, F, F, F, F], **_partial(n=8))).row(0, named=True)
+    assert row["exit_reason"] == "exit_signal" and row["partial_filled"] is True
+    assert row["pips"] == pytest.approx(0.5 * 5 + 0.5 * (-2.0))
+
+
+def test_partial_columns_validated():
+    with pytest.raises(ValueError, match="together"):
+        Engine(_sig_at_noon(6), _flat_path(600)).backtest(
+            _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6,
+                            partial_tp_pips=pl.Series([None, 5.0, None, None, None, None])))
+    with pytest.raises(ValueError, match="partial_frac"):
+        Engine(_sig_at_noon(6), _flat_path(600)).backtest(
+            _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6, **_partial(pf=1.0)))
+    with pytest.raises(ValueError, match="partial_tp_pips"):
+        Engine(_sig_at_noon(6), _flat_path(600)).backtest(
+            _ColumnStrategy([F, Tr, F, F, F, F], [F] * 6, **_partial(pt=25.0)))
+
+
+def test_no_partial_columns_keeps_log_schema():
+    t = Engine(_sig_at_noon(6), _flat_path(600)).backtest(_ColumnStrategy([F, Tr, F, F, F, F], [F] * 6))
+    assert "partial_filled" not in t.columns
