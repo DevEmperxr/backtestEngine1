@@ -125,3 +125,9 @@ Sharpe 0.78 vs 0.95. Not adopted (fails the 3-of-4-years rule). 2021/22 were alr
 User request (2023 only). 90 trades −37.8, target-first 41.5% vs 43.4% chance. Target barely above the stop (10.9 vs 8.9)
 because the 5m close uses up the snap-back (as in 047). Discarded. New strategy settings setup_min/ctx_min
 (defaults unchanged; 046/047 rechecked). The sweep022 audit now builds setup candles at setup_min.
+
+## 054 — London fade vs market conditions by quarter, EURUSD 2021–2024 (descriptive) — 2026-10-07
+User asked what was different before 2023. 12/16 quarters positive (from 2021-Q3); losses 2021-Q1/Q2, 2022-Q2, 2023-Q2.
+Volatility, spread, trend, choppiness, 1m autocorrelation don't line up with results (|r| <= 0.3, except quarterly move
++0.48, mixed). Only the strategy-free snap-back rate tracks results (r +0.48), but that is the edge itself. With +0.66/trade
+and SD 10.2, ~5 of 16 quarters should lose by luck alone; 4 did. Steady small edge plus noise; no regime filter justified.
