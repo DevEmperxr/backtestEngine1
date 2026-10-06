@@ -94,3 +94,8 @@ Same as its part of 045. Best EURUSD lead; in-sample. Next: final check on 2021/
 User request (2023 only). 99 trades +19.2 (vs 1m sweep: 199, +263.5), target-first 52.5% vs 49.3% chance (1m: 49% vs 39%).
 Waiting for the 5m close uses up the snap-back: target shrinks to ~6.6 pips against the same ~6.8 stop. Discarded.
 Audit fix: sweep022 audit in 5m mode now builds 5m candles from 1s like the strategy (was a 0.23-pip false flag).
+
+## 048 — London fade, stop at sweep candle + 3 pips, EURUSD 2023 — 2026-10-06
+User request after the viewer. +119.1 on 222 trades vs +263.5 (ATR stop). Median stop 4.7 vs 7.0 pips. Of 193 shared
+entries, 24 winners became stop-outs (+266.7 -> −115.8), 1 loser saved. Price retests past the sweep wick before
+reverting. Discarded; third time (022/024/048) a stop tied to the sweep candle loses to the 1.5x ATR stop.
