@@ -20,3 +20,11 @@ Notes:
 - 2023 has been looked at for Ideas 1 and 2 (runs 022–025); it remains a practice year.
 - Each finished version still gets a pre-registration (hypothesis, rules, pass bar) before its
   test-year run, as in `strategy_research_protocol.md`.
+
+## Standing rule (user, 2026-10-06)
+> "From now on only use 2023 and 2024 on all ideas going forth, leave some for the rest."
+
+**Every new idea, on every pair, is developed and judged on 2023 + 2024 only.** 2021, 2022 and
+2025 are used only when the user asks for a final check. Already used before this rule:
+EURUSD 2021/2022/2025 (fix-fade runs 016–019) and EURGBP 2021/2022 (run 027, Idea 1 only).
+Still clean: EURGBP 2025, and 2021/2022/2025 for every other cross.
