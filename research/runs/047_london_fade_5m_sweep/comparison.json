@@ -1,0 +1,54 @@
+{
+  "1m_046": {
+    "trades": 199,
+    "net_pips": 263.5,
+    "per_trade": 1.32,
+    "per_trade_ci95": [
+      0.08,
+      2.64
+    ],
+    "win_rate_%": 49.2,
+    "profit_factor": 1.35,
+    "target_first_%": 49.24,
+    "chance_target_first_%": 39.08,
+    "median_stop": 7.0,
+    "median_target": 10.0,
+    "median_hold_min": 29,
+    "max_dd_pips": -130.6,
+    "months_positive": "6/12",
+    "fair_sharpe": 1.87,
+    "H1 / H2": [
+      10.8,
+      252.7
+    ]
+  },
+  "5m_047": {
+    "trades": 99,
+    "net_pips": 19.2,
+    "per_trade": 0.19,
+    "per_trade_ci95": [
+      -1.24,
+      1.68
+    ],
+    "win_rate_%": 52.5,
+    "profit_factor": 1.06,
+    "target_first_%": 52.53,
+    "chance_target_first_%": 49.32,
+    "median_stop": 6.8,
+    "median_target": 6.6,
+    "median_hold_min": 16,
+    "max_dd_pips": -101.1,
+    "months_positive": "6/12",
+    "fair_sharpe": 0.26,
+    "H1 / H2": [
+      -18.3,
+      37.5
+    ]
+  },
+  "overlap": {
+    "5m trades with a 1m trade within 5 min": 27,
+    "their pips": -34.7,
+    "5m-only trades": 72,
+    "their pips (5m-only)": 53.9
+  }
+}

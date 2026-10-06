@@ -503,6 +503,13 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
         else:
             bb = buckets[k5]
             bb[0], bb[1], bb[2] = max(bb[0], h), min(bb[1], l), c
+    if strategy.timeframe == "5m":
+        # 5m strategies take mids of 5m bars resampled from 1s ((max bid_high + max ask_high) / 2),
+        # which can differ slightly from the max of 1m mids when bid and ask peak in different minutes
+        b5r = resample(base_1s, "5m")
+        buckets = {t: [h, l, c] for t, h, l, c in zip(
+            b5r["timestamp"].to_list(), ((b5r["bid_high"] + b5r["ask_high"]) / 2).to_list(),
+            ((b5r["bid_low"] + b5r["ask_low"]) / 2).to_list(), ((b5r["bid_close"] + b5r["ask_close"]) / 2).to_list())}
     keys = sorted(buckets)
     closes5, ma5, atr5 = [], {}, {}
     trs, prev = [], None

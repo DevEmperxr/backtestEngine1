@@ -89,3 +89,8 @@ New baseline for the two-window strategy = 045 (+469 on 2023+2024). Note: the ca
 +455.1 on 409 trades (+263.5 / +191.6), +1.11/trade [CI +0.29, +1.92], fair Sharpe 1.81, PF 1.33, max DD −131,
 7/8 quarters positive, target-first 49% vs 39% chance both years, +351 with doubled costs, +240 without best 10.
 Same as its part of 045. Best EURUSD lead; in-sample. Next: final check on 2021/2022/2025 (to 2025-04-07) if the user agrees.
+
+## 047 — London fade with the sweep on 5m candles, EURUSD 2023 — 2026-10-06
+User request (2023 only). 99 trades +19.2 (vs 1m sweep: 199, +263.5), target-first 52.5% vs 49.3% chance (1m: 49% vs 39%).
+Waiting for the 5m close uses up the snap-back: target shrinks to ~6.6 pips against the same ~6.8 stop. Discarded.
+Audit fix: sweep022 audit in 5m mode now builds 5m candles from 1s like the strategy (was a 0.23-pip false flag).

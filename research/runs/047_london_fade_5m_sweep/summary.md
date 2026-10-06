@@ -1,7 +1,7 @@
 # 047 — London fade with the sweep on 5m candles (vs 1m), EURUSD 2023 only
 
 **Date:** 2026-10-06 · file: research/strategies/047_london_fade_5m_sweep.py
-**Status:** pre-registered (user request: "see what would happen if we sweep on 5min too")
+**Status:** done. Discarded (1m sweep stays)
 
 ## What
 046 unchanged except the trigger: the sweep is read on **5m candles**. A 5m candle must reach the
@@ -19,4 +19,27 @@ whole-day window, any context) was discarded, but that was a different slice.
 Year: **2023 only** (user's instruction for this change).
 
 ## Results
-_(filled after the run)_
+Lookahead audit clean (after an audit fix: in 5m mode the audit now builds 5m candles the same way
+the strategy does, from 1s; the first pass flagged 31 stops differing by at most 0.23 pips, purely
+from the two ways of building candles). Comparison: research/regime/compare_047.py -> comparison.json.
+
+| 2023 | 1m sweep (046) | 5m sweep (047) |
+|---|---|---|
+| trades | 199 | 99 |
+| net pips | +263.5 | +19.2 |
+| per trade (95% CI) | +1.32 [+0.08, +2.64] | +0.19 [−1.24, +1.68] |
+| win rate / PF | 49.2% / 1.35 | 52.5% / 1.06 |
+| target hit first vs chance | 49.2% vs 39.1% (+10 pts) | 52.5% vs 49.3% (+3 pts) |
+| median stop / target | 7.0 / 10.0 | 6.8 / 6.6 |
+| median hold | 29 min | 16 min |
+| max DD | −130.6 | −101.1 |
+| fair Sharpe | 1.87 | 0.26 |
+| H1 / H2 | +10.8 / +252.7 | −18.3 / +37.5 |
+
+Overlap: 27 of the 99 5m trades enter within 5 min of a 1m trade (−34.7 pips); the 72 others +53.9.
+
+**Why it's worse:** waiting for the 5m candle to close means part of the snap-back has already happened
+by entry. The stop stays the same (1.5 x ATR) but the distance left to the average shrinks (median
+target 10 -> 6.6 pips), so the trade becomes ~1:1 and the edge over chance falls from +10 to +3 points.
+The quick 1m reaction is what makes the London fade work.
+
