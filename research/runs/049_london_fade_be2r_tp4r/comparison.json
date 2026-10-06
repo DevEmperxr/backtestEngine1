@@ -1,0 +1,100 @@
+{
+  "sheets": {
+    "046 ATR/MA": {
+      "trades": 199,
+      "net_pips": 263.5,
+      "per_trade": 1.32,
+      "per_trade_ci95": [
+        0.08,
+        2.64
+      ],
+      "win_rate_%": 49.2,
+      "profit_factor": 1.35,
+      "median_stop": 7.0,
+      "median_target": 10.0,
+      "median_hold_min": 29,
+      "max_dd_pips": -130.6,
+      "months_positive": "6/12",
+      "fair_sharpe": 1.87,
+      "H1 / H2": [
+        10.8,
+        252.7
+      ],
+      "without best 5": 153.1,
+      "without best 10": 71.8,
+      "exits tp/be/sl/time": [
+        97,
+        0,
+        100,
+        2
+      ],
+      "avg R": 0.2
+    },
+    "048 sweep+3/MA": {
+      "trades": 222,
+      "net_pips": 119.1,
+      "per_trade": 0.54,
+      "per_trade_ci95": [
+        -0.47,
+        1.57
+      ],
+      "win_rate_%": 36.9,
+      "profit_factor": 1.17,
+      "median_stop": 4.7,
+      "median_target": 10.8,
+      "median_hold_min": 20,
+      "max_dd_pips": -118.9,
+      "months_positive": "6/12",
+      "fair_sharpe": 0.98,
+      "H1 / H2": [
+        8.5,
+        110.6
+      ],
+      "without best 5": 20.4,
+      "without best 10": -57.4,
+      "exits tp/be/sl/time": [
+        81,
+        0,
+        140,
+        1
+      ],
+      "avg R": 0.15
+    },
+    "049 sweep+3/BE2R/4R": {
+      "trades": 212,
+      "net_pips": 232.7,
+      "per_trade": 1.1,
+      "per_trade_ci95": [
+        -0.21,
+        2.47
+      ],
+      "win_rate_%": 23.1,
+      "profit_factor": 1.36,
+      "median_stop": 4.7,
+      "median_target": 18.8,
+      "median_hold_min": 27,
+      "max_dd_pips": -86.8,
+      "months_positive": "8/12",
+      "fair_sharpe": 1.58,
+      "H1 / H2": [
+        110.3,
+        122.4
+      ],
+      "without best 5": 84.3,
+      "without best 10": -38.7,
+      "exits tp/be/sl/time": [
+        40,
+        37,
+        126,
+        9
+      ],
+      "avg R": 0.24
+    }
+  },
+  "r_buckets_049": {
+    "R <= -1 (full stop)": 126,
+    "around 0 (BE / small time exit)": 37,
+    "0.5R .. 3.5R (time exit in profit)": 9,
+    ">= 3.5R (target)": 40
+  }
+}

@@ -99,3 +99,8 @@ Audit fix: sweep022 audit in 5m mode now builds 5m candles from 1s like the stra
 User request after the viewer. +119.1 on 222 trades vs +263.5 (ATR stop). Median stop 4.7 vs 7.0 pips. Of 193 shared
 entries, 24 winners became stop-outs (+266.7 -> −115.8), 1 loser saved. Price retests past the sweep wick before
 reverting. Discarded; third time (022/024/048) a stop tied to the sweep candle loses to the 1.5x ATR stop.
+
+## 049 — London fade, sweep+3 stop, BE at +2R, TP 4R, EURUSD 2023 — 2026-10-06
+User request ("let winners win"). +232.7 on 212 trades (046: +263.5; 048: +119.1). Win rate 23%, PF 1.36, max DD −86.8
+(046: −130.6), 8/12 months positive, halves +110 / +122. But CI includes 0 and it's negative without its best 10
+trades. Same total as 046, smoother, more reliant on big winners. Next fair step: both 046 and 049 unchanged on 2024.
