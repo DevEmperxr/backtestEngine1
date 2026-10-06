@@ -48,6 +48,11 @@ OFFICIAL_TIMES = {
     ("USD", "Non-Farm Employment Change"): "08:30", ("USD", "Unemployment Rate"): "08:30",
     ("USD", "Retail Sales m/m"): "08:30", ("USD", "Employment Cost Index q/q"): "08:30",
     ("EUR", "German Flash Services PMI"): "09:30", ("EUR", "German Prelim CPI m/m"): "14:00",
+    # Bank of England decision day (12:00 London) and fixed-time UK releases
+    ("GBP", "Official Bank Rate"): "12:00", ("GBP", "MPC Official Bank Rate Votes"): "12:00",
+    ("GBP", "Monetary Policy Summary"): "12:00", ("GBP", "Flash Services PMI"): "09:30",
+    ("GBP", "Claimant Count Change"): "07:00", ("GBP", "Retail Sales m/m"): "07:00",
+    ("GBP", "GDP m/m"): "07:00", ("GBP", "CPI y/y"): "07:00",
 }
 HOME_TZ = {"USD": "America/New_York", "EUR": "Europe/Berlin", "GBP": "Europe/London"}
 
