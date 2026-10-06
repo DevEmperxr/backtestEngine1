@@ -171,6 +171,8 @@ def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s:
         out.update(_bb15x5_audit(strategy, trades, base_1s))
     elif kind == "sweep022":
         out.update(_sweep022_audit(strategy, trades, base_1s))
+    elif kind == "turn025":
+        out.update(_turn025_audit(strategy, trades, base_1s))
     elif kind == "orb_fix_fade":
         out.update(_orbfade_audit(strategy, bars, trades, base_1s))
     if "signal_sl_pips" in keyed.columns:
@@ -571,6 +573,77 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
         be = trades.filter(pl.col("exit_reason") == "breakeven")
         out["sweep_breakeven_not_at_entry"] = int(((be["exit_price"] - be["entry_price"]).abs() > 1e-9).sum())
     return out
+
+
+def _turn025_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
+    """Existence check with separate code on 5m mid bars rebuilt from 1s (aggregated
+    here from 1m mids): for each trade, the stop level must equal a confirmed 5m swing
+    (the lower high for shorts / higher low for longs) confirmed before the signal bar,
+    there must be a confirmed opposite swing (pullback low / bounce high) between a
+    stretched swing P and that level, the signal close must be beyond it, and P must
+    be within max_bars of the signal bar."""
+    from datetime import timedelta
+    b = resample(base_1s, "1m")
+    ts1 = b["timestamp"].to_list()
+    H1 = ((b["bid_high"] + b["ask_high"]) / 2).to_list()
+    L1m = ((b["bid_low"] + b["ask_low"]) / 2).to_list()
+    C1 = ((b["bid_close"] + b["ask_close"]) / 2).to_list()
+    bk = {}
+    for t, h, l, c in zip(ts1, H1, L1m, C1):
+        k5 = t.replace(minute=t.minute - t.minute % 5, second=0, microsecond=0)
+        if k5 not in bk:
+            bk[k5] = [h, l, c]
+        else:
+            x = bk[k5]
+            x[0], x[1], x[2] = max(x[0], h), min(x[1], l), c
+    keys = sorted(bk)
+    H = [bk[k][0] for k in keys]
+    L = [bk[k][1] for k in keys]
+    C = [bk[k][2] for k in keys]
+    n, k = len(H), strategy.pivot_k
+    ma = [None] * n
+    at = [None] * n
+    trs = []
+    for i in range(n):
+        trs.append(H[i] - L[i] if i == 0 else max(H[i] - L[i], abs(H[i] - C[i - 1]), abs(L[i] - C[i - 1])))
+        if i >= 19:
+            ma[i] = sum(C[i - 19:i + 1]) / 20
+        if i >= 13:
+            at[i] = sum(trs[i - 13:i + 1]) / 14
+    his = [i for i in range(k, n - k) if H[i] == max(H[i - k:i + k + 1])]
+    los = [i for i in range(k, n - k) if L[i] == min(L[i - k:i + k + 1])]
+    idx = {kk + timedelta(minutes=5): i for i, kk in enumerate(keys)}
+    bad = 0
+    for r in trades.iter_rows(named=True):
+        t = idx.get(r["entry_time"])
+        if t is None:
+            bad += 1
+            continue
+        short = r["direction"] == "short"
+        lvl = C[t] + (r["sl_pips"] - strategy.stop_buffer_pips) * PIP * (1 if short else -1)
+        conf = lambda i: i + k < t                      # confirmed before the signal bar
+        cand2 = [i for i in (his if short else los) if conf(i) and abs((H if short else L)[i] - lvl) < 1e-9]
+        ok = False
+        for i2 in cand2:
+            for i1 in [i for i in (los if short else his) if i < i2]:
+                beyond = C[t] < L[i1] if short else C[t] > H[i1]
+                if not beyond:
+                    continue
+                for ip in [i for i in (his if short else los) if i < i1 and t - i <= strategy.max_bars]:
+                    if ma[ip] is None or at[ip] is None:
+                        continue
+                    stretched = (H[ip] >= ma[ip] + strategy.stretch_atr * at[ip] - 1e-9) if short \
+                        else (L[ip] <= ma[ip] - strategy.stretch_atr * at[ip] + 1e-9)
+                    worse = H[ip] > H[i2] if short else L[ip] < L[i2]
+                    if stretched and worse:
+                        ok = True
+                        break
+                if ok:
+                    break
+            if ok:
+                break
+        bad += not ok
+    return {"turn_structure_not_found": bad}
 
 
 def random_walk_baseline(trades: pl.DataFrame) -> dict:

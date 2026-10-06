@@ -25,9 +25,9 @@ That is why the targets here are on the 1h, not the 5m MA.
 Mid prices; bars from 1s via `resample`; higher timeframes from **closed bars only**.
 - **Signal frame:** 5m bars. **1h context** exactly as 022/023 (ER20 ≥ 0.32 + slope of the 1h SMA20 →
   up / down / sideways).
-- **Swings (5m):** a bar whose high (low) is the highest (lowest) of the 7 bars centred on it,
-  usable only **3 bars later** (confirmation).
-- **Short setup:** (1) a confirmed 5m swing high **P** whose high ≥ that bar's SMA20 + 2·ATR14
+- **Swings (5m):** a bar whose high (low) is the highest (lowest) of the 5 bars centred on it,
+  usable only **2 bars later** (confirmation). (Amended from 7 bars / 3 later.)
+- **Short setup:** (1) a confirmed 5m swing high **P** whose high ≥ that bar's SMA20 + 1.5·ATR14 (amended from 2·ATR)
   (stretched); (2) a later confirmed swing low **L1**; (3) a later confirmed swing high **H2 < P**
   (lower high); (4) the first 5m bar after H2 is confirmed whose **close < L1** → short at the
   next 5m open. A swing high ≥ P before H2 replaces P (if stretched) or cancels the setup. The
@@ -50,6 +50,14 @@ Mid prices; bars from 1s via `resample`; higher timeframes from **closed bars on
   the null. Three target variants → a pass on one is only a candidate for other years.
 - Audit: independent plain-Python re-derivation on 1s-rebuilt 5m bars of the swing sequence
   P → L1 → H2 (with confirmation delays) and the break close for every trade; stop = H2 + 1 pip.
+
+## Amendment (2026-10-06, before any P&L was computed)
+A signal count on the registered rules (no P&L looked at) gave only 30–35 primary-context
+setups in 2023 (90 / 226 / 170 in total for A / B / C). The user chose to loosen **both**:
+stretch **1.5·ATR** (was 2·ATR) and 5m swings confirmed after **2 bars** (7-bar → **5-bar**
+window). New counts: A 139 (49 primary), B 367 (55 primary), C 259 (52 primary). Still small
+for one year; the multi-year test is where this idea can be judged. 1h swings unchanged (k=2).
+A has fewer setups because the 1h SMA20 is often already behind price when the turn confirms.
 
 ## Results
 _(filled after the run)_
