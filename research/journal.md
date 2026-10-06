@@ -71,3 +71,10 @@ with chance; hypotheses only. Fair fresh test for NY ideas = a USD pair (GBPUSD 
 User request. Combined +595 -> +104 (216 trades, CI includes 0). London fade collapses (+462 -> +27):
 its edge lives on news days. NY open +133 -> +77 on 66 trades, positive both years (+30 / +48) and
 slightly better per trade, but wide CI. Not adopted. Third time (029, 030, 044) news days carry the profit.
+
+## 045 — 042 with a +-1 h red-news blackout (no entries, close open trades 1 h before), 2023+2024 — 2026-10-06
+User request. New: news.red_news_times() recovers the missing release times (usual time per event, with the
+file's clock fixed for Iran's 2022 DST change; official times for NFP/Unemployment/Retail Sales/ECI/German flash
+services PMI/German prelim CPI). Combined +469 on 506 trades (042: +595). London fade unchanged (+455 vs +462).
+NY window +133 -> +14: its best trades are right after the 08:30/10:00 releases. Not adopted. Hypothesis for later:
+the NY window may really be a "fade the post-release overshoot" trade; test on a fresh USD pair.

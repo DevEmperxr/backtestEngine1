@@ -1,0 +1,159 @@
+{
+  "London fade 042": {
+    "trades": 434,
+    "win_rate_%": 48.8,
+    "expectancy_pips": 1.07,
+    "profit_factor": 1.31,
+    "max_drawdown_pips": -146.8,
+    "longest_drawdown_days": 283,
+    "months_positive": "16/24",
+    "sharpe_all_days": 1.75,
+    "total_pips": 462.2,
+    "pips_2023": 322.2,
+    "pips_2024": 140.0,
+    "per_trade_ci95": [
+      0.25,
+      1.91
+    ]
+  },
+  "London fade 044": {
+    "trades": 150,
+    "win_rate_%": 42.7,
+    "expectancy_pips": 0.18,
+    "profit_factor": 1.05,
+    "max_drawdown_pips": -95.1,
+    "longest_drawdown_days": 648,
+    "months_positive": "11/24",
+    "sharpe_all_days": 0.2,
+    "total_pips": 26.6,
+    "pips_2023": 2.6,
+    "pips_2024": 24.0,
+    "per_trade_ci95": [
+      -1.13,
+      1.52
+    ]
+  },
+  "London fade 045": {
+    "trades": 409,
+    "win_rate_%": 48.9,
+    "expectancy_pips": 1.11,
+    "profit_factor": 1.33,
+    "max_drawdown_pips": -130.6,
+    "longest_drawdown_days": 308,
+    "months_positive": "15/24",
+    "sharpe_all_days": 1.81,
+    "total_pips": 455.1,
+    "pips_2023": 263.5,
+    "pips_2024": 191.6,
+    "per_trade_ci95": [
+      0.29,
+      1.92
+    ]
+  },
+  "NY open 042": {
+    "trades": 157,
+    "win_rate_%": 45.9,
+    "expectancy_pips": 0.85,
+    "profit_factor": 1.18,
+    "max_drawdown_pips": -121.6,
+    "longest_drawdown_days": 475,
+    "months_positive": "16/24",
+    "sharpe_all_days": 0.64,
+    "total_pips": 133.0,
+    "pips_2023": -24.5,
+    "pips_2024": 157.5,
+    "per_trade_ci95": [
+      -0.94,
+      2.72
+    ]
+  },
+  "NY open 044": {
+    "trades": 66,
+    "win_rate_%": 42.4,
+    "expectancy_pips": 1.17,
+    "profit_factor": 1.31,
+    "max_drawdown_pips": -59.9,
+    "longest_drawdown_days": 411,
+    "months_positive": "14/24",
+    "sharpe_all_days": 0.79,
+    "total_pips": 77.4,
+    "pips_2023": 29.5,
+    "pips_2024": 47.9,
+    "per_trade_ci95": [
+      -1.25,
+      3.69
+    ]
+  },
+  "NY open 045": {
+    "trades": 97,
+    "win_rate_%": 42.3,
+    "expectancy_pips": 0.14,
+    "profit_factor": 1.03,
+    "max_drawdown_pips": -135.7,
+    "longest_drawdown_days": 573,
+    "months_positive": "12/24",
+    "sharpe_all_days": 0.11,
+    "total_pips": 14.0,
+    "pips_2023": -45.0,
+    "pips_2024": 59.0,
+    "per_trade_ci95": [
+      -1.85,
+      2.22
+    ]
+  },
+  "COMBINED 042": {
+    "trades": 591,
+    "win_rate_%": 48.1,
+    "expectancy_pips": 1.01,
+    "profit_factor": 1.27,
+    "max_drawdown_pips": -126.2,
+    "longest_drawdown_days": 237,
+    "months_positive": "19/24",
+    "sharpe_all_days": 1.77,
+    "total_pips": 595.3,
+    "pips_2023": 297.7,
+    "pips_2024": 297.5,
+    "per_trade_ci95": [
+      0.21,
+      1.79
+    ]
+  },
+  "COMBINED 044": {
+    "trades": 216,
+    "win_rate_%": 42.6,
+    "expectancy_pips": 0.48,
+    "profit_factor": 1.13,
+    "max_drawdown_pips": -78.9,
+    "longest_drawdown_days": 304,
+    "months_positive": "11/24",
+    "sharpe_all_days": 0.65,
+    "total_pips": 104.0,
+    "pips_2023": 32.0,
+    "pips_2024": 72.0,
+    "per_trade_ci95": [
+      -0.69,
+      1.7
+    ]
+  },
+  "COMBINED 045": {
+    "trades": 506,
+    "win_rate_%": 47.6,
+    "expectancy_pips": 0.93,
+    "profit_factor": 1.26,
+    "max_drawdown_pips": -104.1,
+    "longest_drawdown_days": 249,
+    "months_positive": "17/24",
+    "sharpe_all_days": 1.69,
+    "total_pips": 469.1,
+    "pips_2023": 218.5,
+    "pips_2024": 250.6,
+    "per_trade_ci95": [
+      0.16,
+      1.7
+    ]
+  },
+  "blackout_check_045": {
+    "trades_overlapping_blackout": 0,
+    "trades_on_whole_day_blocks": 0
+  }
+}
