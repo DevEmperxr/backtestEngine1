@@ -169,6 +169,8 @@ def lookahead_audit(strategy, bars: pl.DataFrame, trades: pl.DataFrame, base_1s:
         out.update(_band_audit(strategy, trades, base_1s))
     elif kind == "bb15x5":
         out.update(_bb15x5_audit(strategy, trades, base_1s))
+    elif kind == "sweep022":
+        out.update(_sweep022_audit(strategy, trades, base_1s))
     elif kind == "orb_fix_fade":
         out.update(_orbfade_audit(strategy, bars, trades, base_1s))
     if "signal_sl_pips" in keyed.columns:
@@ -473,6 +475,80 @@ class _LazyMap:
     def get(self, k, default=None):
         v = self.fn(k)
         return default if v is None else v
+
+
+def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dict:
+    """Plain-Python re-derivation on 1m bars rebuilt from 1s: 5m SMA20/ATR14 of the
+    last closed 5m bar (aggregated here from the 1m mids), 1m swings with their
+    confirmation delay, then for every trade: the signal bar (closing at entry)
+    reached the 2xATR stretch on the faded side and (sweep mode) swept the latest
+    swing confirmed before it and closed back inside."""
+    from datetime import timedelta
+    b = resample(base_1s, "1m")
+    ts = b["timestamp"].to_list()
+    H = ((b["bid_high"] + b["ask_high"]) / 2).to_list()
+    L = ((b["bid_low"] + b["ask_low"]) / 2).to_list()
+    C = ((b["bid_close"] + b["ask_close"]) / 2).to_list()
+    idx = {t + timedelta(minutes=1): i for i, t in enumerate(ts)}       # close_time -> row
+    # 5m bars from 1m mids, keyed by their close time
+    buckets = {}
+    for t, h, l, c in zip(ts, H, L, C):
+        k5 = t.replace(minute=t.minute - t.minute % 5, second=0, microsecond=0)
+        if k5 not in buckets:
+            buckets[k5] = [h, l, c]
+        else:
+            bb = buckets[k5]
+            bb[0], bb[1], bb[2] = max(bb[0], h), min(bb[1], l), c
+    keys = sorted(buckets)
+    closes5, ma5, atr5 = [], {}, {}
+    trs, prev = [], None
+    for k5 in keys:
+        h, l, c = buckets[k5]
+        trs.append(h - l if prev is None else max(h - l, abs(h - prev), abs(l - prev)))
+        prev = c
+        closes5.append(c)
+        ct = k5 + timedelta(minutes=5)
+        if len(closes5) >= 20:
+            ma5[ct] = sum(closes5[-20:]) / 20
+        if len(trs) >= 14:
+            atr5[ct] = sum(trs[-14:]) / 14
+    cts5 = sorted(set(ma5) & set(atr5))
+    import bisect
+    k = strategy.pivot_k
+    n = len(H)
+    conf_hi, conf_lo = [None] * n, [None] * n      # latest swing confirmed at or before row i
+    last_h = last_l = None
+    for i in range(n):
+        j = i - k                                   # candidate pivot confirmed at row i
+        if j - k >= 0:
+            win_h, win_l = H[j - k:j + k + 1], L[j - k:j + k + 1]
+            if H[j] == max(win_h):
+                last_h = H[j]
+            if L[j] == min(win_l):
+                last_l = L[j]
+        conf_hi[i], conf_lo[i] = last_h, last_l
+    bad_stretch = bad_sweep = missing = 0
+    for et, d in zip(trades["entry_time"].to_list(), trades["direction"].to_list()):
+        i = idx.get(et)
+        if i is None or i == 0:
+            missing += 1
+            continue
+        jj = bisect.bisect_right(cts5, et) - 1
+        if jj < 0:
+            missing += 1
+            continue
+        m5, a5 = ma5[cts5[jj]], atr5[cts5[jj]]
+        if d == "short":
+            bad_stretch += not (H[i] >= m5 + strategy.stretch_atr * a5 - 1e-9)
+            if strategy.mode == "sweep":
+                sw = conf_hi[i - 1]
+                bad_sweep += not (sw is not None and H[i] > sw and C[i] < sw)
+        else:
+            bad_stretch += not (L[i] <= m5 - strategy.stretch_atr * a5 + 1e-9)
+            if strategy.mode == "sweep":
+                sw = conf_lo[i - 1]
+                bad_sweep += not (sw is not None and L[i] < sw and C[i] > sw)
+    return {"sweep_bad_stretch": bad_stretch, "sweep_not_a_sweep": bad_sweep, "sweep_missing_bars": missing}
 
 
 def random_walk_baseline(trades: pl.DataFrame) -> dict:
