@@ -488,3 +488,21 @@ def test_plots_do_not_crash_on_empty_result():
     plt.close(plot_equity(empty))
     plt.close(plot_monthly(empty))
     plt.close(plot_mc_drawdown(mc_drawdown(pl.DataFrame())))
+
+
+def test_sharpe_all_days_counts_flat_days():
+    from datetime import date, datetime, timezone
+    from lib.evaluate import sharpe_all_days
+    # two winning days in a 10-weekday span: zero days must be included
+    t = pl.DataFrame({
+        "exit_time": [datetime(2024, 1, 2, 12, tzinfo=timezone.utc), datetime(2024, 1, 3, 12, tzinfo=timezone.utc)],
+        "pips": [10.0, 20.0],
+    })
+    r = sharpe_all_days(t, date(2024, 1, 1), date(2024, 1, 12))
+    assert r["n_days"] == 10 and r["days_with_trades"] == 2
+    import numpy as np
+    x = np.array([0, 10, 20, 0, 0, 0, 0, 0, 0, 0], float) / 10_000
+    assert r["sharpe"] == pytest.approx(x.mean() / x.std(ddof=1) * np.sqrt(252))
+    # only-traded-days Sharpe would be much higher than the all-days one here
+    y = np.array([10, 20], float) / 10_000
+    assert y.mean() / y.std(ddof=1) * np.sqrt(252) > r["sharpe"]

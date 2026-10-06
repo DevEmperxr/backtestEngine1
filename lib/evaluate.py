@@ -539,3 +539,36 @@ def plot_mc_drawdown(mc_result: dict):
     ax.grid(alpha=0.25)
     fig.tight_layout()
     return fig
+
+
+def sharpe_all_days(
+    trades: pl.DataFrame, start, end, *, starting_balance: float = 10_000.0, pip_value: float = 1.0,
+) -> dict:
+    """Annualized Sharpe and Sortino counting EVERY weekday in [start, end] (dates),
+    with days that had no exit as zero return.
+
+    `evaluate()`'s Sharpe uses only days that had an exit. For a strategy that trades on
+    a fraction of days, that inflates the ratio (the zero days, which lower both the mean
+    and the volatility per calendar day, are dropped). This version is the fair one for
+    comparing sparse strategies. rf = 0; daily return = daily P&L / starting_balance.
+    """
+    from datetime import timedelta
+
+    days = []
+    d = start
+    while d <= end:
+        if d.weekday() < 5:
+            days.append(d)
+        d += timedelta(days=1)
+    cal = pl.DataFrame({"d": days})
+    daily = trades.group_by(pl.col("exit_time").dt.date().alias("d")).agg(pnl=pl.col("pips").sum() * pip_value)
+    r = cal.join(daily, on="d", how="left").with_columns(pl.col("pnl").fill_null(0.0))["pnl"] / starting_balance
+    ann = sqrt(_TRADING_DAYS)
+    sd = r.std()
+    dsd = r.filter(r < 0).std()
+    return {
+        "n_days": len(days),
+        "days_with_trades": int(daily.join(cal, on="d").height),
+        "sharpe": float(r.mean() / sd * ann) if sd else None,
+        "sortino": float(r.mean() / dsd * ann) if dsd else None,
+    }
