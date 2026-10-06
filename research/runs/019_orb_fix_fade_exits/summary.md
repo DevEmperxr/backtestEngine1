@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05
 **File:** research/strategies/019_orb_fix_fade_exits.py (make_a / make_b / make_c); 018 unchanged via research/strategies/018_orb_fix_fade.py
-**Status:** exploring
+**Status:** 019A/B/C discarded; 018 not confirmed (open lead)
 
 ## Hypothesis
 *(registered while the 2021 and 2022 downloads were still running: neither file had
@@ -52,7 +52,20 @@ any year existed when this was written).
   0 force-flat violations.
 
 ## Results — 2021 and 2022 (confirmatory)
-_(filled after the run)_
+Data: 2021 (7.67 M 1s rows, checks PASSED; 4 gaps of 10–16 min at 17:13–17:55 NY rollover),
+2022 (12.12 M rows, checks PASSED; December re-fetched after a DNS failure and appended:
+one identical boundary row dropped; 1 gap at the Sunday 21:00 UTC reopen). Both outside
+every test window. All lookahead/independent audits passed on every run.
+
+| design | 2021 | 2022 | pooled n | pooled net | exp/trade | 98.75% CI (registered) | both years > 0 | verdict |
+|---|---|---|---|---|---|---|---|---|
+| 018 mirrored (control) | **+150.2** | **+24.8** | 258 | +175.1 | +0.68 | [−2.40, +3.90] | **yes** | not confirmed (CI ∋ 0) |
+| 019A time exit | +320.5 | **−92.7** | 258 | +227.8 | +0.88 | [−2.75, +4.57] | no | fails |
+| 019B ATR bracket | +73.9 | **−231.0** | 258 | −157.1 | −0.61 | [−3.93, +2.57] | no | fails |
+| 019C back to range | **−15.3** | +65.2 | 156 | +49.9 | +0.32 | [−3.15, +3.71] | no | fails |
+
+Per-year detail (95% CI): 018 2021 [−1.30, +3.72], H1 +138.9 / H2 +11.3; 2022 [−3.91, +4.18],
+H1 +130.6 / H2 −105.8. 019A 2022 H1 −32.1 / H2 −60.6.
 
 ## Results — 2023–2025 (descriptive)
 *(Run at the user's request while the test years were still downloading; the rules above
@@ -72,7 +85,32 @@ is the discovery year of the entry; none of this is evidence.)*
 - 2025 is the weakest year for every design. All audits passed.
 
 ## Interpretation
-_(filled after the run)_
+**Nothing is confirmed.** No design's pooled 98.75% CI excludes zero, as the power section
+predicted.
+
+**The redesigned exits did not hold up.** The time exit (019A), best on 2023–2025 and
+on 2021, lost in 2022. The ATR bracket lost badly in 2022. Back-to-range lost in 2021. On
+2023–2025 all four designs looked alike. On fresh years they diverged, in no consistent
+order, so the "best exit" was noise.
+
+**The original 018 rule is now positive in every year available:** 2021 +150.2, 2022 +24.8,
+2023 +95.9, 2024 +330.2 (discovery), 2025 +58.2. Across the four years that were unseen
+when tested (2021, 2022, 2023, 2025): 481 trades, **+329.1 pips, +0.68/trade, 95% CI
+[−1.02, +2.39]**, Sharpe 0.57; per-year expectancy +1.21 / +0.19 / +0.99 / +0.46. Four
+positive unseen years out of four would happen about 1 time in 16 by chance if the true edge
+were zero and each year a coin flip. That is suggestive, not significant, and the CI still
+includes zero. The effect, if real, is about +0.5–1 pip/trade (≈ 1.5–3% of the per-trade
+SD of 19 pips), far too small for these sample sizes to prove.
+
+Note: 018 was positive in 2022, but its exits were never designed. That the
+designed exits did no better suggests the mirrored levels are not hiding a better edge.
+The entry carries whatever is there.
 
 ## Decision
-_(filled after the run)_
+**019A, 019B, 019C: discard** (each lost money in one of the two test years). **018 (control):
+not confirmed, still the only open lead.** It met the "positive in both test years" part
+again, but its pooled CI includes zero.
+**Why:** registered criterion (98.75% CI excludes 0 AND both years positive) failed by
+every design. 018 is now 4/4 positive on unseen years (+329 pips, +0.68/trade, 95% CI
+[−1.02, +2.39]), but with an effect this small relative to per-trade noise, more history
+alone won't settle it. 2026 remains the untouched holdout.
