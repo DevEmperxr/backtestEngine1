@@ -61,3 +61,13 @@ Combined +595.3 on 591 trades (+297.7 / +297.5), per trade +1.01 [CI +0.21, +1.7
 19/24 months positive, max DD −126 pips. London fade +462 (both years +); NY open +133 (2023 −24.5,
 2024 +157.5). In 033 the NY slice made +95.5 in 2023; ~15 extra trades a year that are no longer blocked
 flip it, so it is fragile. In-sample; the reserved years are the real test. See runs/042_idea1_two_windows/summary.md.
+
+## 043 — NY-window diagnostics (descriptive) — 2026-10-06
+Splits of the 157 NY-window trades of 042. Positive in both years: 08:30–09:00 entries, days the London
+window already traded, 2nd+ NY trade, target >= 2x stop. ~27 groups checked, so this is consistent
+with chance; hypotheses only. Fair fresh test for NY ideas = a USD pair (GBPUSD 2023+2024).
+
+## 044 — 042 with no red-news days (USD/EUR), EURUSD 2023+2024 — 2026-10-06
+User request. Combined +595 -> +104 (216 trades, CI includes 0). London fade collapses (+462 -> +27):
+its edge lives on news days. NY open +133 -> +77 on 66 trades, positive both years (+30 / +48) and
+slightly better per trade, but wide CI. Not adopted. Third time (029, 030, 044) news days carry the profit.
