@@ -16,7 +16,7 @@ can land one day late. These are rare.
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import polars as pl
@@ -41,3 +41,60 @@ def red_news_dates(currencies: list[str], path: Path = CAL) -> set[date]:
 def pair_currencies(pair: str) -> list[str]:
     pair = pair.upper()
     return [pair[:3], pair[3:]]
+
+
+# Official release clock times (home-zone local) for red events that never carry a time in the file.
+OFFICIAL_TIMES = {
+    ("USD", "Non-Farm Employment Change"): "08:30", ("USD", "Unemployment Rate"): "08:30",
+    ("USD", "Retail Sales m/m"): "08:30", ("USD", "Employment Cost Index q/q"): "08:30",
+    ("EUR", "German Flash Services PMI"): "09:30", ("EUR", "German Prelim CPI m/m"): "14:00",
+}
+HOME_TZ = {"USD": "America/New_York", "EUR": "Europe/Berlin", "GBP": "Europe/London"}
+
+
+def red_news_times(currencies: list[str], path: Path = CAL) -> tuple[list[datetime], set[date]]:
+    """Release times (UTC) of High-impact events for `currencies`, plus New York dates of events
+    whose time cannot be recovered (speeches without a usual time, summits, elections).
+
+    Wall-clock offset: Iran observed DST up to 2022, so the file's own offset label is right up to
+    2022; from 2023 the scraper still labels summer rows +04:30 but the clock is +03:30 (checked:
+    FOMC 14:00 NY and NFP 08:30 NY line up only with +03:30). A missing time (00:00:00) is filled
+    with the event's usual home-zone clock time from rows that have one (2019-2025, requires the
+    usual time to cover >= 60% of them), else OFFICIAL_TIMES; otherwise the whole day is listed.
+    """
+    d = pl.read_csv(path, infer_schema_length=0).filter(
+        (pl.col("Impact") == "High Impact Expected") & pl.col("Currency").is_in(currencies))
+    wall = pl.col("DateTime").str.slice(0, 19).str.to_datetime("%Y-%m-%dT%H:%M:%S")
+    d = d.with_columns(
+        wall=wall, file_date=wall.dt.date(),
+        known=~pl.col("DateTime").str.slice(11, 8).is_in(["00:00:00", "23:59:59"]),
+        utc=pl.when(wall.dt.year() <= 2022)
+        .then(pl.col("DateTime").str.to_datetime("%Y-%m-%dT%H:%M:%S%z").dt.convert_time_zone("UTC"))
+        .otherwise((wall - timedelta(hours=3, minutes=30)).dt.replace_time_zone("UTC")))
+    rows = d.to_dicts()
+    from collections import Counter, defaultdict
+    from zoneinfo import ZoneInfo
+    seen: dict[tuple[str, str], Counter] = defaultdict(Counter)
+    for r in rows:
+        if r["known"] and 2019 <= r["wall"].year <= 2025:
+            seen[(r["Currency"], r["Event"])][r["utc"].astimezone(ZoneInfo(HOME_TZ[r["Currency"]])).strftime("%H:%M")] += 1
+    times: list[datetime] = []
+    whole_days: set[date] = set()
+    for r in rows:
+        if r["known"]:
+            times.append(r["utc"])
+            continue
+        key = (r["Currency"], r["Event"])
+        c = seen.get(key)
+        hhmm = None
+        if c and c.most_common(1)[0][1] / sum(c.values()) >= 0.6:
+            hhmm = c.most_common(1)[0][0]
+        hhmm = hhmm or OFFICIAL_TIMES.get(key)
+        if hhmm is None:
+            whole_days.add(r["file_date"])
+            continue
+        h, m = map(int, hhmm.split(":"))
+        local = datetime(r["file_date"].year, r["file_date"].month, r["file_date"].day, h, m,
+                         tzinfo=ZoneInfo(HOME_TZ[r["Currency"]]))
+        times.append(local.astimezone(ZoneInfo("UTC")))
+    return sorted(set(times)), whole_days
