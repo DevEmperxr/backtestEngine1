@@ -248,3 +248,72 @@ def test_rsi_hand_checked_wilder():
 def test_rsi_row_t_ignores_later_bars():
     a = [1.0, 2, 1.5, 3, 2.5, 2]
     assert _rsi(a + [100.0], 3)[:6] == _rsi(a, 3)
+
+
+
+# --------------------------------------------------------------------------- #
+# trend detectors (research 020)
+# --------------------------------------------------------------------------- #
+
+from lib.signals import adx, choppiness, efficiency_ratio, return_autocorr, rolling_r2, variance_ratio
+
+
+def _col(expr, **cols):
+    return pl.DataFrame(cols).select(o=expr)["o"].to_list()
+
+
+def test_efficiency_ratio_line_chop_and_hand_value():
+    line = [float(i) for i in range(10)]
+    assert _col(efficiency_ratio(pl.col("x"), 3), x=line)[3:] == pytest.approx([1.0] * 7)
+    chop = [0.0, 1.0] * 5
+    assert _col(efficiency_ratio(pl.col("x"), 4), x=chop)[4:] == pytest.approx([0.0] * 6)
+    # 1,2,4,3: net |3-1| = 2, path 1+2+1 = 4 -> 0.5
+    assert _col(efficiency_ratio(pl.col("x"), 3), x=[1.0, 2, 4, 3])[3] == pytest.approx(0.5)
+    assert _col(efficiency_ratio(pl.col("x"), 3), x=[1.0] * 5)[4] is None   # flat: no path
+
+
+def test_rolling_r2_line_is_one_and_noise_is_low():
+    assert _col(rolling_r2(pl.col("x"), 5), x=[2.0 * i for i in range(8)])[4:] == pytest.approx([1.0] * 4)
+    assert _col(rolling_r2(pl.col("x"), 4), x=[0.0, 1, 0, 1, 0, 1])[5] < 0.3
+
+
+def test_variance_ratio_trend_vs_alternating():
+    trend = [float(i) + (0.1 if i % 3 == 0 else 0) for i in range(40)]
+    alt = [0.0, 1.0] * 20
+    assert _col(variance_ratio(pl.col("x"), 2, 20), x=alt)[-1] < 0.2      # perfect reversal
+    assert _col(variance_ratio(pl.col("x"), 2, 20), x=trend)[-1] > 0.5
+
+
+def test_return_autocorr_signs():
+    alt = [0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0]
+    assert _col(return_autocorr(pl.col("x"), 5), x=alt)[-1] == pytest.approx(-1.0)
+
+
+def test_adx_and_chop_trend_vs_range():
+    n = 60
+    up = [float(i) for i in range(n)]
+    rng = [0.0, 1.0] * (n // 2)
+    hi = lambda c: [v + 0.5 for v in c]
+    lo = lambda c: [v - 0.5 for v in c]
+    adx_up = _col(adx(pl.col("h"), pl.col("l"), pl.col("c"), 14), h=hi(up), l=lo(up), c=up)[-1]
+    adx_rng = _col(adx(pl.col("h"), pl.col("l"), pl.col("c"), 14), h=hi(rng), l=lo(rng), c=rng)[-1]
+    assert adx_up > 90 and adx_rng < 30
+    ch_up = _col(choppiness(pl.col("h"), pl.col("l"), pl.col("c"), 14), h=hi(up), l=lo(up), c=up)[-1]
+    ch_rng = _col(choppiness(pl.col("h"), pl.col("l"), pl.col("c"), 14), h=hi(rng), l=lo(rng), c=rng)[-1]
+    assert ch_up < 30 and ch_rng > 80
+
+
+@pytest.mark.parametrize("make", [
+    lambda: efficiency_ratio(pl.col("c"), 5), lambda: rolling_r2(pl.col("c"), 5),
+    lambda: variance_ratio(pl.col("c"), 2, 6), lambda: return_autocorr(pl.col("c"), 5),
+    lambda: adx(pl.col("h"), pl.col("l"), pl.col("c"), 5),
+    lambda: choppiness(pl.col("h"), pl.col("l"), pl.col("c"), 5),
+])
+def test_detectors_row_t_ignores_later_bars(make):
+    import random
+    rnd = random.Random(0)
+    c = [100.0 + sum(rnd.uniform(-1, 1) for _ in range(i)) for i in range(30)]
+    later = c[:20] + [999.0] * 10
+    f = lambda cc: _col(make(), c=cc, h=[v + 0.5 for v in cc], l=[v - 0.5 for v in cc])[:20]
+    a, b = f(c), f(later)
+    assert all((x is None and y is None) or x == pytest.approx(y) for x, y in zip(a, b))

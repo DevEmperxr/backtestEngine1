@@ -139,3 +139,79 @@ def rsi(values: pl.Expr, n: int) -> pl.Expr:
     gain = d.clip(lower_bound=0).ewm_mean(alpha=1 / n, adjust=False, min_samples=n)
     loss = (-d).clip(lower_bound=0).ewm_mean(alpha=1 / n, adjust=False, min_samples=n)
     return pl.when(loss == 0).then(100.0).otherwise(100 - 100 / (1 + gain / loss))
+
+
+
+# --------------------------------------------------------------------------- #
+# Trend / regime detectors (research 020). All use only bars <= t for row t.
+# --------------------------------------------------------------------------- #
+
+def efficiency_ratio(values: pl.Expr, n: int) -> pl.Expr:
+    """Kaufman efficiency ratio over the last `n` bars: |net change| / sum of
+    |bar-to-bar changes|. 1 = straight line, ~0 = chop. Null for the first `n`
+    rows; null (not inf) if price did not move at all."""
+    if n < 1:
+        raise ValueError(f"n must be >= 1, got {n}")
+    path = values.diff().abs().rolling_sum(window_size=n, min_samples=n)
+    net = (values - values.shift(n)).abs()
+    return pl.when(path > 0).then(net / path)
+
+
+def adx(high: pl.Expr, low: pl.Expr, close: pl.Expr, n: int) -> pl.Expr:
+    """Wilder's ADX(n). +DM/-DM and TR smoothed with Wilder's recursive average
+    (alpha = 1/n, adjust=False, as `rsi`), DX = 100·|+DI − −DI| / (+DI + −DI),
+    ADX = Wilder average of DX. Direction-free trend strength, 0–100."""
+    if n < 1:
+        raise ValueError(f"n must be >= 1, got {n}")
+    up, down = high.diff(), -low.diff()
+    plus_dm = pl.when((up > down) & (up > 0)).then(up).otherwise(0.0)
+    minus_dm = pl.when((down > up) & (down > 0)).then(down).otherwise(0.0)
+    prev = close.shift(1)
+    tr = pl.max_horizontal(high - low, (high - prev).abs(), (low - prev).abs())
+    w = lambda e: e.ewm_mean(alpha=1 / n, adjust=False, min_samples=n)
+    s_tr = w(tr)
+    pdi, mdi = 100 * w(plus_dm) / s_tr, 100 * w(minus_dm) / s_tr
+    dx = pl.when((pdi + mdi) > 0).then(100 * (pdi - mdi).abs() / (pdi + mdi)).otherwise(0.0)
+    return dx.ewm_mean(alpha=1 / n, adjust=False, min_samples=n)
+
+
+def choppiness(high: pl.Expr, low: pl.Expr, close: pl.Expr, n: int) -> pl.Expr:
+    """Choppiness Index(n) = 100·log10(ΣTR_n / (max high_n − min low_n)) / log10(n).
+    High (→100) = choppy, low = trending. n >= 2."""
+    if n < 2:
+        raise ValueError(f"n must be >= 2, got {n}")
+    import math
+    prev = close.shift(1)
+    tr = pl.max_horizontal(high - low, (high - prev).abs(), (low - prev).abs())
+    rng = high.rolling_max(n, min_samples=n) - low.rolling_min(n, min_samples=n)
+    s = tr.rolling_sum(n, min_samples=n)
+    return pl.when(rng > 0).then(100 * (s / rng).log10() / math.log10(n))
+
+
+def rolling_r2(values: pl.Expr, n: int) -> pl.Expr:
+    """R² of a straight-line fit of the last `n` values on time (= squared
+    correlation with a time index). 1 = perfectly linear path."""
+    if n < 3:
+        raise ValueError(f"n must be >= 3, got {n}")
+    t = pl.int_range(0, pl.len()).cast(pl.Float64)
+    return pl.rolling_corr(values, t, window_size=n, min_samples=n) ** 2
+
+
+def variance_ratio(values: pl.Expr, q: int, n: int) -> pl.Expr:
+    """Lo–MacKinlay variance ratio over the last `n` bars: Var(q-bar changes) /
+    (q · Var(1-bar changes)). >1 trending (positive autocorrelation), <1 mean
+    reverting, ≈1 random walk. (Overlapping q-bar changes; no bias correction.)"""
+    if q < 2 or n <= q:
+        raise ValueError(f"need q >= 2 and n > q, got q={q}, n={n}")
+    r1 = values.diff()
+    rq = values - values.shift(q)
+    return rq.rolling_var(n, min_samples=n) / (q * r1.rolling_var(n, min_samples=n))
+
+
+def return_autocorr(values: pl.Expr, n: int, lag: int = 1) -> pl.Expr:
+    """Correlation of bar-to-bar changes with their own value `lag` bars earlier,
+    over the last `n` changes. >0 = moves tend to continue."""
+    if n < 3 or lag < 1:
+        raise ValueError(f"need n >= 3 and lag >= 1, got n={n}, lag={lag}")
+    r = values.diff()
+    return pl.rolling_corr(r, r.shift(lag), window_size=n, min_samples=n)
