@@ -42,6 +42,8 @@ class SweepFadeStrategy(Strategy):
         er_trend: float = 0.32, stop_buffer_pips: float = 1.0, timeframe: str = "1m",
         stop_mode: str = "sweep", stop_atr_mult: float = 1.5, buffer_atr: float = 0.5,
         max_hold_bars: int | None = None, be_frac: float | None = None,
+        window_start: time = time(7, 0), window_start_tz: str = NY,
+        window_end: time = time(16, 0), window_end_tz: str = LONDON,
     ) -> None:
         super().__init__(10.0, 10.0, timeframe)   # per-trade columns override these
         if mode not in ("sweep", "control"):
@@ -58,7 +60,8 @@ class SweepFadeStrategy(Strategy):
         self.buffer_atr, self.max_hold_bars, self.be_frac = buffer_atr, max_hold_bars, be_frac
         self.mode, self.stretch_atr, self.pivot_k = mode, stretch_atr, pivot_k
         self.er_trend, self.stop_buffer_pips = er_trend, stop_buffer_pips
-        self.window_end, self.window_end_tz = time(16, 0), LONDON
+        self.window_start, self.window_start_tz = window_start, window_start_tz
+        self.window_end, self.window_end_tz = window_end, window_end_tz
 
     def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
         mid = lambda f: (pl.col(f"bid_{f}") + pl.col(f"ask_{f}")) / 2
@@ -94,7 +97,8 @@ class SweepFadeStrategy(Strategy):
             swing_lo=pl.when(is_pl.shift(k)).then(pl.col("ml").shift(k)).forward_fill().shift(1),
             band_up=pl.col("ma5") + self.stretch_atr * pl.col("atr5"),
             band_dn=pl.col("ma5") - self.stretch_atr * pl.col("atr5"),
-            in_window=session_window(pl.col("close_time"), NY, time(7, 0), LONDON, time(16, 0))
+            in_window=session_window(pl.col("close_time"), self.window_start_tz, self.window_start,
+                                     self.window_end_tz, self.window_end)
                       & (pl.col("close_time").dt.convert_time_zone(NY).dt.weekday() <= 5),
         )
         up = (pl.col("mh") >= pl.col("band_up")).fill_null(False)
