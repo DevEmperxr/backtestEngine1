@@ -377,6 +377,10 @@ class Strategy(ABC):
 
             live["bars"], live["start_idx"], live["end_idx"] = bars, start_idx, end_idx
 
+        # exposed so callers can jump the window (e.g. a "next trade" button):
+        # chart._fx_live["render"](bars, start_idx, end_idx)
+        live["render"] = _render
+
         def _on_range_change(bars_before: float, bars_after: float) -> None:
             bars, start_idx, end_idx = live["bars"], live["start_idx"], live["end_idx"]
             new_start, new_end = start_idx, end_idx
