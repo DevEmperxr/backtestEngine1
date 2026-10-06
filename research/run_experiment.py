@@ -485,14 +485,14 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
     swing confirmed before it and closed back inside."""
     from datetime import timedelta
     b = resample(base_1s, "1m")
-    ts = b["timestamp"].to_list()
-    H = ((b["bid_high"] + b["ask_high"]) / 2).to_list()
-    L = ((b["bid_low"] + b["ask_low"]) / 2).to_list()
-    C = ((b["bid_close"] + b["ask_close"]) / 2).to_list()
-    idx = {t + timedelta(minutes=1): i for i, t in enumerate(ts)}       # close_time -> row
+    ts1 = b["timestamp"].to_list()
+    H1 = ((b["bid_high"] + b["ask_high"]) / 2).to_list()
+    L1 = ((b["bid_low"] + b["ask_low"]) / 2).to_list()
+    C1 = ((b["bid_close"] + b["ask_close"]) / 2).to_list()
+    ts, H, L, C = ts1, H1, L1, C1
     # 5m bars from 1m mids, keyed by their close time
     buckets = {}
-    for t, h, l, c in zip(ts, H, L, C):
+    for t, h, l, c in zip(ts1, H1, L1, C1):
         k5 = t.replace(minute=t.minute - t.minute % 5, second=0, microsecond=0)
         if k5 not in buckets:
             buckets[k5] = [h, l, c]
@@ -514,6 +514,13 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
             atr5[ct] = sum(trs[-14:]) / 14
     cts5 = sorted(set(ma5) & set(atr5))
     import bisect
+    if strategy.timeframe == "5m":            # signal bars = the 5m bars themselves
+        ts = keys
+        H = [buckets[k5][0] for k5 in keys]
+        L = [buckets[k5][1] for k5 in keys]
+        C = [buckets[k5][2] for k5 in keys]
+    step = timedelta(minutes=5 if strategy.timeframe == "5m" else 1)
+    idx = {t + step: i for i, t in enumerate(ts)}                      # close_time -> row
     k = strategy.pivot_k
     n = len(H)
     conf_hi, conf_lo = [None] * n, [None] * n      # latest swing confirmed at or before row i
@@ -527,7 +534,8 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
             if L[j] == min(win_l):
                 last_l = L[j]
         conf_hi[i], conf_lo[i] = last_h, last_l
-    bad_stretch = bad_sweep = missing = 0
+    bad_stretch = bad_sweep = missing = bad_stop = 0
+    sl_by_entry = dict(zip(trades["entry_time"].to_list(), trades["sl_pips"].to_list()))
     for et, d in zip(trades["entry_time"].to_list(), trades["direction"].to_list()):
         i = idx.get(et)
         if i is None or i == 0:
@@ -538,6 +546,8 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
             missing += 1
             continue
         m5, a5 = ma5[cts5[jj]], atr5[cts5[jj]]
+        if getattr(strategy, "stop_mode", "sweep") == "atr":
+            bad_stop += abs(sl_by_entry[et] - strategy.stop_atr_mult * a5 / PIP) > 1e-6
         if d == "short":
             bad_stretch += not (H[i] >= m5 + strategy.stretch_atr * a5 - 1e-9)
             if strategy.mode == "sweep":
@@ -548,7 +558,8 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
             if strategy.mode == "sweep":
                 sw = conf_lo[i - 1]
                 bad_sweep += not (sw is not None and L[i] < sw and C[i] > sw)
-    return {"sweep_bad_stretch": bad_stretch, "sweep_not_a_sweep": bad_sweep, "sweep_missing_bars": missing}
+    return {"sweep_bad_stretch": bad_stretch, "sweep_not_a_sweep": bad_sweep,
+            "sweep_missing_bars": missing, "sweep_bad_atr_stop": bad_stop}
 
 
 def random_walk_baseline(trades: pl.DataFrame) -> dict:

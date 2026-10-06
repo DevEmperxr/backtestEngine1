@@ -40,10 +40,18 @@ class SweepFadeStrategy(Strategy):
     def __init__(
         self, *, mode: str = "sweep", stretch_atr: float = 2.0, pivot_k: int = 3,
         er_trend: float = 0.32, stop_buffer_pips: float = 1.0, timeframe: str = "1m",
+        stop_mode: str = "sweep", stop_atr_mult: float = 1.5,
     ) -> None:
         super().__init__(10.0, 10.0, timeframe)   # per-trade columns override these
         if mode not in ("sweep", "control"):
             raise ValueError(f"mode must be 'sweep' or 'control', got {mode!r}")
+        if stop_mode not in ("sweep", "atr"):
+            raise ValueError(f"stop_mode must be 'sweep' or 'atr', got {stop_mode!r}")
+        if timeframe not in ("1m", "5m"):
+            raise ValueError(f"timeframe must be '1m' or '5m', got {timeframe!r}")
+        # stop_mode "sweep" = 1 pip beyond the signal bar (022); "atr" = stop_atr_mult x
+        # ATR14 of the last closed 5m bar (023A). timeframe "5m" = sweep read on 5m bars (023B).
+        self.stop_mode, self.stop_atr_mult = stop_mode, stop_atr_mult
         self.mode, self.stretch_atr, self.pivot_k = mode, stretch_atr, pivot_k
         self.er_trend, self.stop_buffer_pips = er_trend, stop_buffer_pips
         self.window_end, self.window_end_tz = time(16, 0), LONDON
@@ -98,11 +106,16 @@ class SweepFadeStrategy(Strategy):
         short = (short & pl.col("in_window") & (tp_s > 0)).fill_null(False)
         long_ = (long_ & pl.col("in_window") & (tp_l > 0)).fill_null(False)
         buf = self.stop_buffer_pips
+        if self.stop_mode == "sweep":
+            sl_s = (pl.col("mh") - pl.col("mc")) / PIP + buf
+            sl_l = (pl.col("mc") - pl.col("ml")) / PIP + buf
+        else:
+            sl_s = sl_l = self.stop_atr_mult * pl.col("atr5") / PIP
         out = out.with_columns(
             short_signal=short & ~long_, long_signal=long_ & ~short,
         ).with_columns(
-            sl_pips=pl.when(pl.col("short_signal")).then((pl.col("mh") - pl.col("mc")) / PIP + buf)
-                     .when(pl.col("long_signal")).then((pl.col("mc") - pl.col("ml")) / PIP + buf),
+            sl_pips=pl.when(pl.col("short_signal")).then(sl_s)
+                     .when(pl.col("long_signal")).then(sl_l),
             tp_pips=pl.when(pl.col("short_signal")).then(tp_s).when(pl.col("long_signal")).then(tp_l),
             ctx_class=pl.when(pl.col("short_signal") & (pl.col("ctx") == "up")).then(pl.lit("trend_with"))
                        .when(pl.col("long_signal") & (pl.col("ctx") == "down")).then(pl.lit("trend_with"))
