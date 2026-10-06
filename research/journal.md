@@ -78,3 +78,9 @@ file's clock fixed for Iran's 2022 DST change; official times for NFP/Unemployme
 services PMI/German prelim CPI). Combined +469 on 506 trades (042: +595). London fade unchanged (+455 vs +462).
 NY window +133 -> +14: its best trades are right after the 08:30/10:00 releases. Not adopted. Hypothesis for later:
 the NY window may really be a "fade the post-release overshoot" trade; test on a fresh USD pair.
+
+### Standing rule (2026-10-06): red-news blackout always on
+The user will trade in a prop firm that bans news trading. From now on every strategy applies
+research/regime/news.py apply_news_blackout(sig, currencies, 60): no entries from 1 h before to 1 h after
+each red release for the pair's currencies, open trades closed 1 h before, unknown-time red days skipped.
+New baseline for the two-window strategy = 045 (+469 on 2023+2024). Note: the calendar ends 2025-04-07.

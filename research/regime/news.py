@@ -98,3 +98,29 @@ def red_news_times(currencies: list[str], path: Path = CAL) -> tuple[list[dateti
                          tzinfo=ZoneInfo(HOME_TZ[r["Currency"]]))
         times.append(local.astimezone(ZoneInfo("UTC")))
     return sorted(set(times)), whole_days
+
+
+def apply_news_blackout(sig: pl.DataFrame, currencies: list[str], minutes: int = 60,
+                        path: Path = CAL) -> pl.DataFrame:
+    """Prop-firm news rule (user's standing rule since run 045): for every red release of
+    `currencies`, no entries from `minutes` before to `minutes` after, and any open trade is closed
+    `minutes` before (engine exit_signal, filled at the next bar's open = this bar's close_time).
+    Days with a red event of unknown time are blocked entirely. Needs close_time, long_signal and
+    short_signal; adds news_blackout and ORs it into exit_signal (created if absent)."""
+    import numpy as np
+
+    times, days = red_news_times(list(currencies), path)
+    ev = np.array([int(t.timestamp() * 1e9) for t in times], dtype=np.int64)
+    t = sig["close_time"].dt.epoch("ns").to_numpy()
+    w = minutes * 60 * 1_000_000_000
+    i = np.searchsorted(ev, t - w, side="left")                       # first release >= t - window
+    nxt = np.where(i < len(ev), ev[np.minimum(i, len(ev) - 1)], np.iinfo(np.int64).max)
+    near = pl.Series("news_blackout", nxt <= t + w)
+    whole = sig["close_time"].dt.convert_time_zone("America/New_York").dt.date().is_in(sorted(days))
+    out = sig.with_columns(near | whole)
+    ex = pl.col("exit_signal") if "exit_signal" in sig.columns else pl.lit(False)
+    return out.with_columns(
+        long_signal=pl.col("long_signal") & ~pl.col("news_blackout"),
+        short_signal=pl.col("short_signal") & ~pl.col("news_blackout"),
+        exit_signal=(ex | pl.col("news_blackout")).fill_null(True),
+    )

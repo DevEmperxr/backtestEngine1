@@ -8,13 +8,11 @@ See research/runs/045_two_windows_news_blackout/summary.md.
 
 from __future__ import annotations
 
-from datetime import timedelta
 from importlib import import_module
 
-import numpy as np
 import polars as pl
 
-from research.regime.news import red_news_times
+from research.regime.news import apply_news_blackout
 
 _042 = import_module("research.strategies.042_idea1_two_windows")
 
@@ -24,26 +22,9 @@ class TwoWindowNewsBlackout(_042.TwoWindowSweepFade):
         super().__init__(**kw)
         self.currencies = tuple(currencies)
         self.blackout_min = blackout_min
-        times, days = red_news_times(list(currencies))
-        self.event_ns = np.array([int(t.timestamp() * 1e9) for t in times], dtype=np.int64)
-        self.whole_days = sorted(days)
 
     def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
-        out = super().generate_signals(df)
-        # close_time of bar k = the moment an order placed on k is filled (k+1 open)
-        t = out["close_time"].dt.epoch("ns").to_numpy()
-        w = int(timedelta(minutes=self.blackout_min).total_seconds() * 1e9)
-        i = np.searchsorted(self.event_ns, t - w, side="left")          # first event >= t - 1h
-        nxt = np.where(i < len(self.event_ns), self.event_ns[np.minimum(i, len(self.event_ns) - 1)], np.iinfo(np.int64).max)
-        near = nxt <= t + w                                              # some event in [t - 1h, t + 1h]
-        whole = out["close_time"].dt.convert_time_zone("America/New_York").dt.date().is_in(self.whole_days)
-        blk = pl.Series("news_blackout", near) | whole
-        out = out.with_columns(blk)
-        return out.with_columns(
-            long_signal=pl.col("long_signal") & ~pl.col("news_blackout"),
-            short_signal=pl.col("short_signal") & ~pl.col("news_blackout"),
-            exit_signal=pl.col("exit_signal") | pl.col("news_blackout"),
-        )
+        return apply_news_blackout(super().generate_signals(df), list(self.currencies), self.blackout_min)
 
 
 def make() -> TwoWindowNewsBlackout:
