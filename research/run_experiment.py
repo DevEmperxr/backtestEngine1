@@ -40,6 +40,7 @@ ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT.parent / "data"
 SEED = 0
 YEAR = 2024                                     # set by main(); H1/H2 split at Jul 1 of it
+PAIR = "EURUSD"                                 # set by main(); data/<PAIR>_1s_<YEAR>.csv
 
 
 def _find(num: str, folder: str, suffix: str) -> Path:
@@ -58,8 +59,9 @@ def _load(spec: str):
 def _run_dir(spec: str) -> Path:
     num, _, variant = spec.partition(":")
     d = ROOT / "runs" / _find(num, "strategies", ".py").stem
-    if variant or YEAR != 2024:
-        d = d / f"{variant or 'main'}_{YEAR}"
+    if variant or YEAR != 2024 or PAIR != "EURUSD":
+        tag = f"{variant or 'main'}_{YEAR}" if PAIR == "EURUSD" else f"{variant or 'main'}_{PAIR}_{YEAR}"
+        d = d / tag
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -693,7 +695,7 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
 
     result = {
         "run": f"{path.stem} [{num}] {YEAR}",
-        "data_file": f"EURUSD_1s_{YEAR}.csv",
+        "data_file": f"{PAIR}_1s_{YEAR}.csv",
         "strategy": {k: v for k, v in vars(strategy).items()},
         "full_year": _headline(report),
         "halves": halves,
@@ -710,10 +712,10 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
     return result
 
 
-def main(nums: list[str], year: int = 2024) -> None:
-    global YEAR
-    YEAR = year
-    base = load_1s_data(str(DATA_DIR / f"EURUSD_1s_{year}.csv"), verbose=False)
+def main(nums: list[str], year: int = 2024, pair: str = "EURUSD") -> None:
+    global YEAR, PAIR
+    YEAR, PAIR = year, pair.upper()
+    base = load_1s_data(str(DATA_DIR / f"{PAIR}_1s_{year}.csv"), verbose=False)
     engines: dict[str, Engine] = {}   # one Engine per signal timeframe
     for num in nums:
         tf = _load(num).timeframe
@@ -741,5 +743,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("specs", nargs="*", default=["001", "002", "003"])
     ap.add_argument("--year", type=int, default=2024)
+    ap.add_argument("--pair", default="EURUSD", help="data/<PAIR>_1s_<YEAR>.csv (pip size 0.0001 pairs only)")
     a = ap.parse_args()
-    main(a.specs, a.year)
+    if a.pair.upper().endswith("JPY"):
+        raise SystemExit("JPY pairs need a 0.01 pip; lib.data.PIP is EURUSD-style 0.0001")
+    main(a.specs, a.year, a.pair)
