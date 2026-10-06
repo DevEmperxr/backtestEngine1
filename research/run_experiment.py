@@ -53,7 +53,14 @@ def _find(num: str, folder: str, suffix: str) -> Path:
 def _load(spec: str):
     num, _, variant = spec.partition(":")
     mod = import_module(f"research.strategies.{_find(num, 'strategies', '.py').stem}")
-    return getattr(mod, f"make_{variant}" if variant else "make")()
+    st = getattr(mod, f"make_{variant}" if variant else "make")()
+    # news filters follow the pair being tested (e.g. GBPUSD -> GBP + USD red news)
+    if hasattr(st, "currencies"):
+        from research.regime.news import pair_currencies, red_news_dates
+        st.currencies = tuple(pair_currencies(PAIR))
+        if hasattr(st, "red_dates"):
+            st.red_dates = sorted(red_news_dates(list(st.currencies)))
+    return st
 
 
 def _run_dir(spec: str) -> Path:
