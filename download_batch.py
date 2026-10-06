@@ -64,6 +64,36 @@ def run_job(pair: str, year: int, attempts: int, min_free_gb: float) -> str:
     return f"{pair} {year}: FAILED after {attempts} attempts (see {log.name})"
 
 
+def print_status(pairs: list[str], years: list[int]) -> None:
+    """One row per pair: D = done, P = in progress (.partial, with the last month
+    its log reached), . = not started."""
+    done = partial = 0
+    print("pair    " + "  ".join(str(y) for y in years))
+    for p in pairs:
+        cells = []
+        for y in years:
+            final = DATA / f"{p}_1s_{y}.csv"
+            if final.exists():
+                cells.append("  D ")
+                done += 1
+            elif final.with_suffix(".csv.partial").exists():
+                month = ""
+                log = LOGS / f"{p}_{y}.log"
+                if log.exists():
+                    hits = [ln for ln in log.read_text(encoding="utf-8", errors="ignore").splitlines()
+                            if ln.startswith("Fetching")]
+                    month = hits[-1].split()[-2][-2:] if hits else ""
+                cells.append(f" P{month:<2}")
+                partial += 1
+            else:
+                cells.append("  . ")
+        print(f"{p:<7} " + "  ".join(cells))
+    total = len(pairs) * len(years)
+    print(f"\n{done}/{total} done, {partial} in progress, {total - done - partial} waiting; "
+          f"free disk {free_gb():.0f} GB")
+    print("D = done, P<mm> = downloading (month reached), . = not started")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pairs", nargs="*", default=MINOR_CROSSES)
@@ -71,7 +101,12 @@ def main() -> None:
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--attempts", type=int, default=3)
     ap.add_argument("--min-free-gb", type=float, default=25.0)
+    ap.add_argument("--status", action="store_true",
+                    help="print progress (done / in progress / waiting) and exit; safe while a batch runs")
     a = ap.parse_args()
+    if a.status:
+        print_status(a.pairs, a.years)
+        return
     if 2026 in a.years:
         sys.exit("2026 is the held-out year; remove it from --years (ask the user first).")
     LOGS.mkdir(parents=True, exist_ok=True)
