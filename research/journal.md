@@ -115,3 +115,8 @@ User request, pre-registered pass bar. A: 2021 −3.0, 2022 +107.5 -> pooled +10
 target-first above chance both years (40.7 vs 38.5, 39.8 vs 37.4) -> PASS (not strong). Edge ~80% smaller than on
 practice years (+1.11), drawdown −234. B −276, C −74.5 on the test years -> FAIL; A stays. All 4 years A: +559.6 on 843
 trades, +0.66/trade [−0.03, +1.35]. EURUSD 2021/2022 now used for the London fade.
+
+## 052 — London fade, one trade per NY day, EURUSD 2021–2024 — 2026-10-06
+User request. Practice years better (2023 +266.5 at +1.96/tr, DD −60; 2024 +162.5, DD −47), but test years worse (2021 −40.5,
+2022 −24.8; first trade of the day at chance there, later trades +170). All 4 years: same +0.66/trade, 549 vs 843 trades,
+Sharpe 0.78 vs 0.95. Not adopted (fails the 3-of-4-years rule). 2021/22 were already seen (051), so not a clean test.

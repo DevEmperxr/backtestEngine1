@@ -1,0 +1,148 @@
+{
+  "2021": {
+    "all trades (046)": {
+      "trades": 229,
+      "net": -3.0,
+      "per_trade": -0.01,
+      "ci95": [
+        -1.09,
+        1.1
+      ],
+      "win_%": 41.0,
+      "max_dd": -161.8,
+      "fair_sharpe": -0.02
+    },
+    "one a day (052)": {
+      "trades": 139,
+      "net": -40.5,
+      "per_trade": -0.29,
+      "ci95": [
+        -1.61,
+        1.07
+      ],
+      "win_%": 40.3,
+      "max_dd": -163.8,
+      "fair_sharpe": -0.41
+    },
+    "046 2nd+ trades of the day": {
+      "trades": 90,
+      "net": 37.5
+    }
+  },
+  "2022": {
+    "all trades (046)": {
+      "trades": 205,
+      "net": 107.5,
+      "per_trade": 0.52,
+      "ci95": [
+        -1.36,
+        2.56
+      ],
+      "win_%": 39.5,
+      "max_dd": -233.9,
+      "fair_sharpe": 0.55
+    },
+    "one a day (052)": {
+      "trades": 134,
+      "net": -24.8,
+      "per_trade": -0.19,
+      "ci95": [
+        -2.34,
+        2.04
+      ],
+      "win_%": 38.8,
+      "max_dd": -243.9,
+      "fair_sharpe": -0.16
+    },
+    "046 2nd+ trades of the day": {
+      "trades": 71,
+      "net": 132.3
+    }
+  },
+  "2023": {
+    "all trades (046)": {
+      "trades": 199,
+      "net": 263.5,
+      "per_trade": 1.32,
+      "ci95": [
+        0.08,
+        2.64
+      ],
+      "win_%": 49.2,
+      "max_dd": -130.6,
+      "fair_sharpe": 1.87
+    },
+    "one a day (052)": {
+      "trades": 136,
+      "net": 266.5,
+      "per_trade": 1.96,
+      "ci95": [
+        0.44,
+        3.53
+      ],
+      "win_%": 53.7,
+      "max_dd": -59.5,
+      "fair_sharpe": 2.39
+    },
+    "046 2nd+ trades of the day": {
+      "trades": 63,
+      "net": -3.0
+    }
+  },
+  "2024": {
+    "all trades (046)": {
+      "trades": 210,
+      "net": 191.6,
+      "per_trade": 0.91,
+      "ci95": [
+        -0.1,
+        1.93
+      ],
+      "win_%": 48.6,
+      "max_dd": -71.8,
+      "fair_sharpe": 1.78
+    },
+    "one a day (052)": {
+      "trades": 140,
+      "net": 162.5,
+      "per_trade": 1.16,
+      "ci95": [
+        -0.02,
+        2.44
+      ],
+      "win_%": 50.0,
+      "max_dd": -46.6,
+      "fair_sharpe": 1.82
+    },
+    "046 2nd+ trades of the day": {
+      "trades": 70,
+      "net": 29.1
+    }
+  },
+  "all 4 years": {
+    "all trades (046)": {
+      "trades": 843,
+      "net": 559.6,
+      "per_trade": 0.66,
+      "ci95": [
+        -0.03,
+        1.35
+      ],
+      "win_%": 44.5,
+      "max_dd": -233.9,
+      "fair_sharpe": 0.95
+    },
+    "one a day (052)": {
+      "trades": 549,
+      "net": 363.7,
+      "per_trade": 0.66,
+      "ci95": [
+        -0.15,
+        1.47
+      ],
+      "win_%": 45.7,
+      "max_dd": -243.9,
+      "fair_sharpe": 0.78
+    }
+  }
+}
