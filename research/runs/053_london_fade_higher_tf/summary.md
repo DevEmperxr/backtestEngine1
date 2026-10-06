@@ -1,7 +1,7 @@
 # 053 — London fade one timeframe up (4h context / 15m setup / 5m sweep), EURUSD 2023 only
 
 **Date:** 2026-10-06 · file: research/strategies/053_london_fade_higher_tf.py
-**Status:** pre-registered (user request; 2023 only for now)
+**Status:** done. Discarded (no edge on 2023)
 
 ## What
 | part | 046 | 053 |
@@ -21,4 +21,22 @@ inside a 2-hour window is rare) and wider stops/targets (15m ATR is about 1.7x t
 judge per-trade and target-first vs chance, not just the total.
 
 ## Results
-_(filled after the run)_
+Lookahead audit ok (incl. 15m stretch and ATR stops). Comparison: research/regime/compare_053.py.
+
+| 2023 | 046 (1h / 5m / 1m) | 053 (4h / 15m / 5m) |
+|---|---|---|
+| trades | 199 | 90 |
+| net pips | +263.5 | **−37.8** |
+| per trade (95% CI) | +1.32 [+0.08, +2.64] | −0.42 [−2.63, +1.94] |
+| win rate / PF | 49.2% / 1.35 | 42.2% / 0.92 |
+| target hit first vs chance | 49.2% vs 39.1% | **41.5% vs 43.4% (below chance)** |
+| median stop / target | 7.0 / 10.0 | 8.9 / 10.9 |
+| median hold | 29 min | 36 min |
+| fair Sharpe | 1.87 | −0.35 |
+| H1 / H2 | +10.8 / +252.7 | +2.0 / −39.8 |
+
+No sign of an edge: target-first is below the chance rate. As in 047 (5m sweep), waiting for a 5m
+candle to close uses up much of the snap-back, so the target is barely bigger than the stop (10.9 vs
+8.9 pips) even though the 15m bands are wider. The pattern seems to live in the fast 1m reaction at the
+London open, not in a slower version of it.
+

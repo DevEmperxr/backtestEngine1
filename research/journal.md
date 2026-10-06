@@ -120,3 +120,8 @@ trades, +0.66/trade [−0.03, +1.35]. EURUSD 2021/2022 now used for the London f
 User request. Practice years better (2023 +266.5 at +1.96/tr, DD −60; 2024 +162.5, DD −47), but test years worse (2021 −40.5,
 2022 −24.8; first trade of the day at chance there, later trades +170). All 4 years: same +0.66/trade, 549 vs 843 trades,
 Sharpe 0.78 vs 0.95. Not adopted (fails the 3-of-4-years rule). 2021/22 were already seen (051), so not a clean test.
+
+## 053 — London fade one timeframe up (4h context / 15m setup / 5m sweep), EURUSD 2023 — 2026-10-06
+User request (2023 only). 90 trades −37.8, target-first 41.5% vs 43.4% chance. Target barely above the stop (10.9 vs 8.9)
+because the 5m close uses up the snap-back (as in 047). Discarded. New strategy settings setup_min/ctx_min
+(defaults unchanged; 046/047 rechecked). The sweep022 audit now builds setup candles at setup_min.
