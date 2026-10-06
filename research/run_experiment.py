@@ -583,23 +583,15 @@ def _turn025_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> dic
     stretched swing P and that level, the signal close must be beyond it, and P must
     be within max_bars of the signal bar."""
     from datetime import timedelta
-    b = resample(base_1s, "1m")
-    ts1 = b["timestamp"].to_list()
-    H1 = ((b["bid_high"] + b["ask_high"]) / 2).to_list()
-    L1m = ((b["bid_low"] + b["ask_low"]) / 2).to_list()
-    C1 = ((b["bid_close"] + b["ask_close"]) / 2).to_list()
-    bk = {}
-    for t, h, l, c in zip(ts1, H1, L1m, C1):
-        k5 = t.replace(minute=t.minute - t.minute % 5, second=0, microsecond=0)
-        if k5 not in bk:
-            bk[k5] = [h, l, c]
-        else:
-            x = bk[k5]
-            x[0], x[1], x[2] = max(x[0], h), min(x[1], l), c
-    keys = sorted(bk)
-    H = [bk[k][0] for k in keys]
-    L = [bk[k][1] for k in keys]
-    C = [bk[k][2] for k in keys]
+    # 5m bars resampled straight from 1s with mid = (bid + ask) / 2 per field: the
+    # same bar definition the strategy trades on (aggregating 1m mids instead gives
+    # slightly different highs/lows and false mismatches). The pattern search below
+    # is separate code from the strategy's state machine.
+    b5 = resample(base_1s, "5m")
+    keys = b5["timestamp"].to_list()
+    H = ((b5["bid_high"] + b5["ask_high"]) / 2).to_list()
+    L = ((b5["bid_low"] + b5["ask_low"]) / 2).to_list()
+    C = ((b5["bid_close"] + b5["ask_close"]) / 2).to_list()
     n, k = len(H), strategy.pivot_k
     ma = [None] * n
     at = [None] * n

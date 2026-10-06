@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-06
 **File:** research/strategies/025_turn_confirm_continuation.py (make_a / make_b / make_c = targets)
-**Status:** exploring
+**Status:** not passed (too few trades); candidate for the multi-year test
 
 ## In plain words
 The 1h is trending up. The 5m makes a high far above its 20 MA (an overshoot). Instead of
@@ -60,10 +60,43 @@ for one year; the multi-year test is where this idea can be judged. 1h swings un
 A has fewer setups because the 1h SMA20 is often already behind price when the turn confirms.
 
 ## Results
-_(filled after the run)_
+2023 (amended rules). [a_2023](a_2023/) [b_2023](b_2023/) [c_2023](c_2023/).
+
+**Audit note:** the first run's audit flagged 3 trades per variant as "structure not found".
+Cause: the audit built 5m bars from 1m mids, while the strategy uses 5m bars resampled from
+1s with mid per field. The highs/lows differ slightly, so exact level matches failed. Re-run
+with the strategy's bar definition (still separate pattern-search code): **0 failures in A, B
+and C**. The audit is fixed in `run_experiment.py`; the results.json files still show the
+original flags.
+
+| target | context | trades | net | exp/trade | 95% CI | win | TP-first vs null | exits (TP / SL / time) |
+|---|---|---|---|---|---|---|---|---|
+| **A 1h SMA20** | **trend_with** | 49 | **+51.7** | +1.06 | [−2.75, +4.99] | 49.0% | 37.0% vs 43.6% | 10 / 17 / 22 |
+| A | sideways | 87 | −112.2 | −1.29 | [−3.27, +0.69] | 52.9% | 50.7% vs 59.8% | 38 / 37 / 12 |
+| **B 2R** | **trend_with** | 46 | **+23.1** | +0.50 | [−4.00, +4.96] | 39.1% | 37.9% vs 32.2% | 11 / 18 / 17 |
+| B | trend_against | 43 | +41.2 | +0.96 | [−4.22, +6.22] | 48.8% | 30.8% vs 32.2% | |
+| B | sideways | 226 | **−584.3** | −2.59 | **[−4.48, −0.58]** | 34.1% | 21.1% vs 32.3% (z −2.9) | 31 / 116 / 79 |
+| **C 1h swing** | **trend_with** | 51 | **+25.8** | +0.50 | [−3.87, +5.41] | 41.2% | 23.1% vs 30.4% | 6 / 20 / 25 |
+| C | sideways | 173 | −231.9 | −1.34 | [−3.22, +0.58] | 45.1% | 39.7% vs 46.9% | |
+
+Primary H1 / H2: A −4.8 / +56.5; B −6.1 / +29.1; C −50.9 / +76.7.
 
 ## Interpretation
-_(filled after the run)_
+**No pass, and too few trades to say much.** The with-trend case is mildly positive for all three
+targets (+23 to +52 pips over ~50 trades), but every CI spans roughly ±4–5 pips/trade. None is
+positive in both halves (all lose in H1), and targets are not hit more often than chance:
+much of the result comes from the 16:00 time exit, not the targets.
+
+The one consistent pattern, again: **sideways context loses clearly** (B −584, CI excludes 0,
+TP-first 2.9 SE below the null). In a sideways 1h, a "confirmed 5m turn" after a stretch is
+usually just noise, and the continuation doesn't come. That is the same message as 023:
+the 1h context matters, mostly as a "don't trade sideways" filter.
+
+Target A has fewest setups because the 1h SMA20 is often already behind price when the
+5m turn confirms. Late confirmation eats the room, as in 010/011.
 
 ## Decision
-_(filled after the run)_
+**Not a pass on 2023; no target variant stands out.** ~50 primary trades per year is too few to
+judge. Idea 2 can only be assessed on several years pooled. With Idea 1 (023A), it is a
+candidate for the user's planned multi-year test, with-trend only and rules unchanged. Main
+learning across both ideas: **sideways 1h context is reliably bad for both.**
