@@ -494,22 +494,26 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
     L1 = ((b["bid_low"] + b["ask_low"]) / 2).to_list()
     C1 = ((b["bid_close"] + b["ask_close"]) / 2).to_list()
     ts, H, L, C = ts1, H1, L1, C1
-    # 5m bars from 1m mids, keyed by their close time
+    if strategy.timeframe == "5m":
+        # 5m strategies take mids of 5m bars resampled from 1s ((max bid_high + max ask_high) / 2),
+        # which can differ slightly from the max of 1m mids when bid and ask peak in different minutes
+        b5r = resample(base_1s, "5m")
+        ts = b5r["timestamp"].to_list()
+        H = ((b5r["bid_high"] + b5r["ask_high"]) / 2).to_list()
+        L = ((b5r["bid_low"] + b5r["ask_low"]) / 2).to_list()
+        C = ((b5r["bid_close"] + b5r["ask_close"]) / 2).to_list()
+    # setup bars (SMA20 / ATR14) of `setup_min` minutes, aggregated from the signal-bar mids like the
+    # strategy's _htf(), keyed by their open time
+    sm = getattr(strategy, "setup_min", 5)
     buckets = {}
-    for t, h, l, c in zip(ts1, H1, L1, C1):
-        k5 = t.replace(minute=t.minute - t.minute % 5, second=0, microsecond=0)
+    for t, h, l, c in zip(ts, H, L, C):
+        mins = t.hour * 60 + t.minute
+        k5 = t.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(minutes=mins - mins % sm)
         if k5 not in buckets:
             buckets[k5] = [h, l, c]
         else:
             bb = buckets[k5]
             bb[0], bb[1], bb[2] = max(bb[0], h), min(bb[1], l), c
-    if strategy.timeframe == "5m":
-        # 5m strategies take mids of 5m bars resampled from 1s ((max bid_high + max ask_high) / 2),
-        # which can differ slightly from the max of 1m mids when bid and ask peak in different minutes
-        b5r = resample(base_1s, "5m")
-        buckets = {t: [h, l, c] for t, h, l, c in zip(
-            b5r["timestamp"].to_list(), ((b5r["bid_high"] + b5r["ask_high"]) / 2).to_list(),
-            ((b5r["bid_low"] + b5r["ask_low"]) / 2).to_list(), ((b5r["bid_close"] + b5r["ask_close"]) / 2).to_list())}
     keys = sorted(buckets)
     closes5, ma5, atr5 = [], {}, {}
     trs, prev = [], None
@@ -518,18 +522,13 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
         trs.append(h - l if prev is None else max(h - l, abs(h - prev), abs(l - prev)))
         prev = c
         closes5.append(c)
-        ct = k5 + timedelta(minutes=5)
+        ct = k5 + timedelta(minutes=sm)
         if len(closes5) >= 20:
             ma5[ct] = sum(closes5[-20:]) / 20
         if len(trs) >= 14:
             atr5[ct] = sum(trs[-14:]) / 14
     cts5 = sorted(set(ma5) & set(atr5))
     import bisect
-    if strategy.timeframe == "5m":            # signal bars = the 5m bars themselves
-        ts = keys
-        H = [buckets[k5][0] for k5 in keys]
-        L = [buckets[k5][1] for k5 in keys]
-        C = [buckets[k5][2] for k5 in keys]
     step = timedelta(minutes=5 if strategy.timeframe == "5m" else 1)
     idx = {t + step: i for i, t in enumerate(ts)}                      # close_time -> row
     k = strategy.pivot_k

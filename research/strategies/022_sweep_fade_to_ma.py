@@ -44,6 +44,7 @@ class SweepFadeStrategy(Strategy):
         max_hold_bars: int | None = None, be_frac: float | None = None,
         window_start: time = time(7, 0), window_start_tz: str = NY,
         window_end: time = time(16, 0), window_end_tz: str = LONDON,
+        setup_min: int = 5, ctx_min: int = 60,
     ) -> None:
         super().__init__(10.0, 10.0, timeframe)   # per-trade columns override these
         if mode not in ("sweep", "control"):
@@ -62,6 +63,9 @@ class SweepFadeStrategy(Strategy):
         self.er_trend, self.stop_buffer_pips = er_trend, stop_buffer_pips
         self.window_start, self.window_start_tz = window_start, window_start_tz
         self.window_end, self.window_end_tz = window_end, window_end_tz
+        # 053: the setup (SMA20 / ATR14 / stretch bands, stop and target) and context (ER20 / slope)
+        # timeframes in minutes; defaults are the original 5m / 1h.
+        self.setup_min, self.ctx_min = setup_min, ctx_min
 
     def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
         mid = lambda f: (pl.col(f"bid_{f}") + pl.col(f"ask_{f}")) / 2
@@ -69,13 +73,13 @@ class SweepFadeStrategy(Strategy):
         base = out.select("timestamp", "mo", "mh", "ml", "mc")
 
         # 5m SMA20 / ATR14 of the LAST CLOSED 5m bar
-        b5 = _htf(base, 5).with_columns(
+        b5 = _htf(base, self.setup_min).with_columns(
             ma5=sma(pl.col("mc"), 20), atr5=atr(pl.col("mh"), pl.col("ml"), pl.col("mc"), 14),
         ).select("ct", "ma5", "atr5")
         out = out.join_asof(b5, left_on="close_time", right_on="ct", strategy="backward").drop("ct")
 
         # 1h context of the LAST CLOSED 1h bar
-        b60 = _htf(base, 60).with_columns(
+        b60 = _htf(base, self.ctx_min).with_columns(
             er60=efficiency_ratio(pl.col("mc"), 20),
             slope60=sma(pl.col("mc"), 20) - sma(pl.col("mc"), 20).shift(5),
         ).select("ct", "er60", "slope60")
