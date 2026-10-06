@@ -1,4 +1,4 @@
-# 020 — Trend-detector scorecard: which detectors predict the next 100 minutes' trendiness? (5m, 2023)
+# 020 — Trend-detector scorecard: which detectors predict the next 20 bars' trendiness? (5m / 15m / 1h, 2023)
 
 **Date:** 2026-10-06
 **Files:** lib/signals.py (detector primitives), research/regime/trend_scorecard.py
@@ -55,6 +55,21 @@ a detector that only clears (a) is reported as "weak".
 - This is a measurement brick, not a strategy: no trades, no P&L.
 - 2023 is the user's choice of development year. A winner here gets confirmed on other years
   (2021, 2022, 2025) before being used as a filter. 2026 stays untouched.
+
+## Amendment (2026-10-06, before any detector was computed)
+After the user pointed out that a higher-timeframe pullback is a lower-timeframe trend
+switch, the scorecard is run on **three timeframes** instead of one, with identical
+definitions in bars: **5m, 15m and 1h** (20 bars back, 20 bars ahead: ~1h40m, ~5h, ~20h).
+- Readings: 5m and 15m bars closing in the user's window; 1h bars closing in the window
+  (fewer readings per day). Future 20 bars must be contiguous in time (no weekend hole).
+- Bars: built from 1m mid OHLC (1m from 1s via `resample`), aggregated per timeframe.
+- Sign-randomised null: built at the 1m level (each 1m bar's close-to-close return gets a
+  random sign; a flipped bar's OHLC shape is mirrored), then aggregated like the real data.
+- Bootstrap: day-level resampling via per-day sufficient statistics on globally ranked data
+  (Pearson-of-ranks approximation to Spearman), 2,000 resamples.
+- **7 detectors × 3 timeframes = 21 tests.** Criteria (a) and (c) use **99.8% CIs**
+  (Bonferroni 0.05/21) instead of 95%. (b) and (d) unchanged.
+- Time-of-day slot for 1h = the hour.
 
 ## Results
 _(filled after the run)_
