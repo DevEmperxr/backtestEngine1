@@ -148,3 +148,10 @@ so it is priced as it happens. With 055: central bank tides don't predict EUR/US
 FAIL after costs: −48.9 / −18.1 (420 trades, −0.16/trade). Gross +0.64/trade both years and target-first 2–3 pts above
 chance, same as unseen EURUSD 2021–22 and EURGBP gross (038). Spread ~0.8 pips/trade eats it. The effect looks real but
 small (~0.3–1 pip gross per trade); not viable at prop-firm costs (commission ~0.5–0.7 pip). GBPUSD 2023/24 now used.
+
+## 058 — Home-hours weakness (Breedon & Ranaldo 2011) on EURUSD/GBPUSD/AUDUSD, 2023+2024 — 2026-10-07
+Who loses: banks/funds selling their own currency in local hours (paper's BNP + TIC data; not corporates). Short base in home
+session (EUR/GBP 07:00 London -> 08:00 NY; AUD 10–16 Sydney), long 08–16 NY, 1x daily-ATR stop, news rule on.
+FAIL on all three: EURUSD −144 (+61 / −205), GBPUSD +100 (+720 / −621), AUDUSD −2213. Raw drift: EUR/GBP home session still
+down in all 4 pair-years (−0.7 to −2.8 pips/day, |t| <= 1.5); USD session inconsistent. Effect much weaker than 1997–2007.
+Reference without the news rule: EURUSD +897 / +142 (the 1h blackout costs ~1,180 pips on EURUSD). news.py: AUD tz + times.
