@@ -53,8 +53,12 @@ OFFICIAL_TIMES = {
     ("GBP", "Monetary Policy Summary"): "12:00", ("GBP", "Flash Services PMI"): "09:30",
     ("GBP", "Claimant Count Change"): "07:00", ("GBP", "Retail Sales m/m"): "07:00",
     ("GBP", "GDP m/m"): "07:00", ("GBP", "CPI y/y"): "07:00",
+    # fixed-time Australian releases (ABS 11:30 Sydney) and the RBA decision (14:30 Sydney); the RBA
+    # Monetary Policy Statement moved in 2024, so it stays a whole-day block
+    ("AUD", "Unemployment Rate"): "11:30", ("AUD", "CPI y/y"): "11:30", ("AUD", "Trimmed Mean CPI q/q"): "11:30",
+    ("AUD", "Wage Price Index q/q"): "11:30", ("AUD", "RBA Rate Statement"): "14:30",
 }
-HOME_TZ = {"USD": "America/New_York", "EUR": "Europe/Berlin", "GBP": "Europe/London"}
+HOME_TZ = {"USD": "America/New_York", "EUR": "Europe/Berlin", "GBP": "Europe/London", "AUD": "Australia/Sydney"}
 
 
 def red_news_times(currencies: list[str], path: Path = CAL) -> tuple[list[datetime], set[date]]:

@@ -63,6 +63,7 @@ class HomeHours(Strategy):
             raise ValueError("058 is defined for XXX/USD pairs (USD session = 08:00-16:00 NY)")
         in_usd = (_clock(NY) >= time(8, 0)) & (_clock(NY) < time(16, 0)) & _weekday(NY)
         out = df.with_columns(in_home=self._home_session().fill_null(False), in_usd=in_usd.fill_null(False))
+        out = out.with_columns(in_window=pl.col("in_home") | pl.col("in_usd"))   # for the run_experiment audit
 
         # daily ATR(20) on mid prices, previous completed UTC days only
         mid = lambda f: (pl.col(f"bid_{f}") + pl.col(f"ask_{f}")) / 2
