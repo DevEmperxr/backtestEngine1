@@ -189,3 +189,10 @@ EUR+GBP news-free: NY afternoon 12–16 −0.72 pips in the morning's direction 
 User idea (user chose Tokyo 2nd hour + sweep of the first-hour range). AUDUSD: POI 46/50% back to midpoint, + sweep 45/50%,
 trade −84R (−0.22R/trade, CI below 0), gross −228 pips. FAIL. Targets ~4 pips vs ~1 pip spread. GBPUSD leaned to reversal
 (53–57%, gross +132) but costs make it −45R; hint only.
+
+## 066 — Promising ideas re-checked under FTMO rules (±2 min news, prop mode: $5/lot, flat 16:55 NY), EURUSD+GBPUSD 2023+2024 — 2026-10-07
+New: lib/prop.py (PropConfig, Engine.backtest(prop=), FTMO 2-step challenge simulator); run_experiment --prop; news rule ±2 min.
+Only the London fade on EURUSD survives: +215.6 pips after all costs, +0.096R/trade [−0.02, +0.21], both years positive;
+FTMO sim at 1% risk: 65% pass (96 trading days) vs 32% for its zero-edge twin. In-sample: on 2021–22 its edge minus
+commission is ~−0.26 pips/trade. Home hours, ORB NR7, the 4R variant, all GBPUSD versions: ~0 or negative after costs.
+Zero-edge twins pass ~25–32% at 1–2% risk (convex challenge payoff).

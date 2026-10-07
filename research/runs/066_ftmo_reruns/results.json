@@ -1,0 +1,994 @@
+{
+  "london_fade EURUSD": {
+    "2023": {
+      "trades": 203,
+      "net_pips": 170.1,
+      "R_total": 27.0,
+      "R_per_trade": 0.133,
+      "R_ci95": [
+        -0.037,
+        0.302
+      ],
+      "win_%": 49.3,
+      "median_stop": 7.0,
+      "costs_per_trade_pips": 0.8
+    },
+    "2024": {
+      "trades": 221,
+      "net_pips": 45.5,
+      "R_total": 13.9,
+      "R_per_trade": 0.063,
+      "R_ci95": [
+        -0.101,
+        0.224
+      ],
+      "win_%": 47.5,
+      "median_stop": 5.2,
+      "costs_per_trade_pips": 0.71
+    },
+    "both": {
+      "trades": 424,
+      "net_pips": 215.6,
+      "R_total": 40.9,
+      "R_per_trade": 0.096,
+      "R_ci95": [
+        -0.024,
+        0.214
+      ],
+      "win_%": 48.3,
+      "median_stop": 6.1,
+      "costs_per_trade_pips": 0.75
+    },
+    "ftmo": {
+      "0.25": {
+        "real": {
+          "risk_pct": 0.25,
+          "pass_%": 12.4,
+          "fail_%": 0.2,
+          "timeout_%": 87.3,
+          "median_days_to_pass": 339,
+          "trades_per_day": 0.81,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.25,
+          "pass_%": 0.6,
+          "fail_%": 2.4,
+          "timeout_%": 97.0,
+          "median_days_to_pass": 314,
+          "trades_per_day": 0.81,
+          "n_days": 522
+        }
+      },
+      "0.5": {
+        "real": {
+          "risk_pct": 0.5,
+          "pass_%": 56.7,
+          "fail_%": 7.1,
+          "timeout_%": 36.2,
+          "median_days_to_pass": 222,
+          "trades_per_day": 0.81,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.5,
+          "pass_%": 14.1,
+          "fail_%": 32.0,
+          "timeout_%": 53.9,
+          "median_days_to_pass": 236,
+          "trades_per_day": 0.81,
+          "n_days": 522
+        }
+      },
+      "1.0": {
+        "real": {
+          "risk_pct": 1.0,
+          "pass_%": 65.3,
+          "fail_%": 32.7,
+          "timeout_%": 2.1,
+          "median_days_to_pass": 96,
+          "trades_per_day": 0.81,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 1.0,
+          "pass_%": 31.9,
+          "fail_%": 64.8,
+          "timeout_%": 3.3,
+          "median_days_to_pass": 109,
+          "trades_per_day": 0.81,
+          "n_days": 522
+        }
+      },
+      "2.0": {
+        "real": {
+          "risk_pct": 2.0,
+          "pass_%": 45.3,
+          "fail_%": 54.7,
+          "timeout_%": 0.0,
+          "median_days_to_pass": 34,
+          "trades_per_day": 0.81,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 2.0,
+          "pass_%": 27.9,
+          "fail_%": 72.1,
+          "timeout_%": 0.0,
+          "median_days_to_pass": 36,
+          "trades_per_day": 0.81,
+          "n_days": 522
+        }
+      }
+    },
+    "candidate": true
+  },
+  "london_fade GBPUSD": {
+    "2023": {
+      "trades": 217,
+      "net_pips": -150.4,
+      "R_total": -17.4,
+      "R_per_trade": -0.08,
+      "R_ci95": [
+        -0.248,
+        0.085
+      ],
+      "win_%": 38.7,
+      "median_stop": 9.4,
+      "costs_per_trade_pips": 1.37
+    },
+    "2024": {
+      "trades": 225,
+      "net_pips": -198.6,
+      "R_total": -30.1,
+      "R_per_trade": -0.134,
+      "R_ci95": [
+        -0.294,
+        0.026
+      ],
+      "win_%": 39.1,
+      "median_stop": 6.8,
+      "costs_per_trade_pips": 1.23
+    },
+    "both": {
+      "trades": 442,
+      "net_pips": -349.0,
+      "R_total": -47.4,
+      "R_per_trade": -0.107,
+      "R_ci95": [
+        -0.222,
+        0.008
+      ],
+      "win_%": 38.9,
+      "median_stop": 8.3,
+      "costs_per_trade_pips": 1.3
+    },
+    "ftmo": {
+      "0.25": {
+        "real": {
+          "risk_pct": 0.25,
+          "pass_%": 0.0,
+          "fail_%": 26.5,
+          "timeout_%": 73.5,
+          "median_days_to_pass": null,
+          "trades_per_day": 0.85,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.25,
+          "pass_%": 1.3,
+          "fail_%": 3.2,
+          "timeout_%": 95.5,
+          "median_days_to_pass": 346,
+          "trades_per_day": 0.85,
+          "n_days": 522
+        }
+      },
+      "0.5": {
+        "real": {
+          "risk_pct": 0.5,
+          "pass_%": 1.1,
+          "fail_%": 75.0,
+          "timeout_%": 23.9,
+          "median_days_to_pass": 195,
+          "trades_per_day": 0.85,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.5,
+          "pass_%": 15.3,
+          "fail_%": 33.7,
+          "timeout_%": 50.9,
+          "median_days_to_pass": 217,
+          "trades_per_day": 0.85,
+          "n_days": 522
+        }
+      },
+      "1.0": {
+        "real": {
+          "risk_pct": 1.0,
+          "pass_%": 8.0,
+          "fail_%": 91.0,
+          "timeout_%": 1.0,
+          "median_days_to_pass": 92,
+          "trades_per_day": 0.85,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 1.0,
+          "pass_%": 30.1,
+          "fail_%": 67.1,
+          "timeout_%": 2.8,
+          "median_days_to_pass": 100,
+          "trades_per_day": 0.85,
+          "n_days": 522
+        }
+      },
+      "2.0": {
+        "real": {
+          "risk_pct": 2.0,
+          "pass_%": 13.0,
+          "fail_%": 87.0,
+          "timeout_%": 0.0,
+          "median_days_to_pass": 37,
+          "trades_per_day": 0.85,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 2.0,
+          "pass_%": 28.2,
+          "fail_%": 71.8,
+          "timeout_%": 0.0,
+          "median_days_to_pass": 37,
+          "trades_per_day": 0.85,
+          "n_days": 522
+        }
+      }
+    },
+    "candidate": false
+  },
+  "london_fade_4r EURUSD": {
+    "2023": {
+      "trades": 216,
+      "net_pips": 144.2,
+      "R_total": 31.3,
+      "R_per_trade": 0.145,
+      "R_ci95": [
+        -0.107,
+        0.417
+      ],
+      "win_%": 21.8,
+      "median_stop": 4.7,
+      "costs_per_trade_pips": 0.81
+    },
+    "2024": {
+      "trades": 216,
+      "net_pips": -95.8,
+      "R_total": -23.6,
+      "R_per_trade": -0.109,
+      "R_ci95": [
+        -0.341,
+        0.134
+      ],
+      "win_%": 19.9,
+      "median_stop": 4.4,
+      "costs_per_trade_pips": 0.71
+    },
+    "both": {
+      "trades": 432,
+      "net_pips": 48.3,
+      "R_total": 7.6,
+      "R_per_trade": 0.018,
+      "R_ci95": [
+        -0.153,
+        0.198
+      ],
+      "win_%": 20.8,
+      "median_stop": 4.6,
+      "costs_per_trade_pips": 0.76
+    },
+    "ftmo": {
+      "0.25": {
+        "real": {
+          "risk_pct": 0.25,
+          "pass_%": 8.0,
+          "fail_%": 12.9,
+          "timeout_%": 79.1,
+          "median_days_to_pass": 279,
+          "trades_per_day": 0.83,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.25,
+          "pass_%": 5.6,
+          "fail_%": 15.2,
+          "timeout_%": 79.2,
+          "median_days_to_pass": 272,
+          "trades_per_day": 0.83,
+          "n_days": 522
+        }
+      },
+      "0.5": {
+        "real": {
+          "risk_pct": 0.5,
+          "pass_%": 30.7,
+          "fail_%": 51.9,
+          "timeout_%": 17.4,
+          "median_days_to_pass": 160,
+          "trades_per_day": 0.83,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.5,
+          "pass_%": 26.2,
+          "fail_%": 56.5,
+          "timeout_%": 17.3,
+          "median_days_to_pass": 159,
+          "trades_per_day": 0.83,
+          "n_days": 522
+        }
+      },
+      "1.0": {
+        "real": {
+          "risk_pct": 1.0,
+          "pass_%": 33.5,
+          "fail_%": 66.4,
+          "timeout_%": 0.1,
+          "median_days_to_pass": 54,
+          "trades_per_day": 0.83,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 1.0,
+          "pass_%": 30.5,
+          "fail_%": 69.5,
+          "timeout_%": 0.0,
+          "median_days_to_pass": 53,
+          "trades_per_day": 0.83,
+          "n_days": 522
+        }
+      },
+      "2.0": {
+        "real": {
+          "risk_pct": 2.0,
+          "pass_%": 25.8,
+          "fail_%": 74.2,
+          "timeout_%": 0.0,
+          "median_days_to_pass": 22,
+          "trades_per_day": 0.83,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 2.0,
+          "pass_%": 26.0,
+          "fail_%": 74.0,
+          "timeout_%": 0.0,
+          "median_days_to_pass": 22,
+          "trades_per_day": 0.83,
+          "n_days": 522
+        }
+      }
+    },
+    "candidate": false
+  },
+  "london_fade_4r GBPUSD": {
+    "2023": {
+      "trades": 271,
+      "net_pips": -314.4,
+      "R_total": -57.1,
+      "R_per_trade": -0.211,
+      "R_ci95": [
+        -0.414,
+        0.003
+      ],
+      "win_%": 15.5,
+      "median_stop": 5.5,
+      "costs_per_trade_pips": 1.38
+    },
+    "2024": {
+      "trades": 246,
+      "net_pips": -208.8,
+      "R_total": -41.4,
+      "R_per_trade": -0.168,
+      "R_ci95": [
+        -0.385,
+        0.057
+      ],
+      "win_%": 16.7,
+      "median_stop": 4.8,
+      "costs_per_trade_pips": 1.24
+    },
+    "both": {
+      "trades": 517,
+      "net_pips": -523.3,
+      "R_total": -98.4,
+      "R_per_trade": -0.19,
+      "R_ci95": [
+        -0.337,
+        -0.035
+      ],
+      "win_%": 16.1,
+      "median_stop": 5.1,
+      "costs_per_trade_pips": 1.31
+    },
+    "ftmo": {
+      "0.25": {
+        "real": {
+          "risk_pct": 0.25,
+          "pass_%": 0.0,
+          "fail_%": 72.3,
+          "timeout_%": 27.6,
+          "median_days_to_pass": 242,
+          "trades_per_day": 0.99,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.25,
+          "pass_%": 6.7,
+          "fail_%": 16.3,
+          "timeout_%": 77.0,
+          "median_days_to_pass": 274,
+          "trades_per_day": 0.99,
+          "n_days": 522
+        }
+      },
+      "0.5": {
+        "real": {
+          "risk_pct": 0.5,
+          "pass_%": 2.0,
+          "fail_%": 94.9,
+          "timeout_%": 3.1,
+          "median_days_to_pass": 123,
+          "trades_per_day": 0.99,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.5,
+          "pass_%": 26.9,
+          "fail_%": 58.4,
+          "timeout_%": 14.7,
+          "median_days_to_pass": 154,
+          "trades_per_day": 0.99,
+          "n_days": 522
+        }
+      },
+      "1.0": {
+        "real": {
+          "risk_pct": 1.0,
+          "pass_%": 8.5,
+          "fail_%": 91.5,
+          "timeout_%": 0.0,
+          "median_days_to_pass": 44,
+          "trades_per_day": 0.99,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 1.0,
+          "pass_%": 29.4,
+          "fail_%": 70.6,
+          "timeout_%": 0.0,
+          "median_days_to_pass": 54,
+          "trades_per_day": 0.99,
+          "n_days": 522
+        }
+      },
+      "2.0": {
+        "real": {
+          "risk_pct": 2.0,
+          "pass_%": 9.2,
+          "fail_%": 90.8,
+          "timeout_%": 0.0,
+          "median_days_to_pass": 21,
+          "trades_per_day": 0.99,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 2.0,
+          "pass_%": 22.2,
+          "fail_%": 77.8,
+          "timeout_%": 0.0,
+          "median_days_to_pass": 25,
+          "trades_per_day": 0.99,
+          "n_days": 522
+        }
+      }
+    },
+    "candidate": false
+  },
+  "home_hours EURUSD": {
+    "2023": {
+      "trades": 770,
+      "net_pips": 98.3,
+      "R_total": 0.9,
+      "R_per_trade": 0.001,
+      "R_ci95": [
+        -0.025,
+        0.028
+      ],
+      "win_%": 53.5,
+      "median_stop": 64.2,
+      "costs_per_trade_pips": 0.8
+    },
+    "2024": {
+      "trades": 777,
+      "net_pips": -451.9,
+      "R_total": -9.9,
+      "R_per_trade": -0.013,
+      "R_ci95": [
+        -0.038,
+        0.012
+      ],
+      "win_%": 49.7,
+      "median_stop": 51.9,
+      "costs_per_trade_pips": 0.72
+    },
+    "both": {
+      "trades": 1547,
+      "net_pips": -353.6,
+      "R_total": -8.9,
+      "R_per_trade": -0.006,
+      "R_ci95": [
+        -0.024,
+        0.013
+      ],
+      "win_%": 51.6,
+      "median_stop": 59.3,
+      "costs_per_trade_pips": 0.76
+    },
+    "ftmo": {
+      "0.25": {
+        "real": {
+          "risk_pct": 0.25,
+          "pass_%": 0.0,
+          "fail_%": 0.0,
+          "timeout_%": 100.0,
+          "median_days_to_pass": null,
+          "trades_per_day": 2.96,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.25,
+          "pass_%": 0.0,
+          "fail_%": 0.0,
+          "timeout_%": 100.0,
+          "median_days_to_pass": null,
+          "trades_per_day": 2.96,
+          "n_days": 522
+        }
+      },
+      "0.5": {
+        "real": {
+          "risk_pct": 0.5,
+          "pass_%": 0.4,
+          "fail_%": 9.6,
+          "timeout_%": 90.0,
+          "median_days_to_pass": 380,
+          "trades_per_day": 2.96,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.5,
+          "pass_%": 1.4,
+          "fail_%": 4.1,
+          "timeout_%": 94.5,
+          "median_days_to_pass": 362,
+          "trades_per_day": 2.96,
+          "n_days": 522
+        }
+      },
+      "1.0": {
+        "real": {
+          "risk_pct": 1.0,
+          "pass_%": 8.3,
+          "fail_%": 52.7,
+          "timeout_%": 39.0,
+          "median_days_to_pass": 211,
+          "trades_per_day": 2.96,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 1.0,
+          "pass_%": 18.2,
+          "fail_%": 38.1,
+          "timeout_%": 43.7,
+          "median_days_to_pass": 213,
+          "trades_per_day": 2.96,
+          "n_days": 522
+        }
+      },
+      "2.0": {
+        "real": {
+          "risk_pct": 2.0,
+          "pass_%": 21.5,
+          "fail_%": 77.0,
+          "timeout_%": 1.5,
+          "median_days_to_pass": 92,
+          "trades_per_day": 2.96,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 2.0,
+          "pass_%": 32.4,
+          "fail_%": 66.2,
+          "timeout_%": 1.4,
+          "median_days_to_pass": 95,
+          "trades_per_day": 2.96,
+          "n_days": 522
+        }
+      }
+    },
+    "candidate": false
+  },
+  "home_hours GBPUSD": {
+    "2023": {
+      "trades": 764,
+      "net_pips": 1286.1,
+      "R_total": 12.5,
+      "R_per_trade": 0.016,
+      "R_ci95": [
+        -0.009,
+        0.043
+      ],
+      "win_%": 51.7,
+      "median_stop": 82.1,
+      "costs_per_trade_pips": 1.47
+    },
+    "2024": {
+      "trades": 764,
+      "net_pips": -1125.8,
+      "R_total": -17.4,
+      "R_per_trade": -0.023,
+      "R_ci95": [
+        -0.049,
+        0.003
+      ],
+      "win_%": 48.2,
+      "median_stop": 66.9,
+      "costs_per_trade_pips": 1.3
+    },
+    "both": {
+      "trades": 1528,
+      "net_pips": 160.3,
+      "R_total": -4.9,
+      "R_per_trade": -0.003,
+      "R_ci95": [
+        -0.021,
+        0.015
+      ],
+      "win_%": 49.9,
+      "median_stop": 76.9,
+      "costs_per_trade_pips": 1.38
+    },
+    "ftmo": {
+      "0.25": {
+        "real": {
+          "risk_pct": 0.25,
+          "pass_%": 0.0,
+          "fail_%": 0.0,
+          "timeout_%": 100.0,
+          "median_days_to_pass": null,
+          "trades_per_day": 2.93,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.25,
+          "pass_%": 0.0,
+          "fail_%": 0.0,
+          "timeout_%": 100.0,
+          "median_days_to_pass": null,
+          "trades_per_day": 2.93,
+          "n_days": 522
+        }
+      },
+      "0.5": {
+        "real": {
+          "risk_pct": 0.5,
+          "pass_%": 0.9,
+          "fail_%": 7.7,
+          "timeout_%": 91.4,
+          "median_days_to_pass": 329,
+          "trades_per_day": 2.93,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.5,
+          "pass_%": 1.8,
+          "fail_%": 5.1,
+          "timeout_%": 93.1,
+          "median_days_to_pass": 324,
+          "trades_per_day": 2.93,
+          "n_days": 522
+        }
+      },
+      "1.0": {
+        "real": {
+          "risk_pct": 1.0,
+          "pass_%": 12.1,
+          "fail_%": 47.5,
+          "timeout_%": 40.4,
+          "median_days_to_pass": 212,
+          "trades_per_day": 2.93,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 1.0,
+          "pass_%": 18.0,
+          "fail_%": 39.8,
+          "timeout_%": 42.2,
+          "median_days_to_pass": 217,
+          "trades_per_day": 2.93,
+          "n_days": 522
+        }
+      },
+      "2.0": {
+        "real": {
+          "risk_pct": 2.0,
+          "pass_%": 25.0,
+          "fail_%": 73.4,
+          "timeout_%": 1.6,
+          "median_days_to_pass": 87,
+          "trades_per_day": 2.93,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 2.0,
+          "pass_%": 30.8,
+          "fail_%": 67.8,
+          "timeout_%": 1.4,
+          "median_days_to_pass": 86,
+          "trades_per_day": 2.93,
+          "n_days": 522
+        }
+      }
+    },
+    "candidate": false
+  },
+  "orb_nr7 EURUSD": {
+    "2023": {
+      "trades": 36,
+      "net_pips": 49.2,
+      "R_total": 0.8,
+      "R_per_trade": 0.023,
+      "R_ci95": [
+        -0.406,
+        0.496
+      ],
+      "win_%": 36.1,
+      "median_stop": 14.1,
+      "costs_per_trade_pips": 0.78
+    },
+    "2024": {
+      "trades": 40,
+      "net_pips": -41.8,
+      "R_total": -8.3,
+      "R_per_trade": -0.209,
+      "R_ci95": [
+        -0.627,
+        0.32
+      ],
+      "win_%": 30.0,
+      "median_stop": 9.5,
+      "costs_per_trade_pips": 0.72
+    },
+    "both": {
+      "trades": 76,
+      "net_pips": 7.4,
+      "R_total": -7.5,
+      "R_per_trade": -0.099,
+      "R_ci95": [
+        -0.409,
+        0.266
+      ],
+      "win_%": 32.9,
+      "median_stop": 11.4,
+      "costs_per_trade_pips": 0.75
+    },
+    "ftmo": {
+      "0.25": {
+        "real": {
+          "risk_pct": 0.25,
+          "pass_%": 0.0,
+          "fail_%": 0.0,
+          "timeout_%": 100.0,
+          "median_days_to_pass": null,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.25,
+          "pass_%": 0.0,
+          "fail_%": 0.0,
+          "timeout_%": 100.0,
+          "median_days_to_pass": null,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        }
+      },
+      "0.5": {
+        "real": {
+          "risk_pct": 0.5,
+          "pass_%": 0.2,
+          "fail_%": 4.0,
+          "timeout_%": 95.8,
+          "median_days_to_pass": 293,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.5,
+          "pass_%": 0.7,
+          "fail_%": 1.0,
+          "timeout_%": 98.3,
+          "median_days_to_pass": 346,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        }
+      },
+      "1.0": {
+        "real": {
+          "risk_pct": 1.0,
+          "pass_%": 4.6,
+          "fail_%": 44.5,
+          "timeout_%": 50.9,
+          "median_days_to_pass": 223,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 1.0,
+          "pass_%": 9.2,
+          "fail_%": 27.8,
+          "timeout_%": 63.0,
+          "median_days_to_pass": 237,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        }
+      },
+      "2.0": {
+        "real": {
+          "risk_pct": 2.0,
+          "pass_%": 12.8,
+          "fail_%": 81.6,
+          "timeout_%": 5.6,
+          "median_days_to_pass": 123,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 2.0,
+          "pass_%": 22.0,
+          "fail_%": 70.2,
+          "timeout_%": 7.8,
+          "median_days_to_pass": 140,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        }
+      }
+    },
+    "candidate": false
+  },
+  "orb_nr7 GBPUSD": {
+    "2023": {
+      "trades": 38,
+      "net_pips": -46.0,
+      "R_total": -3.4,
+      "R_per_trade": -0.089,
+      "R_ci95": [
+        -0.532,
+        0.423
+      ],
+      "win_%": 31.6,
+      "median_stop": 18.5,
+      "costs_per_trade_pips": 1.38
+    },
+    "2024": {
+      "trades": 40,
+      "net_pips": 73.2,
+      "R_total": 6.3,
+      "R_per_trade": 0.158,
+      "R_ci95": [
+        -0.26,
+        0.623
+      ],
+      "win_%": 45.0,
+      "median_stop": 12.7,
+      "costs_per_trade_pips": 1.26
+    },
+    "both": {
+      "trades": 78,
+      "net_pips": 27.2,
+      "R_total": 2.9,
+      "R_per_trade": 0.038,
+      "R_ci95": [
+        -0.273,
+        0.384
+      ],
+      "win_%": 38.5,
+      "median_stop": 16.3,
+      "costs_per_trade_pips": 1.32
+    },
+    "ftmo": {
+      "0.25": {
+        "real": {
+          "risk_pct": 0.25,
+          "pass_%": 0.0,
+          "fail_%": 0.0,
+          "timeout_%": 100.0,
+          "median_days_to_pass": null,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.25,
+          "pass_%": 0.0,
+          "fail_%": 0.0,
+          "timeout_%": 100.0,
+          "median_days_to_pass": null,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        }
+      },
+      "0.5": {
+        "real": {
+          "risk_pct": 0.5,
+          "pass_%": 0.8,
+          "fail_%": 0.9,
+          "timeout_%": 98.3,
+          "median_days_to_pass": 312,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 0.5,
+          "pass_%": 0.7,
+          "fail_%": 1.7,
+          "timeout_%": 97.6,
+          "median_days_to_pass": 359,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        }
+      },
+      "1.0": {
+        "real": {
+          "risk_pct": 1.0,
+          "pass_%": 15.4,
+          "fail_%": 24.4,
+          "timeout_%": 60.2,
+          "median_days_to_pass": 239,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 1.0,
+          "pass_%": 12.3,
+          "fail_%": 28.3,
+          "timeout_%": 59.4,
+          "median_days_to_pass": 236,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        }
+      },
+      "2.0": {
+        "real": {
+          "risk_pct": 2.0,
+          "pass_%": 29.5,
+          "fail_%": 63.2,
+          "timeout_%": 7.3,
+          "median_days_to_pass": 131,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        },
+        "zero_edge": {
+          "risk_pct": 2.0,
+          "pass_%": 25.0,
+          "fail_%": 69.0,
+          "timeout_%": 6.0,
+          "median_days_to_pass": 135,
+          "trades_per_day": 0.15,
+          "n_days": 522
+        }
+      }
+    },
+    "candidate": false
+  }
+}
