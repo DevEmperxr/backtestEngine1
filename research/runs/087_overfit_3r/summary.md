@@ -47,5 +47,7 @@ costs. Data loaded from 2023-12-01 (warm-up only) to 2024-06-30 (Jul–Dec 2024 
 **Pass:** R per trade after costs > 0 with 3R hit rate > 25%, and the FTMO 1-step scorecard beats its zero-edge twin.
 A pass means "worth one more out-of-sample check", not a strategy; a fail ends it.
 
-### Result
-_(filled after the run)_
+### Result: FAIL
+108 trades, **−0.19R per trade** after costs (CI −0.45 … +0.10), 3R hit **15.7%** (needs > 25%; was 28% in 2023),
+longs −0.35, shorts −0.04. Only January positive (+3.8R); March −13.2R. FTMO 1-step: pass 12%, EV −$53 vs zero-edge
+twin 34% / +$197. **The 2023 consistency did not carry into 2024. Dropped.** Chart runner_up_2024H1.png.

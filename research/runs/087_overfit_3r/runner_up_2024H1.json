@@ -1,0 +1,113 @@
+{
+ "trades": 108,
+ "R_per_trade": -0.189,
+ "R_total": -20.5,
+ "R_ci95": [
+  -0.453,
+  0.101
+ ],
+ "win_%": 25.9,
+ "net_pips": -211.3,
+ "median_stop": 14.0,
+ "costs_R": 0.12,
+ "3R_wins": 17,
+ "hit_%": 15.7,
+ "long": {
+  "trades": 52,
+  "R_per_trade": -0.351,
+  "R_total": -18.2,
+  "R_ci95": [
+   -0.702,
+   0.045
+  ],
+  "win_%": 19.2,
+  "net_pips": -261.6,
+  "median_stop": 14.5,
+  "costs_R": 0.115
+ },
+ "short": {
+  "trades": 56,
+  "R_per_trade": -0.04,
+  "R_total": -2.2,
+  "R_ci95": [
+   -0.434,
+   0.394
+  ],
+  "win_%": 32.1,
+  "net_pips": 50.2,
+  "median_stop": 12.6,
+  "costs_R": 0.125
+ },
+ "exits": {
+  "exit_signal": 13,
+  "tp": 17,
+  "sl": 78
+ },
+ "R_ex_top3": -29.4,
+ "m1": [
+  16,
+  3.8
+ ],
+ "m2": [
+  20,
+  -0.5
+ ],
+ "m3": [
+  17,
+  -13.2
+ ],
+ "m4": [
+  16,
+  -7.8
+ ],
+ "m5": [
+  19,
+  -1.0
+ ],
+ "m6": [
+  20,
+  -1.6
+ ],
+ "ftmo": {
+  "strategy": {
+   "firm": "FTMO 1-step $10k",
+   "risk_challenge": 1.0,
+   "risk_funded": 1.0,
+   "day_stop": 1.2000000000000002,
+   "fee": 89.0,
+   "commission_usd": 5.0,
+   "pass_%": 12.3,
+   "expected_gross": 36.0,
+   "EV_net": -53.0,
+   "value_per_fee": 0.4,
+   "P(net>0)_%": 6.1,
+   "trades_to_pass": 21,
+   "days_to_pass": 24,
+   "trades_to_first_payout": 35,
+   "days_to_first_payout": 43,
+   "trades_to_profit": 45,
+   "days_to_profit": 53
+  },
+  "twin": {
+   "firm": "FTMO 1-step $10k",
+   "risk_challenge": 1.0,
+   "risk_funded": 1.0,
+   "day_stop": 1.2000000000000002,
+   "fee": 89.0,
+   "commission_usd": 5.0,
+   "pass_%": 34.2,
+   "expected_gross": 286.4,
+   "EV_net": 197.4,
+   "value_per_fee": 3.22,
+   "P(net>0)_%": 23.7,
+   "trades_to_pass": 25,
+   "days_to_pass": 30,
+   "trades_to_first_payout": 39,
+   "days_to_first_payout": 47,
+   "trades_to_profit": 44,
+   "days_to_profit": 52
+  },
+  "beats_twin": false
+ },
+ "pass": false
+}

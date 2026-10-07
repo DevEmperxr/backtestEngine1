@@ -280,3 +280,5 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
   #1 +0.32 -> −0.10R Jul–Dec. #2 (15m range context, lean with the side of the midpoint, pullback to the day open,
   no confirmation, 0.1 ATR stop, 3R) +0.36 / +0.28 with EUR+USD news blocked. Found: DAX trades must block USD news too
   (US releases were the best 3R trades). #2 only meaningful if frozen and tested once on 2024.
+- 087 runner-up frozen on GER40 Jan–Jun 2024 (pre-registered): −0.19R/trade, 3R hit 15.7% (vs 28% in 2023). FAIL, dropped.
+  Over-fit lesson confirmed even for the setup that held both 2023 halves.
