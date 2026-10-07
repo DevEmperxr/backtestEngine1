@@ -226,3 +226,9 @@ and the pass rate rose (36 -> 43% at zero edge before commission): with ~zero/ne
 User question. Best: first payout as soon as allowed (14 days), then on demand whenever profit >= ~1%. Waiting for 5% or keeping a
 2% buffer pays less at every edge level (the trailing floor rises with profit, so a buffer isn't a cushion). Unknown FTMO rule:
 if the trailing floor stays where the peak put it after a payout, yearly payouts with a good strategy roughly halve. Ask FTMO.
+
+## 073 — "Buy the dip in the trend": 1h RSI(2) pullback, layer by layer for FTMO 1-step, EURUSD 2023+2024 — 2026-10-07
+User asked for an indicator-based strategy in the setup template. Bias (daily close vs SMA50) KEPT (better both years), context
+(daily ATR > 100d median) DROPPED, 15m confirmation DROPPED. Final B: 2023 +0.099R, 2024 −0.061R; 277 trades, +0.009R/trade after
+costs. FTMO 1-step scorecard: 36% pass vs 31.5% twin, +$194 vs +$146 per attempt. Not a candidate (negative 2024). Daily-trend bias
+is the first bias layer to help in both years. Daily indicators from 2023+2024 joined (data/derived/eurusd_daily_2023_2024.parquet).

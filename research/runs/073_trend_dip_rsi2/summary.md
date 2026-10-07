@@ -1,7 +1,7 @@
 # 073 — "Buy the dip in the trend": RSI(2) pullback, built layer by layer for FTMO 1-step, EURUSD 2023 + 2024
 
 **Date:** 2026-10-07 · strategy: research/strategies/073_trend_dip_rsi2.py · analysis: research/regime/trend_dip_073.py
-**Status:** pre-registered. User: "develop a strategy that is indicator based that makes sense to you ... fit the
+**Status:** done. Not a candidate (final version negative in 2024); about break-even after costs. User: "develop a strategy that is indicator based that makes sense to you ... fit the
 FTMO shape ... only use eurusd 2023 and 2024". In-sample by construction (no other years allowed); any pass is provisional.
 
 ## 0. Who loses, and why
@@ -40,4 +40,33 @@ The final kept version is scored with `lib.prop_firms.ftmo_1step_scorecard` (202
 a candidate still needs a clean check on a year the user names.
 
 ## Results
-_(filled after the run)_
+All 14 runs: lookahead audit ok. Analysis: research/regime/trend_dip_073.py -> results.json; charts
+layers_equity.png, equity_R_final.png. R after spread + $5 commission (costs ≈ 0.05–0.06R per trade on ~12–15 pip stops).
+
+| version | 2023 (from Apr 13): trades, R/trade | 2024: trades, R/trade | win 2023 / 2024 |
+|---|---|---|---|
+| A POI only | 173, +0.071 | 234, −0.091 | 55.5% / 46.6% |
+| **B + bias (daily trend)** | **121, +0.099** | **156, −0.061** | 58.7% / 49.4% |
+| B' + context (no bias) | 51, +0.119 | 107, −0.044 | 56.9% / 48.6% |
+| C + bias + context | 35, +0.022 | 66, −0.021 | 54.3% / 53.0% |
+| D + bias + context + confirmation | 28, +0.011 | 56, −0.082 | 50.0% / 48.2% |
+| D' + bias + confirmation | 105, +0.026 | 131, −0.067 | 53.3% / 48.1% |
+| D'' + confirmation only | 160, −0.073 | 219, −0.142 | 48.1% / 45.2% |
+
+**Layer walk (pre-registered rule):** bias **kept** (better in both years: +0.071 -> +0.099, −0.091 -> −0.061);
+context **dropped** (C worse than B in 2023); confirmation **dropped** (D' worse than B in both years).
+**Final version = B (RSI(2) dip in the daily trend):** 277 trades, +0.009R per trade after costs over both years
+(2023 +0.099, 2024 −0.061).
+
+**FTMO 1-step scorecard** (best risk 1% / 1%): pass 36.0% vs 31.5% for its zero-edge twin; +$194 vs +$146 per
+attempt; ~69 trades (~112 trading days) to pass, ~89 trades (~143 days) until money received > fee.
+
+**Verdict: not a candidate** (pre-registered bar needs R per trade > 0 in both years; 2024 is −0.061). Overall it is
+about **break-even after FTMO costs**, which the FTMO convexity turns into a small positive value per attempt in this
+model, but there's no demonstrated edge.
+
+**What's useful:** the **daily-trend bias** improved results in both years, the first bias layer to do so in our
+research (trades in the direction of the 50-day trend beat counter-trend ones). The 15m confirmation hurt every time
+(it enters later, after part of the snap-back, as in 047/053), and the volatility context cut the sample without
+helping consistently.
+
