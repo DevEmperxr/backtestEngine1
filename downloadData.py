@@ -61,9 +61,19 @@ def month_ranges(start: datetime, end: datetime):
         cur = nxt
 
 
+# Stock indices (Dukascopy CFDs) by friendly name
+INDEX_ALIASES = {
+    "NAS100": "INSTRUMENT_IDX_AMERICA_E_NQ_100", "NASDAQ": "INSTRUMENT_IDX_AMERICA_E_NQ_100",
+    "GER40": "INSTRUMENT_IDX_EUROPE_E_DAAX", "DAX": "INSTRUMENT_IDX_EUROPE_E_DAAX",
+    "JPN225": "INSTRUMENT_IDX_ASIA_E_N225JAP", "NIKKEI": "INSTRUMENT_IDX_ASIA_E_N225JAP",
+}
+
+
 def resolve_instrument(pair: str) -> str:
-    """'EURGBP' -> Dukascopy's 'EUR/GBP' constant (majors, crosses, ...)."""
+    """'EURGBP' -> Dukascopy's 'EUR/GBP' constant (majors, crosses, metals); 'NAS100' / 'GER40' / 'JPN225' -> index CFDs."""
     pair = pair.upper().replace("/", "")
+    if pair in INDEX_ALIASES:
+        return getattr(_instruments, INDEX_ALIASES[pair])
     want = f"{pair[:3]}/{pair[3:]}"
     for name in dir(_instruments):
         if name.startswith("INSTRUMENT_FX_") and getattr(_instruments, name) == want:
