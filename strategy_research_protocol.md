@@ -276,3 +276,9 @@ chart = strat.visualize(engine, show_trades=True)   # look before you trust
   row `t` — this is the single most common way a backtest silently cheats.
   If unsure, check it the way `test_regression.py` does: confirm `entry_time`
   is one bar after a real crossover edge, not on the same bar as the edge.
+
+## Standing rule (user, 2026-10-07): "Who is losing money so that I can make money?"
+Every idea and every pre-registration starts with a **Who loses, and why** section: name the counterparty
+(e.g. stop-loss orders, hedgers, benchmark flows, slow or over-reacting traders) and why they keep paying us.
+Count the costs too: spread and commission go to market makers and the prop firm on every trade.
+An idea with no named loser is flagged before any test.
