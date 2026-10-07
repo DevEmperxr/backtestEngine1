@@ -282,3 +282,19 @@ Every idea and every pre-registration starts with a **Who loses, and why** secti
 (e.g. stop-loss orders, hedgers, benchmark flows, slow or over-reacting traders) and why they keep paying us.
 Count the costs too: spread and commission go to market makers and the prop firm on every trade.
 An idea with no named loser is flagged before any test.
+
+## Standing rule (user, 2026-10-07): the setup template
+Every setup is written and tested in this structure:
+
+| # | Element | Question | In code |
+|---|---|---|---|
+| 0 | Who loses, and why | Who is on the other side at this POI, and why do they lose? | (written rationale) |
+| 1 | Context | Trending up / down / range? | a state label on higher timeframes |
+| 2 | Bias | Which way do we expect price to go? | long only / short only / both |
+| 3 | POI | Where (level) and when (time window) do we pay attention? | level + session window |
+| 4 | Confirmation | What must happen at the POI before we act? | lower-timeframe trigger |
+| 5 | Execution & management | Entry, stop, target, stall handling, size, prop-firm rules | engine columns + rules |
+
+Build one layer at a time: **POI alone first**, then add confirmation, then context, then bias (hardest; every
+direction-prediction attempt so far failed). Keep a layer only if it improves results in both practice years.
+Pass bars include a minimum R per trade or a confidence-interval condition, not just "positive" (lesson from 059).
