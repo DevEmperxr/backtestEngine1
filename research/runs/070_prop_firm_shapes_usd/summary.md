@@ -55,3 +55,16 @@ Counts depend on the chosen risk: at 2% per trade the targets come ~twice as fas
 Same as 069 (secondary-source rules and prices, funded accounts with the evaluation's rules, independent days,
 one trade shape), plus: firm-specific spreads not modelled; Alpha's standard account (no commission, wider spreads)
 not modelled; three fees unverified.
+
+## Update (same day): FTMO's confirmed commission is $5 per round trip
+The user shared FTMO's commission notice: forex **$2.50 per lot per side** ($5 round trip; previously $1.50/side).
+FTMO rows re-simulated at $5 (ftmo_at_5usd.json):
+
+| program | edge 0 | edge +0.05R | edge +0.10R | trades to pass / to profit (+0.05R) |
+|---|---|---|---|---|
+| FTMO 1-step ($5) | +$131 (31%) | +$377 (44%) | +$760 (59%) | 39 / 54 |
+| FTMO 2-step ($5) | +$38 (24%) | +$187 (35%) | +$491 (46%) | 77 / 100 |
+
+With the real commission, **FTMO 1-step falls from 1st to about 2nd** at +0.05R and +0.10R (behind Alpha Capital Pro 10%
+at $2.50 RAW commission: +$472 / +$871), and to about 4th at zero edge. Alpha's fee and RAW-account terms are unverified.
+FTMO 1-step remains well ahead of FTMO 2-step.
