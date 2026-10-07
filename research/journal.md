@@ -155,3 +155,9 @@ session (EUR/GBP 07:00 London -> 08:00 NY; AUD 10–16 Sydney), long 08–16 NY,
 FAIL on all three: EURUSD −144 (+61 / −205), GBPUSD +100 (+720 / −621), AUDUSD −2213. Raw drift: EUR/GBP home session still
 down in all 4 pair-years (−0.7 to −2.8 pips/day, |t| <= 1.5); USD session inconsistent. Effect much weaker than 1997–2007.
 Reference without the news rule: EURUSD +897 / +142 (the 1h blackout costs ~1,180 pips on EURUSD). news.py: AUD tz + times.
+
+## 059 — London-open range breakout (08:00–08:30 London) after NR7 days (Crabel), EURUSD/GBPUSD/AUDUSD 2023+2024 — 2026-10-07
+Primary EUR+GBP NR7: 149 trades, +5.5R (+2.2 / +3.3), +0.037R/trade [CI −0.19, +0.28]: PASS by the letter (bar too loose), no
+real edge; pair-years flip sign; AUDUSD NR7 −20R. Every-day breakouts lose in 5/6 pair-years (EUR+GBP −42R, all three −160R).
+At the London open breakout traders are the losers; fading isn't free either (spread). Not adopted. Lesson: future pass bars
+need a minimum R/trade or a CI condition, not just "positive both years".

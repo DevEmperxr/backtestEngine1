@@ -1,0 +1,669 @@
+{
+  "EURUSD 2023": {
+    "NR7": {
+      "trades": 36,
+      "net_pips": 111.6,
+      "gross_pips": 121.9,
+      "R_total": 4.64,
+      "R_per_trade": 0.129,
+      "R_ci95": [
+        -0.296,
+        0.596
+      ],
+      "win_%": 44.4,
+      "median_stop": 14.1,
+      "spread_in_R": 0.022,
+      "max_dd_R": -6.91,
+      "exits sl/time/news/tp": [
+        17,
+        19,
+        0,
+        0
+      ]
+    },
+    "all": {
+      "trades": 239,
+      "net_pips": 129.9,
+      "gross_pips": 201.8,
+      "R_total": -4.52,
+      "R_per_trade": -0.019,
+      "R_ci95": [
+        -0.181,
+        0.147
+      ],
+      "win_%": 41.4,
+      "median_stop": 14.3,
+      "spread_in_R": 0.021,
+      "max_dd_R": -19.35,
+      "exits sl/time/news/tp": [
+        114,
+        125,
+        0,
+        0
+      ]
+    }
+  },
+  "EURUSD 2024": {
+    "NR7": {
+      "trades": 40,
+      "net_pips": 4.7,
+      "gross_pips": 13.2,
+      "R_total": -2.08,
+      "R_per_trade": -0.052,
+      "R_ci95": [
+        -0.476,
+        0.475
+      ],
+      "win_%": 32.5,
+      "median_stop": 9.5,
+      "spread_in_R": 0.025,
+      "max_dd_R": -8.33,
+      "exits sl/time/news/tp": [
+        21,
+        19,
+        0,
+        0
+      ]
+    },
+    "all": {
+      "trades": 241,
+      "net_pips": 117.1,
+      "gross_pips": 166.9,
+      "R_total": 9.81,
+      "R_per_trade": 0.041,
+      "R_ci95": [
+        -0.129,
+        0.221
+      ],
+      "win_%": 40.2,
+      "median_stop": 10.5,
+      "spread_in_R": 0.021,
+      "max_dd_R": -22.66,
+      "exits sl/time/news/tp": [
+        115,
+        126,
+        0,
+        0
+      ]
+    }
+  },
+  "GBPUSD 2023": {
+    "NR7": {
+      "trades": 35,
+      "net_pips": -39.8,
+      "gross_pips": -8.8,
+      "R_total": -2.44,
+      "R_per_trade": -0.07,
+      "R_ci95": [
+        -0.519,
+        0.465
+      ],
+      "win_%": 28.6,
+      "median_stop": 18.0,
+      "spread_in_R": 0.052,
+      "max_dd_R": -5.83,
+      "exits sl/time/news/tp": [
+        20,
+        15,
+        0,
+        0
+      ]
+    },
+    "all": {
+      "trades": 233,
+      "net_pips": -383.8,
+      "gross_pips": -173.4,
+      "R_total": -13.22,
+      "R_per_trade": -0.057,
+      "R_ci95": [
+        -0.216,
+        0.11
+      ],
+      "win_%": 35.2,
+      "median_stop": 18.9,
+      "spread_in_R": 0.05,
+      "max_dd_R": -22.51,
+      "exits sl/time/news/tp": [
+        116,
+        117,
+        0,
+        0
+      ]
+    }
+  },
+  "GBPUSD 2024": {
+    "NR7": {
+      "trades": 38,
+      "net_pips": 59.5,
+      "gross_pips": 88.7,
+      "R_total": 5.38,
+      "R_per_trade": 0.142,
+      "R_ci95": [
+        -0.285,
+        0.603
+      ],
+      "win_%": 36.8,
+      "median_stop": 12.5,
+      "spread_in_R": 0.062,
+      "max_dd_R": -4.8,
+      "exits sl/time/news/tp": [
+        15,
+        23,
+        0,
+        0
+      ]
+    },
+    "all": {
+      "trades": 231,
+      "net_pips": -476.6,
+      "gross_pips": -309.3,
+      "R_total": -34.5,
+      "R_per_trade": -0.149,
+      "R_ci95": [
+        -0.299,
+        0.01
+      ],
+      "win_%": 32.9,
+      "median_stop": 13.4,
+      "spread_in_R": 0.055,
+      "max_dd_R": -45.4,
+      "exits sl/time/news/tp": [
+        125,
+        106,
+        0,
+        0
+      ]
+    }
+  },
+  "AUDUSD 2023": {
+    "NR7": {
+      "trades": 38,
+      "net_pips": -151.1,
+      "gross_pips": -109.6,
+      "R_total": -14.25,
+      "R_per_trade": -0.375,
+      "R_ci95": [
+        -0.639,
+        -0.1
+      ],
+      "win_%": 28.9,
+      "median_stop": 11.7,
+      "spread_in_R": 0.102,
+      "max_dd_R": -14.25,
+      "exits sl/time/news/tp": [
+        23,
+        15,
+        0,
+        0
+      ]
+    },
+    "all": {
+      "trades": 252,
+      "net_pips": -799.0,
+      "gross_pips": -523.3,
+      "R_total": -69.64,
+      "R_per_trade": -0.276,
+      "R_ci95": [
+        -0.417,
+        -0.131
+      ],
+      "win_%": 30.2,
+      "median_stop": 12.0,
+      "spread_in_R": 0.097,
+      "max_dd_R": -72.42,
+      "exits sl/time/news/tp": [
+        144,
+        108,
+        0,
+        0
+      ]
+    }
+  },
+  "AUDUSD 2024": {
+    "NR7": {
+      "trades": 37,
+      "net_pips": -69.1,
+      "gross_pips": -33.1,
+      "R_total": -5.8,
+      "R_per_trade": -0.157,
+      "R_ci95": [
+        -0.562,
+        0.329
+      ],
+      "win_%": 27.0,
+      "median_stop": 9.2,
+      "spread_in_R": 0.115,
+      "max_dd_R": -11.79,
+      "exits sl/time/news/tp": [
+        21,
+        16,
+        0,
+        0
+      ]
+    },
+    "all": {
+      "trades": 251,
+      "net_pips": -415.7,
+      "gross_pips": -177.2,
+      "R_total": -47.65,
+      "R_per_trade": -0.19,
+      "R_ci95": [
+        -0.331,
+        -0.039
+      ],
+      "win_%": 33.5,
+      "median_stop": 8.4,
+      "spread_in_R": 0.116,
+      "max_dd_R": -57.69,
+      "exits sl/time/news/tp": [
+        140,
+        111,
+        0,
+        0
+      ]
+    }
+  },
+  "PRIMARY EURUSD+GBPUSD NR7": {
+    "by_year": {
+      "2023": {
+        "trades": 71,
+        "net_pips": 71.8,
+        "gross_pips": 113.1,
+        "R_total": 2.2,
+        "R_per_trade": 0.031,
+        "R_ci95": [
+          -0.3,
+          0.382
+        ],
+        "win_%": 36.6,
+        "median_stop": 16.6,
+        "spread_in_R": 0.037,
+        "max_dd_R": -12.39,
+        "exits sl/time/news/tp": [
+          37,
+          34,
+          0,
+          0
+        ]
+      },
+      "2024": {
+        "trades": 78,
+        "net_pips": 64.2,
+        "gross_pips": 101.8,
+        "R_total": 3.3,
+        "R_per_trade": 0.042,
+        "R_ci95": [
+          -0.267,
+          0.392
+        ],
+        "win_%": 34.6,
+        "median_stop": 10.8,
+        "spread_in_R": 0.043,
+        "max_dd_R": -9.19,
+        "exits sl/time/news/tp": [
+          36,
+          42,
+          0,
+          0
+        ]
+      }
+    },
+    "2023+2024": {
+      "trades": 149,
+      "net_pips": 136.0,
+      "gross_pips": 214.9,
+      "R_total": 5.5,
+      "R_per_trade": 0.037,
+      "R_ci95": [
+        -0.192,
+        0.283
+      ],
+      "win_%": 35.6,
+      "median_stop": 12.6,
+      "spread_in_R": 0.04,
+      "max_dd_R": -12.39,
+      "exits sl/time/news/tp": [
+        73,
+        76,
+        0,
+        0
+      ]
+    }
+  },
+  "PRIMARY EURUSD+GBPUSD all": {
+    "by_year": {
+      "2023": {
+        "trades": 472,
+        "net_pips": -254.0,
+        "gross_pips": 28.4,
+        "R_total": -17.75,
+        "R_per_trade": -0.038,
+        "R_ci95": [
+          -0.152,
+          0.079
+        ],
+        "win_%": 38.3,
+        "median_stop": 17.1,
+        "spread_in_R": 0.036,
+        "max_dd_R": -36.48,
+        "exits sl/time/news/tp": [
+          230,
+          242,
+          0,
+          0
+        ]
+      },
+      "2024": {
+        "trades": 472,
+        "net_pips": -359.5,
+        "gross_pips": -142.4,
+        "R_total": -24.68,
+        "R_per_trade": -0.052,
+        "R_ci95": [
+          -0.165,
+          0.064
+        ],
+        "win_%": 36.7,
+        "median_stop": 12.0,
+        "spread_in_R": 0.038,
+        "max_dd_R": -48.83,
+        "exits sl/time/news/tp": [
+          240,
+          232,
+          0,
+          0
+        ]
+      }
+    },
+    "2023+2024": {
+      "trades": 944,
+      "net_pips": -613.5,
+      "gross_pips": -114.0,
+      "R_total": -42.43,
+      "R_per_trade": -0.045,
+      "R_ci95": [
+        -0.125,
+        0.038
+      ],
+      "win_%": 37.5,
+      "median_stop": 14.0,
+      "spread_in_R": 0.037,
+      "max_dd_R": -54.74,
+      "exits sl/time/news/tp": [
+        470,
+        474,
+        0,
+        0
+      ]
+    }
+  },
+  "AUDUSD NR7": {
+    "by_year": {
+      "2023": {
+        "trades": 38,
+        "net_pips": -151.1,
+        "gross_pips": -109.6,
+        "R_total": -14.25,
+        "R_per_trade": -0.375,
+        "R_ci95": [
+          -0.639,
+          -0.1
+        ],
+        "win_%": 28.9,
+        "median_stop": 11.7,
+        "spread_in_R": 0.102,
+        "max_dd_R": -14.25,
+        "exits sl/time/news/tp": [
+          23,
+          15,
+          0,
+          0
+        ]
+      },
+      "2024": {
+        "trades": 37,
+        "net_pips": -69.1,
+        "gross_pips": -33.1,
+        "R_total": -5.8,
+        "R_per_trade": -0.157,
+        "R_ci95": [
+          -0.562,
+          0.329
+        ],
+        "win_%": 27.0,
+        "median_stop": 9.2,
+        "spread_in_R": 0.115,
+        "max_dd_R": -11.79,
+        "exits sl/time/news/tp": [
+          21,
+          16,
+          0,
+          0
+        ]
+      }
+    },
+    "2023+2024": {
+      "trades": 75,
+      "net_pips": -220.2,
+      "gross_pips": -142.7,
+      "R_total": -20.05,
+      "R_per_trade": -0.267,
+      "R_ci95": [
+        -0.515,
+        0.01
+      ],
+      "win_%": 28.0,
+      "median_stop": 10.2,
+      "spread_in_R": 0.108,
+      "max_dd_R": -20.15,
+      "exits sl/time/news/tp": [
+        44,
+        31,
+        0,
+        0
+      ]
+    }
+  },
+  "AUDUSD all": {
+    "by_year": {
+      "2023": {
+        "trades": 252,
+        "net_pips": -799.0,
+        "gross_pips": -523.3,
+        "R_total": -69.64,
+        "R_per_trade": -0.276,
+        "R_ci95": [
+          -0.417,
+          -0.131
+        ],
+        "win_%": 30.2,
+        "median_stop": 12.0,
+        "spread_in_R": 0.097,
+        "max_dd_R": -72.42,
+        "exits sl/time/news/tp": [
+          144,
+          108,
+          0,
+          0
+        ]
+      },
+      "2024": {
+        "trades": 251,
+        "net_pips": -415.7,
+        "gross_pips": -177.2,
+        "R_total": -47.65,
+        "R_per_trade": -0.19,
+        "R_ci95": [
+          -0.331,
+          -0.039
+        ],
+        "win_%": 33.5,
+        "median_stop": 8.4,
+        "spread_in_R": 0.116,
+        "max_dd_R": -57.69,
+        "exits sl/time/news/tp": [
+          140,
+          111,
+          0,
+          0
+        ]
+      }
+    },
+    "2023+2024": {
+      "trades": 503,
+      "net_pips": -1214.8,
+      "gross_pips": -700.5,
+      "R_total": -117.29,
+      "R_per_trade": -0.233,
+      "R_ci95": [
+        -0.333,
+        -0.131
+      ],
+      "win_%": 31.8,
+      "median_stop": 9.9,
+      "spread_in_R": 0.106,
+      "max_dd_R": -117.92,
+      "exits sl/time/news/tp": [
+        284,
+        219,
+        0,
+        0
+      ]
+    }
+  },
+  "ALL THREE NR7": {
+    "by_year": {
+      "2023": {
+        "trades": 109,
+        "net_pips": -79.3,
+        "gross_pips": 3.5,
+        "R_total": -12.05,
+        "R_per_trade": -0.111,
+        "R_ci95": [
+          -0.347,
+          0.145
+        ],
+        "win_%": 33.9,
+        "median_stop": 13.7,
+        "spread_in_R": 0.059,
+        "max_dd_R": -16.54,
+        "exits sl/time/news/tp": [
+          60,
+          49,
+          0,
+          0
+        ]
+      },
+      "2024": {
+        "trades": 115,
+        "net_pips": -4.9,
+        "gross_pips": 68.7,
+        "R_total": -2.5,
+        "R_per_trade": -0.022,
+        "R_ci95": [
+          -0.276,
+          0.261
+        ],
+        "win_%": 32.2,
+        "median_stop": 10.0,
+        "spread_in_R": 0.066,
+        "max_dd_R": -14.78,
+        "exits sl/time/news/tp": [
+          57,
+          58,
+          0,
+          0
+        ]
+      }
+    },
+    "2023+2024": {
+      "trades": 224,
+      "net_pips": -84.2,
+      "gross_pips": 72.2,
+      "R_total": -14.54,
+      "R_per_trade": -0.065,
+      "R_ci95": [
+        -0.245,
+        0.121
+      ],
+      "win_%": 33.0,
+      "median_stop": 11.7,
+      "spread_in_R": 0.063,
+      "max_dd_R": -16.54,
+      "exits sl/time/news/tp": [
+        117,
+        107,
+        0,
+        0
+      ]
+    }
+  },
+  "ALL THREE all": {
+    "by_year": {
+      "2023": {
+        "trades": 724,
+        "net_pips": -1053.0,
+        "gross_pips": -494.9,
+        "R_total": -87.39,
+        "R_per_trade": -0.121,
+        "R_ci95": [
+          -0.21,
+          -0.03
+        ],
+        "win_%": 35.5,
+        "median_stop": 14.6,
+        "spread_in_R": 0.057,
+        "max_dd_R": -93.08,
+        "exits sl/time/news/tp": [
+          374,
+          350,
+          0,
+          0
+        ]
+      },
+      "2024": {
+        "trades": 723,
+        "net_pips": -775.2,
+        "gross_pips": -319.6,
+        "R_total": -72.33,
+        "R_per_trade": -0.1,
+        "R_ci95": [
+          -0.19,
+          -0.007
+        ],
+        "win_%": 35.5,
+        "median_stop": 10.5,
+        "spread_in_R": 0.065,
+        "max_dd_R": -95.39,
+        "exits sl/time/news/tp": [
+          380,
+          343,
+          0,
+          0
+        ]
+      }
+    },
+    "2023+2024": {
+      "trades": 1447,
+      "net_pips": -1828.3,
+      "gross_pips": -814.5,
+      "R_total": -159.72,
+      "R_per_trade": -0.11,
+      "R_ci95": [
+        -0.174,
+        -0.046
+      ],
+      "win_%": 35.5,
+      "median_stop": 12.4,
+      "spread_in_R": 0.061,
+      "max_dd_R": -159.72,
+      "exits sl/time/news/tp": [
+        754,
+        693,
+        0,
+        0
+      ]
+    }
+  },
+  "VERDICT": "PASS"
+}

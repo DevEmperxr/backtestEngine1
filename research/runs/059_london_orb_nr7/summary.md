@@ -1,6 +1,6 @@
 # 059 — London-open range breakout, after NR7 days (Crabel), EURUSD / GBPUSD / AUDUSD 2023 + 2024
 
-**Date:** 2026-10-07 · file: research/strategies/059_london_orb_nr7.py · **Status:** pre-registered (user request)
+**Date:** 2026-10-07 · file: research/strategies/059_london_orb_nr7.py · **Status:** done. PASS by the letter of the bar, but no real edge (+0.04R/trade, CI includes 0)
 
 ## Who loses, and why
 - **Traders caught against the opening move:** stops of those who faded the first half hour sit just beyond
@@ -38,4 +38,36 @@ NR7 gives ~35 trading days per pair per year, so the sample is small (~140 trade
 CI honestly.
 
 ## Results
-_(filled after the run)_
+All runs: lookahead audit ok. Script: research/regime/london_orb_059.py -> results.json; charts
+equity_monthly_R_nr7.png, equity_monthly_R_all.png (EURUSD+GBPUSD, in R).
+
+| | NR7 days (test) | every day (control) |
+|---|---|---|
+| EURUSD 2023 | 36 tr, +112 pips, **+4.6R** | 239 tr, +130 pips, −4.5R |
+| EURUSD 2024 | 40 tr, +5 pips, **−2.1R** | 241 tr, +117 pips, +9.8R |
+| GBPUSD 2023 | 35 tr, −40 pips, **−2.4R** | 233 tr, −384 pips, −13.2R |
+| GBPUSD 2024 | 38 tr, +60 pips, **+5.4R** | 231 tr, −477 pips, −34.5R |
+| AUDUSD 2023 | 38 tr, −151 pips, −14.2R | 252 tr, −799 pips, −69.6R |
+| AUDUSD 2024 | 37 tr, −69 pips, −5.8R | 251 tr, −416 pips, −47.6R |
+
+| pooled | trades | R total | R / trade [95% CI] | win | max DD (R) |
+|---|---|---|---|---|---|
+| **Primary EUR+GBP, NR7** | 149 | **+5.5** (2023 +2.2, 2024 +3.3) | **+0.037 [−0.19, +0.28]** | 35.6% | −12.4 |
+| EUR+GBP, every day | 944 | −42.4 | −0.045 [−0.13, +0.04] | 37.5% | −54.7 |
+| AUDUSD, NR7 | 75 | −20.1 | −0.27 | 28.0% | |
+| All three, NR7 | 224 | −14.5 | −0.07 [−0.25, +0.12] | 33.0% | |
+
+Spread is small here (≈0.04R per trade on EUR/GBP), as intended.
+
+**Verdict:** by the pre-registered bar it **passes** (EUR+GBP NR7 positive in both years and better than the
+control). Honestly, the bar was too loose: +0.04R per trade with a CI from −0.19 to +0.28 is no edge, each
+pair flips sign between years, and AUDUSD's NR7 version loses. "Beats the control" mostly means "loses less
+than breakouts on every day", which **lose in 5 of 6 pair-years**.
+
+**What it does show (who loses):** at the London open, **breakout traders are the losers**, not the
+winners: plain breakouts lose on all three pairs, the same tendency to snap back that made the London fade
+work a little. Fading the breakout instead isn't automatically profitable either: the every-day breakouts lose
+mostly through spread (EUR+GBP gross −114 pips vs net −614), so the opposite trade would pay the same costs.
+
+Not adopted. NR7 makes breakouts less bad but doesn't create an edge.
+
