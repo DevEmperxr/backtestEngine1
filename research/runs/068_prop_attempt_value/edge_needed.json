@@ -1,0 +1,134 @@
+{
+  "-0.15R ch1.0 fu0.5": {
+    "risk_challenge": 1.0,
+    "risk_funded": 0.5,
+    "day_stop": 2.0,
+    "pass_%": 8.2,
+    "EV_per_attempt": -74.4,
+    "P(net > 0)_%": 4.7,
+    "funded_mean_payout": 126.8,
+    "funded_median_days_survived": 108,
+    "funded_breach_%": 90.2
+  },
+  "-0.15R ch1.0 fu1.0": {
+    "risk_challenge": 1.0,
+    "risk_funded": 1.0,
+    "day_stop": 2.0,
+    "pass_%": 7.4,
+    "EV_per_attempt": -59.5,
+    "P(net > 0)_%": 5.0,
+    "funded_mean_payout": 338.0,
+    "funded_median_days_survived": 62,
+    "funded_breach_%": 97.3
+  },
+  "-0.10R ch1.0 fu0.5": {
+    "risk_challenge": 1.0,
+    "risk_funded": 0.5,
+    "day_stop": 2.0,
+    "pass_%": 14.9,
+    "EV_per_attempt": -46.3,
+    "P(net > 0)_%": 10.4,
+    "funded_mean_payout": 224.2,
+    "funded_median_days_survived": 148,
+    "funded_breach_%": 83.9
+  },
+  "-0.10R ch1.0 fu1.0": {
+    "risk_challenge": 1.0,
+    "risk_funded": 1.0,
+    "day_stop": 2.0,
+    "pass_%": 15.9,
+    "EV_per_attempt": -0.8,
+    "P(net > 0)_%": 11.8,
+    "funded_mean_payout": 488.7,
+    "funded_median_days_survived": 86,
+    "funded_breach_%": 91.8
+  },
+  "-0.05R ch1.0 fu0.5": {
+    "risk_challenge": 1.0,
+    "risk_funded": 0.5,
+    "day_stop": 2.0,
+    "pass_%": 28.4,
+    "EV_per_attempt": 27.5,
+    "P(net > 0)_%": 23.6,
+    "funded_mean_payout": 336.1,
+    "funded_median_days_survived": 197,
+    "funded_breach_%": 64.4
+  },
+  "-0.05R ch1.0 fu1.0": {
+    "risk_challenge": 1.0,
+    "risk_funded": 1.0,
+    "day_stop": 2.0,
+    "pass_%": 28.3,
+    "EV_per_attempt": 134.3,
+    "P(net > 0)_%": 23.4,
+    "funded_mean_payout": 715.4,
+    "funded_median_days_survived": 110,
+    "funded_breach_%": 88.0
+  },
+  "+0.00R ch1.0 fu0.5": {
+    "risk_challenge": 1.0,
+    "risk_funded": 0.5,
+    "day_stop": 2.0,
+    "pass_%": 46.4,
+    "EV_per_attempt": 173.0,
+    "P(net > 0)_%": 41.1,
+    "funded_mean_payout": 485.9,
+    "funded_median_days_survived": 260,
+    "funded_breach_%": 44.5
+  },
+  "+0.00R ch1.0 fu1.0": {
+    "risk_challenge": 1.0,
+    "risk_funded": 1.0,
+    "day_stop": 2.0,
+    "pass_%": 46.4,
+    "EV_per_attempt": 415.4,
+    "P(net > 0)_%": 40.2,
+    "funded_mean_payout": 1011.0,
+    "funded_median_days_survived": 148,
+    "funded_breach_%": 75.7
+  },
+  "+0.05R ch1.0 fu0.5": {
+    "risk_challenge": 1.0,
+    "risk_funded": 0.5,
+    "day_stop": 2.0,
+    "pass_%": 63.1,
+    "EV_per_attempt": 427.7,
+    "P(net > 0)_%": 59.1,
+    "funded_mean_payout": 735.0,
+    "funded_median_days_survived": 260,
+    "funded_breach_%": 25.1
+  },
+  "+0.05R ch1.0 fu1.0": {
+    "risk_challenge": 1.0,
+    "risk_funded": 1.0,
+    "day_stop": 2.0,
+    "pass_%": 64.0,
+    "EV_per_attempt": 892.5,
+    "P(net > 0)_%": 58.1,
+    "funded_mean_payout": 1452.9,
+    "funded_median_days_survived": 202,
+    "funded_breach_%": 60.4
+  },
+  "+0.10R ch1.0 fu0.5": {
+    "risk_challenge": 1.0,
+    "risk_funded": 0.5,
+    "day_stop": 2.0,
+    "pass_%": 77.8,
+    "EV_per_attempt": 788.3,
+    "P(net > 0)_%": 76.2,
+    "funded_mean_payout": 1041.1,
+    "funded_median_days_survived": 260,
+    "funded_breach_%": 13.6
+  },
+  "+0.10R ch1.0 fu1.0": {
+    "risk_challenge": 1.0,
+    "risk_funded": 1.0,
+    "day_stop": 2.0,
+    "pass_%": 78.1,
+    "EV_per_attempt": 1548.0,
+    "P(net > 0)_%": 74.0,
+    "funded_mean_payout": 2011.8,
+    "funded_median_days_survived": 260,
+    "funded_breach_%": 43.6
+  }
+}

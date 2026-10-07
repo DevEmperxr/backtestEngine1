@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-07 · strategy: research/strategies/066_ftmo_reruns.py `make_london_fade` (046 rules, ±2 min news)
 · run with `run_experiment --prop` · analysis: research/regime/clean_check_067.py
-**Status:** pre-registered. User asked for the clean check ("do 1 and 2").
+**Status:** done. **FAIL** on unseen 2025. User asked for the clean check ("do 1 and 2").
 
 ## Data
 - **EURUSD 2025 (primary, unseen by this strategy):** used before only by the fix-fade runs (016–019). The news
@@ -23,4 +23,22 @@ On EURUSD 2025, after spread + commission:
 Expectation (stated before running): roughly break-even, given 051 (+0.24 pips/trade before commission on 2021–22).
 
 ## Results
-_(filled after the run)_
+Engine runs: research/runs/066_ftmo_reruns/london_fade_<year>/ (audit ok). Analysis: research/regime/clean_check_067.py
+-> results.json; chart equity_R_2025.png. All after spread + 0.5-pip commission.
+
+| EURUSD | trades | net pips | gross pips | R / trade [95% CI] | win |
+|---|---|---|---|---|---|
+| **2025 (unseen)** | 213 | **−318.1** | −124.2 | **−0.181 [−0.34, −0.01]** | 35.7% |
+| 2025 Jan 1 – Apr 7 (news filter complete) | 48 | −98.3 | −55.5 | −0.255 | 33.3% |
+| 2025 Apr 8 – Dec 31 (no news data) | 165 | −219.9 | −68.7 | −0.160 | 36.4% |
+| 2021 (seen in 051, context) | 237 | −85.4 | +99.0 | −0.059 | 42.2% |
+| 2022 (seen in 051, context) | 213 | +83.3 | +279.1 | −0.028 | 40.4% |
+| 2023 (in-sample) | 203 | +170.1 | +331.8 | +0.133 | 49.3% |
+| 2024 (in-sample) | 221 | +45.5 | +203.0 | +0.063 | 47.5% |
+
+FTMO 2-step on 2025 trades: pass 0.1% / 1.7% / 6.0% at 0.5 / 1 / 2% risk, vs its zero-edge twin 13% / 30% / 27%.
+
+**Verdict: FAIL.** On unseen 2025 the London fade lost even before costs (gross −124 pips), and after FTMO costs
+−0.18R per trade (CI entirely below 0). Under FTMO costs it is negative in 3 of the 4 non-discovery years
+(2021, 2022, 2025). The 2023–24 result was largely the discovery sample. **The London fade is retired.**
+

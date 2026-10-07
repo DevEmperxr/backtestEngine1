@@ -196,3 +196,12 @@ Only the London fade on EURUSD survives: +215.6 pips after all costs, +0.096R/tr
 FTMO sim at 1% risk: 65% pass (96 trading days) vs 32% for its zero-edge twin. In-sample: on 2021–22 its edge minus
 commission is ~−0.26 pips/trade. Home hours, ORB NR7, the 4R variant, all GBPUSD versions: ~0 or negative after costs.
 Zero-edge twins pass ~25–32% at 1–2% risk (convex challenge payoff).
+
+## 067 — Clean check: London fade under FTMO rules on unseen EURUSD 2025 — 2026-10-07
+FAIL: 213 trades −318 pips (gross −124), −0.18R/trade [CI −0.34, −0.01]; FTMO pass 1.7% at 1% risk vs 30% zero-edge twin.
+Under FTMO costs it is negative in 2021, 2022 and 2025; only the discovery years 2023–24 are positive. London fade retired.
+
+## 068 — Value of one €89 FTMO attempt (challenge + a year funded), lib.prop.simulate_lifecycle — 2026-10-07
+Zero-edge twin: +$390 EV per attempt (1% challenge, 1% funded, 2% own daily stop), 43% pass. Edge sweep: break-even at
+about −0.05 to −0.10R/trade after costs; +0.05R -> +$430–890; +0.10R -> +$790–1,550. FTMO costs ≈ 0.1R/trade on 6-pip stops,
+so a zero-gross-edge small-stop strategy is about break-even. A 2% own daily stop raised pass rates.

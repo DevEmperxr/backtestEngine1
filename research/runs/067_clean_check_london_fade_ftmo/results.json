@@ -1,0 +1,149 @@
+{
+  "2021": {
+    "trades": 237,
+    "net_pips": -85.4,
+    "R_total": -14.1,
+    "R_per_trade": -0.059,
+    "R_ci95": [
+      -0.217,
+      0.099
+    ],
+    "gross_pips": 99.0,
+    "win_%": 42.2
+  },
+  "2022": {
+    "trades": 213,
+    "net_pips": 83.3,
+    "R_total": -5.9,
+    "R_per_trade": -0.028,
+    "R_ci95": [
+      -0.196,
+      0.143
+    ],
+    "gross_pips": 279.1,
+    "win_%": 40.4
+  },
+  "2023": {
+    "trades": 203,
+    "net_pips": 170.1,
+    "R_total": 27.0,
+    "R_per_trade": 0.133,
+    "R_ci95": [
+      -0.037,
+      0.302
+    ],
+    "gross_pips": 331.8,
+    "win_%": 49.3
+  },
+  "2024": {
+    "trades": 221,
+    "net_pips": 45.5,
+    "R_total": 13.9,
+    "R_per_trade": 0.063,
+    "R_ci95": [
+      -0.101,
+      0.224
+    ],
+    "gross_pips": 203.0,
+    "win_%": 47.5
+  },
+  "2025": {
+    "trades": 213,
+    "net_pips": -318.1,
+    "R_total": -38.7,
+    "R_per_trade": -0.181,
+    "R_ci95": [
+      -0.341,
+      -0.012
+    ],
+    "gross_pips": -124.2,
+    "win_%": 35.7
+  },
+  "2025 Jan 1 \u2013 Apr 7 (news filter complete)": {
+    "trades": 48,
+    "net_pips": -98.3,
+    "R_total": -12.2,
+    "R_per_trade": -0.255,
+    "R_ci95": [
+      -0.584,
+      0.089
+    ],
+    "gross_pips": -55.5,
+    "win_%": 33.3
+  },
+  "2025 Apr 8 \u2013 Dec 31 (no news data)": {
+    "trades": 165,
+    "net_pips": -219.9,
+    "R_total": -26.4,
+    "R_per_trade": -0.16,
+    "R_ci95": [
+      -0.343,
+      0.032
+    ],
+    "gross_pips": -68.7,
+    "win_%": 36.4
+  },
+  "challenge_2025": {
+    "0.5": {
+      "real": {
+        "risk_pct": 0.5,
+        "pass_%": 0.1,
+        "fail_%": 91.3,
+        "timeout_%": 8.6,
+        "median_days_to_pass": 155,
+        "trades_per_day": 0.82,
+        "n_days": 261
+      },
+      "zero_edge": {
+        "risk_pct": 0.5,
+        "pass_%": 13.3,
+        "fail_%": 30.2,
+        "timeout_%": 56.4,
+        "median_days_to_pass": 247,
+        "trades_per_day": 0.82,
+        "n_days": 261
+      }
+    },
+    "1.0": {
+      "real": {
+        "risk_pct": 1.0,
+        "pass_%": 1.7,
+        "fail_%": 98.1,
+        "timeout_%": 0.2,
+        "median_days_to_pass": 78,
+        "trades_per_day": 0.82,
+        "n_days": 261
+      },
+      "zero_edge": {
+        "risk_pct": 1.0,
+        "pass_%": 29.8,
+        "fail_%": 65.9,
+        "timeout_%": 4.3,
+        "median_days_to_pass": 111,
+        "trades_per_day": 0.82,
+        "n_days": 261
+      }
+    },
+    "2.0": {
+      "real": {
+        "risk_pct": 2.0,
+        "pass_%": 6.0,
+        "fail_%": 94.0,
+        "timeout_%": 0.0,
+        "median_days_to_pass": 32,
+        "trades_per_day": 0.82,
+        "n_days": 261
+      },
+      "zero_edge": {
+        "risk_pct": 2.0,
+        "pass_%": 26.5,
+        "fail_%": 73.5,
+        "timeout_%": 0.0,
+        "median_days_to_pass": 38,
+        "trades_per_day": 0.82,
+        "n_days": 261
+      }
+    }
+  },
+  "VERDICT": "FAIL"
+}
