@@ -170,3 +170,8 @@ mostly unresolved in 4h.) EURUSD London leaned to reversal (~58% both years), no
 ## 061 — Confirmation layer at the previous day's high/low: rejection vs acceptance after 5 / 15 min — 2026-10-07
 Layer 4 on the 060 POI. All 8 combinations ~42–54% success at 0.25 ATR (chance 50%), none near the bar (>= 55% both years,
 p < 0.006). Previous-day high/low dropped as a POI: confirmation doesn't separate what happens after the touch.
+
+## 062 — POI study: round numbers (Osler 2003) and the Asian high/low in the London morning, 2023+2024 — 2026-10-07
+Round 00/50 levels: reversal at first touch 50.8% / 52.9% (~8 pips), continuation after a cross 50.4% / 45.5%. Asian high/low
+first touched 07–11 London: 52.5% reversal (~20 pips; 55.1% in 2023, 49.6% in 2024). Nothing passes (>= 55% both years,
+p < 0.01). Three level-type POIs (060 prev-day H/L, round numbers, Asia H/L) are all coin flips at 8–20 pip scales.

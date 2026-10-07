@@ -1,0 +1,699 @@
+{
+  "A1 reversal 00": {
+    "X=0.1": {
+      "2023": {
+        "events": 262,
+        "n": 261,
+        "success_%": 49.4,
+        "p_value": 0.8527,
+        "open": 0,
+        "ties": 1,
+        "move30": 0.8,
+        "move60": 1.23,
+        "target_pips": 9.1
+      },
+      "2024": {
+        "events": 193,
+        "n": 192,
+        "success_%": 52.6,
+        "p_value": 0.4705,
+        "open": 1,
+        "ties": 0,
+        "move30": -0.02,
+        "move60": -0.54,
+        "target_pips": 6.7
+      },
+      "EUR+GBP both": {
+        "events": 455,
+        "n": 453,
+        "success_%": 50.8,
+        "p_value": 0.7422,
+        "open": 1,
+        "ties": 1,
+        "move30": 0.45,
+        "move60": 0.48,
+        "target_pips": 8.1
+      },
+      "EURUSD both": {
+        "events": 203,
+        "n": 202,
+        "success_%": 48.5,
+        "p_value": 0.6729,
+        "open": 1,
+        "ties": 0,
+        "move30": -0.71,
+        "move60": -0.78,
+        "target_pips": 7.1
+      },
+      "GBPUSD both": {
+        "events": 252,
+        "n": 251,
+        "success_%": 52.6,
+        "p_value": 0.4119,
+        "open": 0,
+        "ties": 1,
+        "move30": 1.38,
+        "move60": 1.5,
+        "target_pips": 9.2
+      },
+      "AUDUSD both": {
+        "events": 121,
+        "n": 120,
+        "success_%": 55.0,
+        "p_value": 0.2733,
+        "open": 1,
+        "ties": 0,
+        "move30": 0.19,
+        "move60": 1.06,
+        "target_pips": 6.3
+      }
+    },
+    "X=0.25": {
+      "2023": {
+        "events": 262,
+        "n": 211,
+        "success_%": 51.2,
+        "p_value": 0.7307,
+        "open": 51,
+        "ties": 0,
+        "move30": 0.8,
+        "move60": 1.23,
+        "target_pips": 22.7
+      },
+      "2024": {
+        "events": 193,
+        "n": 161,
+        "success_%": 47.8,
+        "p_value": 0.5812,
+        "open": 32,
+        "ties": 0,
+        "move30": -0.02,
+        "move60": -0.54,
+        "target_pips": 16.8
+      },
+      "EUR+GBP both": {
+        "events": 455,
+        "n": 372,
+        "success_%": 49.7,
+        "p_value": 0.9174,
+        "open": 83,
+        "ties": 0,
+        "move30": 0.45,
+        "move60": 0.48,
+        "target_pips": 20.3
+      },
+      "EURUSD both": {
+        "events": 203,
+        "n": 163,
+        "success_%": 42.9,
+        "p_value": 0.0716,
+        "open": 40,
+        "ties": 0,
+        "move30": -0.71,
+        "move60": -0.78,
+        "target_pips": 17.7
+      },
+      "GBPUSD both": {
+        "events": 252,
+        "n": 209,
+        "success_%": 55.0,
+        "p_value": 0.1463,
+        "open": 43,
+        "ties": 0,
+        "move30": 1.38,
+        "move60": 1.5,
+        "target_pips": 22.9
+      },
+      "AUDUSD both": {
+        "events": 121,
+        "n": 89,
+        "success_%": 56.2,
+        "p_value": 0.2436,
+        "open": 32,
+        "ties": 0,
+        "move30": 0.19,
+        "move60": 1.06,
+        "target_pips": 15.7
+      }
+    }
+  },
+  "A1 reversal 50": {
+    "X=0.1": {
+      "2023": {
+        "events": 254,
+        "n": 251,
+        "success_%": 52.6,
+        "p_value": 0.4119,
+        "open": 2,
+        "ties": 1,
+        "move30": 0.72,
+        "move60": -0.55,
+        "target_pips": 9.1
+      },
+      "2024": {
+        "events": 219,
+        "n": 218,
+        "success_%": 53.2,
+        "p_value": 0.343,
+        "open": 0,
+        "ties": 1,
+        "move30": -0.52,
+        "move60": -1.23,
+        "target_pips": 6.9
+      },
+      "EUR+GBP both": {
+        "events": 473,
+        "n": 469,
+        "success_%": 52.9,
+        "p_value": 0.2125,
+        "open": 2,
+        "ties": 2,
+        "move30": 0.15,
+        "move60": -0.87,
+        "target_pips": 8.1
+      },
+      "EURUSD both": {
+        "events": 202,
+        "n": 199,
+        "success_%": 50.8,
+        "p_value": 0.8316,
+        "open": 2,
+        "ties": 1,
+        "move30": -0.33,
+        "move60": -1.9,
+        "target_pips": 7.0
+      },
+      "GBPUSD both": {
+        "events": 271,
+        "n": 270,
+        "success_%": 54.4,
+        "p_value": 0.1441,
+        "open": 0,
+        "ties": 1,
+        "move30": 0.5,
+        "move60": -0.09,
+        "target_pips": 9.1
+      },
+      "AUDUSD both": {
+        "events": 123,
+        "n": 123,
+        "success_%": 49.6,
+        "p_value": 0.9282,
+        "open": 0,
+        "ties": 0,
+        "move30": -0.12,
+        "move60": -0.85,
+        "target_pips": 6.4
+      }
+    },
+    "X=0.25": {
+      "2023": {
+        "events": 254,
+        "n": 208,
+        "success_%": 46.6,
+        "p_value": 0.3317,
+        "open": 46,
+        "ties": 0,
+        "move30": 0.72,
+        "move60": -0.55,
+        "target_pips": 22.8
+      },
+      "2024": {
+        "events": 219,
+        "n": 176,
+        "success_%": 45.5,
+        "p_value": 0.2278,
+        "open": 42,
+        "ties": 1,
+        "move30": -0.52,
+        "move60": -1.23,
+        "target_pips": 17.2
+      },
+      "EUR+GBP both": {
+        "events": 473,
+        "n": 384,
+        "success_%": 46.1,
+        "p_value": 0.1258,
+        "open": 88,
+        "ties": 1,
+        "move30": 0.15,
+        "move60": -0.87,
+        "target_pips": 20.3
+      },
+      "EURUSD both": {
+        "events": 202,
+        "n": 157,
+        "success_%": 46.5,
+        "p_value": 0.38,
+        "open": 45,
+        "ties": 0,
+        "move30": -0.33,
+        "move60": -1.9,
+        "target_pips": 17.5
+      },
+      "GBPUSD both": {
+        "events": 271,
+        "n": 227,
+        "success_%": 45.8,
+        "p_value": 0.2073,
+        "open": 43,
+        "ties": 1,
+        "move30": 0.5,
+        "move60": -0.09,
+        "target_pips": 22.7
+      },
+      "AUDUSD both": {
+        "events": 123,
+        "n": 97,
+        "success_%": 45.4,
+        "p_value": 0.3608,
+        "open": 26,
+        "ties": 0,
+        "move30": -0.12,
+        "move60": -0.85,
+        "target_pips": 15.9
+      }
+    }
+  },
+  "A2 continuation 00": {
+    "X=0.1": {
+      "2023": {
+        "events": 248,
+        "n": 247,
+        "success_%": 50.2,
+        "p_value": 0.9493,
+        "open": 0,
+        "ties": 1,
+        "move30": -0.84,
+        "move60": -1.53,
+        "target_pips": 9.1
+      },
+      "2024": {
+        "events": 180,
+        "n": 180,
+        "success_%": 50.6,
+        "p_value": 0.8815,
+        "open": 0,
+        "ties": 0,
+        "move30": 0.95,
+        "move60": 0.72,
+        "target_pips": 6.8
+      },
+      "EUR+GBP both": {
+        "events": 428,
+        "n": 427,
+        "success_%": 50.4,
+        "p_value": 0.8846,
+        "open": 0,
+        "ties": 1,
+        "move30": -0.09,
+        "move60": -0.58,
+        "target_pips": 8.2
+      },
+      "EURUSD both": {
+        "events": 188,
+        "n": 188,
+        "success_%": 57.4,
+        "p_value": 0.0411,
+        "open": 0,
+        "ties": 0,
+        "move30": 1.07,
+        "move60": 1.44,
+        "target_pips": 7.1
+      },
+      "GBPUSD both": {
+        "events": 240,
+        "n": 239,
+        "success_%": 44.8,
+        "p_value": 0.1059,
+        "open": 0,
+        "ties": 1,
+        "move30": -1.0,
+        "move60": -2.17,
+        "target_pips": 9.2
+      },
+      "AUDUSD both": {
+        "events": 114,
+        "n": 114,
+        "success_%": 50.9,
+        "p_value": 0.8514,
+        "open": 0,
+        "ties": 0,
+        "move30": 0.03,
+        "move60": -1.03,
+        "target_pips": 6.3
+      }
+    },
+    "X=0.25": {
+      "2023": {
+        "events": 248,
+        "n": 196,
+        "success_%": 48.5,
+        "p_value": 0.6682,
+        "open": 52,
+        "ties": 0,
+        "move30": -0.84,
+        "move60": -1.53,
+        "target_pips": 22.7
+      },
+      "2024": {
+        "events": 180,
+        "n": 148,
+        "success_%": 54.7,
+        "p_value": 0.2498,
+        "open": 32,
+        "ties": 0,
+        "move30": 0.95,
+        "move60": 0.72,
+        "target_pips": 16.9
+      },
+      "EUR+GBP both": {
+        "events": 428,
+        "n": 344,
+        "success_%": 51.2,
+        "p_value": 0.6662,
+        "open": 84,
+        "ties": 0,
+        "move30": -0.09,
+        "move60": -0.58,
+        "target_pips": 20.4
+      },
+      "EURUSD both": {
+        "events": 188,
+        "n": 149,
+        "success_%": 59.1,
+        "p_value": 0.027,
+        "open": 39,
+        "ties": 0,
+        "move30": 1.07,
+        "move60": 1.44,
+        "target_pips": 17.7
+      },
+      "GBPUSD both": {
+        "events": 240,
+        "n": 195,
+        "success_%": 45.1,
+        "p_value": 0.1736,
+        "open": 45,
+        "ties": 0,
+        "move30": -1.0,
+        "move60": -2.17,
+        "target_pips": 22.9
+      },
+      "AUDUSD both": {
+        "events": 114,
+        "n": 86,
+        "success_%": 45.3,
+        "p_value": 0.3883,
+        "open": 28,
+        "ties": 0,
+        "move30": 0.03,
+        "move60": -1.03,
+        "target_pips": 15.7
+      }
+    }
+  },
+  "A2 continuation 50": {
+    "X=0.1": {
+      "2023": {
+        "events": 248,
+        "n": 245,
+        "success_%": 44.9,
+        "p_value": 0.1102,
+        "open": 1,
+        "ties": 2,
+        "move30": -1.12,
+        "move60": -0.12,
+        "target_pips": 9.1
+      },
+      "2024": {
+        "events": 209,
+        "n": 208,
+        "success_%": 46.2,
+        "p_value": 0.2673,
+        "open": 0,
+        "ties": 1,
+        "move30": 0.41,
+        "move60": 1.1,
+        "target_pips": 6.9
+      },
+      "EUR+GBP both": {
+        "events": 457,
+        "n": 453,
+        "success_%": 45.5,
+        "p_value": 0.0541,
+        "open": 1,
+        "ties": 3,
+        "move30": -0.42,
+        "move60": 0.44,
+        "target_pips": 8.1
+      },
+      "EURUSD both": {
+        "events": 198,
+        "n": 195,
+        "success_%": 43.6,
+        "p_value": 0.0734,
+        "open": 1,
+        "ties": 2,
+        "move30": -0.19,
+        "move60": 1.37,
+        "target_pips": 7.0
+      },
+      "GBPUSD both": {
+        "events": 259,
+        "n": 258,
+        "success_%": 46.9,
+        "p_value": 0.3192,
+        "open": 0,
+        "ties": 1,
+        "move30": -0.6,
+        "move60": -0.28,
+        "target_pips": 9.1
+      },
+      "AUDUSD both": {
+        "events": 118,
+        "n": 118,
+        "success_%": 52.5,
+        "p_value": 0.5807,
+        "open": 0,
+        "ties": 0,
+        "move30": 0.62,
+        "move60": 1.76,
+        "target_pips": 6.4
+      }
+    },
+    "X=0.25": {
+      "2023": {
+        "events": 248,
+        "n": 200,
+        "success_%": 52.5,
+        "p_value": 0.4795,
+        "open": 48,
+        "ties": 0,
+        "move30": -1.12,
+        "move60": -0.12,
+        "target_pips": 22.8
+      },
+      "2024": {
+        "events": 209,
+        "n": 165,
+        "success_%": 55.8,
+        "p_value": 0.1391,
+        "open": 43,
+        "ties": 1,
+        "move30": 0.41,
+        "move60": 1.1,
+        "target_pips": 17.2
+      },
+      "EUR+GBP both": {
+        "events": 457,
+        "n": 365,
+        "success_%": 54.0,
+        "p_value": 0.129,
+        "open": 91,
+        "ties": 1,
+        "move30": -0.42,
+        "move60": 0.44,
+        "target_pips": 20.4
+      },
+      "EURUSD both": {
+        "events": 198,
+        "n": 156,
+        "success_%": 51.9,
+        "p_value": 0.631,
+        "open": 42,
+        "ties": 0,
+        "move30": -0.19,
+        "move60": 1.37,
+        "target_pips": 17.5
+      },
+      "GBPUSD both": {
+        "events": 259,
+        "n": 209,
+        "success_%": 55.5,
+        "p_value": 0.1116,
+        "open": 49,
+        "ties": 1,
+        "move30": -0.6,
+        "move60": -0.28,
+        "target_pips": 22.8
+      },
+      "AUDUSD both": {
+        "events": 118,
+        "n": 88,
+        "success_%": 55.7,
+        "p_value": 0.2864,
+        "open": 30,
+        "ties": 0,
+        "move30": 0.62,
+        "move60": 1.76,
+        "target_pips": 15.9
+      }
+    }
+  },
+  "B asia reversal": {
+    "X=0.1": {
+      "2023": {
+        "events": 659,
+        "n": 656,
+        "success_%": 53.5,
+        "p_value": 0.0725,
+        "open": 3,
+        "ties": 0,
+        "move30": 0.55,
+        "move60": 1.56,
+        "target_pips": 8.9
+      },
+      "2024": {
+        "events": 637,
+        "n": 636,
+        "success_%": 49.5,
+        "p_value": 0.8119,
+        "open": 1,
+        "ties": 0,
+        "move30": -0.03,
+        "move60": -0.37,
+        "target_pips": 6.6
+      },
+      "EUR+GBP both": {
+        "events": 1296,
+        "n": 1292,
+        "success_%": 51.5,
+        "p_value": 0.2658,
+        "open": 4,
+        "ties": 0,
+        "move30": 0.27,
+        "move60": 0.61,
+        "target_pips": 7.8
+      },
+      "EURUSD both": {
+        "events": 647,
+        "n": 645,
+        "success_%": 53.0,
+        "p_value": 0.1246,
+        "open": 2,
+        "ties": 0,
+        "move30": 0.28,
+        "move60": 0.77,
+        "target_pips": 6.9
+      },
+      "GBPUSD both": {
+        "events": 649,
+        "n": 647,
+        "success_%": 50.1,
+        "p_value": 0.9686,
+        "open": 2,
+        "ties": 0,
+        "move30": 0.25,
+        "move60": 0.45,
+        "target_pips": 9.1
+      },
+      "AUDUSD both": {
+        "events": 421,
+        "n": 416,
+        "success_%": 51.0,
+        "p_value": 0.6949,
+        "open": 5,
+        "ties": 0,
+        "move30": 0.6,
+        "move60": 0.75,
+        "target_pips": 6.3
+      }
+    },
+    "X=0.25": {
+      "2023": {
+        "events": 659,
+        "n": 465,
+        "success_%": 55.1,
+        "p_value": 0.0293,
+        "open": 193,
+        "ties": 1,
+        "move30": 0.55,
+        "move60": 1.56,
+        "target_pips": 22.4
+      },
+      "2024": {
+        "events": 637,
+        "n": 423,
+        "success_%": 49.6,
+        "p_value": 0.884,
+        "open": 213,
+        "ties": 1,
+        "move30": -0.03,
+        "move60": -0.37,
+        "target_pips": 16.5
+      },
+      "EUR+GBP both": {
+        "events": 1296,
+        "n": 888,
+        "success_%": 52.5,
+        "p_value": 0.1398,
+        "open": 406,
+        "ties": 2,
+        "move30": 0.27,
+        "move60": 0.61,
+        "target_pips": 19.5
+      },
+      "EURUSD both": {
+        "events": 647,
+        "n": 425,
+        "success_%": 52.9,
+        "p_value": 0.2253,
+        "open": 220,
+        "ties": 2,
+        "move30": 0.28,
+        "move60": 0.77,
+        "target_pips": 17.3
+      },
+      "GBPUSD both": {
+        "events": 649,
+        "n": 463,
+        "success_%": 52.1,
+        "p_value": 0.3772,
+        "open": 186,
+        "ties": 0,
+        "move30": 0.25,
+        "move60": 0.45,
+        "target_pips": 22.7
+      },
+      "AUDUSD both": {
+        "events": 421,
+        "n": 219,
+        "success_%": 56.2,
+        "p_value": 0.0681,
+        "open": 202,
+        "ties": 0,
+        "move30": 0.6,
+        "move60": 0.75,
+        "target_pips": 15.7
+      }
+    }
+  },
+  "CARRY FORWARD": {
+    "A1 reversal 00": false,
+    "A1 reversal 50": false,
+    "A2 continuation 00": false,
+    "A2 continuation 50": false,
+    "B asia reversal": false
+  }
+}
