@@ -28,7 +28,8 @@ Costs (spread) go to market makers on every trade; the holds are hours long, so 
   before a release; **re-entry** in the same direction when the blackout ends if the session is still on
   (the flow doesn't stop for news); days with an unknown-time red event skipped.
 - Protective stop (prop-firm requirement; the paper had none): **1 × daily ATR(20)** of the previous completed
-  UTC days (mid prices); no profit target (set to 10 × ATR, i.e. effectively off). Stop hits reported.
+  UTC days (mid prices; at the start of each year's data, the days available so far, minimum 5 —
+  implementation note added before any result); no profit target (set to 10 × ATR, i.e. effectively off). Stop hits reported.
 - Costs: Dukascopy bid/ask (no commission, as in all runs so far).
 
 ## Tests (fixed now)
