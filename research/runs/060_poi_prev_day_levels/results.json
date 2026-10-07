@@ -1,0 +1,534 @@
+{
+  "london EURUSD 2023": {
+    "events": 67,
+    "median_atr_pips": 75.6,
+    "X=0.25": {
+      "reversal_%": 59.5,
+      "n": 42,
+      "ties": 0,
+      "open": 25,
+      "p_value": 0.217,
+      "target_pips_median": 18.9
+    },
+    "X=0.5": {
+      "reversal_%": 57.1,
+      "n": 14,
+      "ties": 0,
+      "open": 53,
+      "p_value": 0.593,
+      "target_pips_median": 37.8
+    },
+    "mean_ret30_pips (+=continue)": -3.88,
+    "mean_ret60_pips (+=continue)": -2.91,
+    "mean_ret120_pips (+=continue)": -2.27,
+    "mean_ret240_pips (+=continue)": 0.64
+  },
+  "london EURUSD 2024": {
+    "events": 61,
+    "median_atr_pips": 60.5,
+    "X=0.25": {
+      "reversal_%": 57.5,
+      "n": 40,
+      "ties": 0,
+      "open": 21,
+      "p_value": 0.3428,
+      "target_pips_median": 15.1
+    },
+    "X=0.5": {
+      "reversal_%": 60.0,
+      "n": 15,
+      "ties": 0,
+      "open": 46,
+      "p_value": 0.4386,
+      "target_pips_median": 30.2
+    },
+    "mean_ret30_pips (+=continue)": -0.47,
+    "mean_ret60_pips (+=continue)": -1.65,
+    "mean_ret120_pips (+=continue)": -1.9,
+    "mean_ret240_pips (+=continue)": -4.46
+  },
+  "london GBPUSD 2023": {
+    "events": 72,
+    "median_atr_pips": 95.2,
+    "X=0.25": {
+      "reversal_%": 49.1,
+      "n": 57,
+      "ties": 0,
+      "open": 15,
+      "p_value": 0.8946,
+      "target_pips_median": 23.8
+    },
+    "X=0.5": {
+      "reversal_%": 47.6,
+      "n": 21,
+      "ties": 0,
+      "open": 51,
+      "p_value": 0.8273,
+      "target_pips_median": 47.6
+    },
+    "mean_ret30_pips (+=continue)": 0.39,
+    "mean_ret60_pips (+=continue)": 0.47,
+    "mean_ret120_pips (+=continue)": 0.45,
+    "mean_ret240_pips (+=continue)": 1.17
+  },
+  "london GBPUSD 2024": {
+    "events": 61,
+    "median_atr_pips": 79.0,
+    "X=0.25": {
+      "reversal_%": 46.0,
+      "n": 50,
+      "ties": 0,
+      "open": 11,
+      "p_value": 0.5716,
+      "target_pips_median": 19.8
+    },
+    "X=0.5": {
+      "reversal_%": 53.8,
+      "n": 13,
+      "ties": 0,
+      "open": 48,
+      "p_value": 0.7815,
+      "target_pips_median": 39.5
+    },
+    "mean_ret30_pips (+=continue)": -0.53,
+    "mean_ret60_pips (+=continue)": 0.1,
+    "mean_ret120_pips (+=continue)": -1.13,
+    "mean_ret240_pips (+=continue)": -1.25
+  },
+  "london AUDUSD 2023": {
+    "events": 32,
+    "median_atr_pips": 66.6,
+    "X=0.25": {
+      "reversal_%": 47.1,
+      "n": 17,
+      "ties": 0,
+      "open": 15,
+      "p_value": 0.8084,
+      "target_pips_median": 16.6
+    },
+    "X=0.5": {
+      "reversal_%": 0.0,
+      "n": 1,
+      "ties": 0,
+      "open": 31,
+      "p_value": 0.3173,
+      "target_pips_median": 33.3
+    },
+    "mean_ret30_pips (+=continue)": 0.22,
+    "mean_ret60_pips (+=continue)": 1.47,
+    "mean_ret120_pips (+=continue)": -0.75,
+    "mean_ret240_pips (+=continue)": -0.09
+  },
+  "london AUDUSD 2024": {
+    "events": 24,
+    "median_atr_pips": 55.7,
+    "X=0.25": {
+      "reversal_%": 53.8,
+      "n": 13,
+      "ties": 0,
+      "open": 11,
+      "p_value": 0.7815,
+      "target_pips_median": 13.9
+    },
+    "X=0.5": {
+      "reversal_%": 50.0,
+      "n": 2,
+      "ties": 0,
+      "open": 22,
+      "p_value": 1.0,
+      "target_pips_median": 27.8
+    },
+    "mean_ret30_pips (+=continue)": 1.7,
+    "mean_ret60_pips (+=continue)": -1.21,
+    "mean_ret120_pips (+=continue)": 0.29,
+    "mean_ret240_pips (+=continue)": -1.07
+  },
+  "london EUR+GBP 2023": {
+    "events": 139,
+    "median_atr_pips": 88.5,
+    "X=0.25": {
+      "reversal_%": 53.5,
+      "n": 99,
+      "ties": 0,
+      "open": 40,
+      "p_value": 0.4817,
+      "target_pips_median": 22.1
+    },
+    "X=0.5": {
+      "reversal_%": 51.4,
+      "n": 35,
+      "ties": 0,
+      "open": 104,
+      "p_value": 0.8658,
+      "target_pips_median": 44.3
+    },
+    "mean_ret30_pips (+=continue)": -1.67,
+    "mean_ret60_pips (+=continue)": -1.16,
+    "mean_ret120_pips (+=continue)": -0.86,
+    "mean_ret240_pips (+=continue)": 0.91
+  },
+  "london EUR+GBP 2024": {
+    "events": 122,
+    "median_atr_pips": 67.4,
+    "X=0.25": {
+      "reversal_%": 51.1,
+      "n": 90,
+      "ties": 0,
+      "open": 32,
+      "p_value": 0.833,
+      "target_pips_median": 16.9
+    },
+    "X=0.5": {
+      "reversal_%": 57.1,
+      "n": 28,
+      "ties": 0,
+      "open": 94,
+      "p_value": 0.4497,
+      "target_pips_median": 33.7
+    },
+    "mean_ret30_pips (+=continue)": -0.5,
+    "mean_ret60_pips (+=continue)": -0.77,
+    "mean_ret120_pips (+=continue)": -1.52,
+    "mean_ret240_pips (+=continue)": -2.86
+  },
+  "london EUR+GBP 2023+2024": {
+    "events": 261,
+    "median_atr_pips": 78.5,
+    "X=0.25": {
+      "reversal_%": 52.4,
+      "n": 189,
+      "ties": 0,
+      "open": 72,
+      "p_value": 0.5127,
+      "target_pips_median": 19.6
+    },
+    "X=0.5": {
+      "reversal_%": 54.0,
+      "n": 63,
+      "ties": 0,
+      "open": 198,
+      "p_value": 0.5287,
+      "target_pips_median": 39.2
+    },
+    "mean_ret30_pips (+=continue)": -1.12,
+    "mean_ret60_pips (+=continue)": -0.98,
+    "mean_ret120_pips (+=continue)": -1.16,
+    "mean_ret240_pips (+=continue)": -0.85
+  },
+  "london EUR+GBP 2023+2024 high only": {
+    "events": 128,
+    "median_atr_pips": 78.8,
+    "X=0.25": {
+      "reversal_%": 54.9,
+      "n": 91,
+      "ties": 0,
+      "open": 37,
+      "p_value": 0.3454,
+      "target_pips_median": 19.7
+    },
+    "X=0.5": {
+      "reversal_%": 57.1,
+      "n": 28,
+      "ties": 0,
+      "open": 100,
+      "p_value": 0.4497,
+      "target_pips_median": 39.4
+    },
+    "mean_ret30_pips (+=continue)": -1.91,
+    "mean_ret60_pips (+=continue)": -2.74,
+    "mean_ret120_pips (+=continue)": -2.26,
+    "mean_ret240_pips (+=continue)": -1.73
+  },
+  "london EUR+GBP 2023+2024 low only": {
+    "events": 133,
+    "median_atr_pips": 78.2,
+    "X=0.25": {
+      "reversal_%": 50.0,
+      "n": 98,
+      "ties": 0,
+      "open": 35,
+      "p_value": 1.0,
+      "target_pips_median": 19.5
+    },
+    "X=0.5": {
+      "reversal_%": 51.4,
+      "n": 35,
+      "ties": 0,
+      "open": 98,
+      "p_value": 0.8658,
+      "target_pips_median": 39.1
+    },
+    "mean_ret30_pips (+=continue)": -0.37,
+    "mean_ret60_pips (+=continue)": 0.72,
+    "mean_ret120_pips (+=continue)": -0.11,
+    "mean_ret240_pips (+=continue)": -0.0
+  },
+  "ny EURUSD 2023": {
+    "events": 62,
+    "median_atr_pips": 72.6,
+    "X=0.25": {
+      "reversal_%": 56.4,
+      "n": 55,
+      "ties": 0,
+      "open": 7,
+      "p_value": 0.3452,
+      "target_pips_median": 18.1
+    },
+    "X=0.5": {
+      "reversal_%": 48.0,
+      "n": 25,
+      "ties": 0,
+      "open": 37,
+      "p_value": 0.8415,
+      "target_pips_median": 36.3
+    },
+    "mean_ret30_pips (+=continue)": -0.12,
+    "mean_ret60_pips (+=continue)": 0.88,
+    "mean_ret120_pips (+=continue)": -0.19,
+    "mean_ret240_pips (+=continue)": 1.04
+  },
+  "ny EURUSD 2024": {
+    "events": 56,
+    "median_atr_pips": 61.0,
+    "X=0.25": {
+      "reversal_%": 45.7,
+      "n": 46,
+      "ties": 0,
+      "open": 10,
+      "p_value": 0.5553,
+      "target_pips_median": 15.2
+    },
+    "X=0.5": {
+      "reversal_%": 36.8,
+      "n": 19,
+      "ties": 0,
+      "open": 37,
+      "p_value": 0.2513,
+      "target_pips_median": 30.5
+    },
+    "mean_ret30_pips (+=continue)": 2.0,
+    "mean_ret60_pips (+=continue)": 3.03,
+    "mean_ret120_pips (+=continue)": 1.28,
+    "mean_ret240_pips (+=continue)": 1.6
+  },
+  "ny GBPUSD 2023": {
+    "events": 47,
+    "median_atr_pips": 93.4,
+    "X=0.25": {
+      "reversal_%": 54.5,
+      "n": 44,
+      "ties": 0,
+      "open": 3,
+      "p_value": 0.5465,
+      "target_pips_median": 23.4
+    },
+    "X=0.5": {
+      "reversal_%": 52.2,
+      "n": 23,
+      "ties": 0,
+      "open": 24,
+      "p_value": 0.8348,
+      "target_pips_median": 46.7
+    },
+    "mean_ret30_pips (+=continue)": -5.7,
+    "mean_ret60_pips (+=continue)": -1.35,
+    "mean_ret120_pips (+=continue)": -1.17,
+    "mean_ret240_pips (+=continue)": -2.63
+  },
+  "ny GBPUSD 2024": {
+    "events": 54,
+    "median_atr_pips": 75.6,
+    "X=0.25": {
+      "reversal_%": 38.6,
+      "n": 44,
+      "ties": 1,
+      "open": 9,
+      "p_value": 0.1317,
+      "target_pips_median": 18.9
+    },
+    "X=0.5": {
+      "reversal_%": 40.0,
+      "n": 15,
+      "ties": 0,
+      "open": 39,
+      "p_value": 0.4386,
+      "target_pips_median": 37.8
+    },
+    "mean_ret30_pips (+=continue)": 0.76,
+    "mean_ret60_pips (+=continue)": 2.22,
+    "mean_ret120_pips (+=continue)": 1.47,
+    "mean_ret240_pips (+=continue)": 1.89
+  },
+  "ny AUDUSD 2023": {
+    "events": 43,
+    "median_atr_pips": 67.6,
+    "X=0.25": {
+      "reversal_%": 40.0,
+      "n": 40,
+      "ties": 0,
+      "open": 3,
+      "p_value": 0.2059,
+      "target_pips_median": 16.9
+    },
+    "X=0.5": {
+      "reversal_%": 60.0,
+      "n": 15,
+      "ties": 0,
+      "open": 28,
+      "p_value": 0.4386,
+      "target_pips_median": 33.8
+    },
+    "mean_ret30_pips (+=continue)": 2.62,
+    "mean_ret60_pips (+=continue)": 2.19,
+    "mean_ret120_pips (+=continue)": 0.22,
+    "mean_ret240_pips (+=continue)": -1.1
+  },
+  "ny AUDUSD 2024": {
+    "events": 38,
+    "median_atr_pips": 54.5,
+    "X=0.25": {
+      "reversal_%": 40.0,
+      "n": 35,
+      "ties": 0,
+      "open": 3,
+      "p_value": 0.2367,
+      "target_pips_median": 13.6
+    },
+    "X=0.5": {
+      "reversal_%": 42.9,
+      "n": 14,
+      "ties": 0,
+      "open": 24,
+      "p_value": 0.593,
+      "target_pips_median": 27.2
+    },
+    "mean_ret30_pips (+=continue)": 2.02,
+    "mean_ret60_pips (+=continue)": 0.73,
+    "mean_ret120_pips (+=continue)": 2.91,
+    "mean_ret240_pips (+=continue)": 3.52
+  },
+  "ny EUR+GBP 2023": {
+    "events": 109,
+    "median_atr_pips": 86.0,
+    "X=0.25": {
+      "reversal_%": 55.6,
+      "n": 99,
+      "ties": 0,
+      "open": 10,
+      "p_value": 0.2689,
+      "target_pips_median": 21.5
+    },
+    "X=0.5": {
+      "reversal_%": 50.0,
+      "n": 48,
+      "ties": 0,
+      "open": 61,
+      "p_value": 1.0,
+      "target_pips_median": 43.0
+    },
+    "mean_ret30_pips (+=continue)": -2.52,
+    "mean_ret60_pips (+=continue)": -0.08,
+    "mean_ret120_pips (+=continue)": -0.61,
+    "mean_ret240_pips (+=continue)": -0.55
+  },
+  "ny EUR+GBP 2024": {
+    "events": 110,
+    "median_atr_pips": 67.1,
+    "X=0.25": {
+      "reversal_%": 42.2,
+      "n": 90,
+      "ties": 1,
+      "open": 19,
+      "p_value": 0.14,
+      "target_pips_median": 16.8
+    },
+    "X=0.5": {
+      "reversal_%": 38.2,
+      "n": 34,
+      "ties": 0,
+      "open": 76,
+      "p_value": 0.1701,
+      "target_pips_median": 33.5
+    },
+    "mean_ret30_pips (+=continue)": 1.39,
+    "mean_ret60_pips (+=continue)": 2.64,
+    "mean_ret120_pips (+=continue)": 1.37,
+    "mean_ret240_pips (+=continue)": 1.74
+  },
+  "ny EUR+GBP 2023+2024": {
+    "events": 219,
+    "median_atr_pips": 75.1,
+    "X=0.25": {
+      "reversal_%": 49.2,
+      "n": 189,
+      "ties": 1,
+      "open": 29,
+      "p_value": 0.8273,
+      "target_pips_median": 18.8
+    },
+    "X=0.5": {
+      "reversal_%": 45.1,
+      "n": 82,
+      "ties": 0,
+      "open": 137,
+      "p_value": 0.377,
+      "target_pips_median": 37.6
+    },
+    "mean_ret30_pips (+=continue)": -0.56,
+    "mean_ret60_pips (+=continue)": 1.28,
+    "mean_ret120_pips (+=continue)": 0.39,
+    "mean_ret240_pips (+=continue)": 0.6
+  },
+  "ny EUR+GBP 2023+2024 high only": {
+    "events": 95,
+    "median_atr_pips": 74.6,
+    "X=0.25": {
+      "reversal_%": 46.2,
+      "n": 78,
+      "ties": 0,
+      "open": 17,
+      "p_value": 0.4969,
+      "target_pips_median": 18.7
+    },
+    "X=0.5": {
+      "reversal_%": 45.5,
+      "n": 33,
+      "ties": 0,
+      "open": 62,
+      "p_value": 0.6015,
+      "target_pips_median": 37.3
+    },
+    "mean_ret30_pips (+=continue)": -1.56,
+    "mean_ret60_pips (+=continue)": -0.96,
+    "mean_ret120_pips (+=continue)": -0.67,
+    "mean_ret240_pips (+=continue)": 1.25
+  },
+  "ny EUR+GBP 2023+2024 low only": {
+    "events": 124,
+    "median_atr_pips": 75.8,
+    "X=0.25": {
+      "reversal_%": 51.4,
+      "n": 111,
+      "ties": 1,
+      "open": 12,
+      "p_value": 0.7758,
+      "target_pips_median": 18.9
+    },
+    "X=0.5": {
+      "reversal_%": 44.9,
+      "n": 49,
+      "ties": 0,
+      "open": 75,
+      "p_value": 0.4751,
+      "target_pips_median": 37.9
+    },
+    "mean_ret30_pips (+=continue)": 0.21,
+    "mean_ret60_pips (+=continue)": 3.01,
+    "mean_ret120_pips (+=continue)": 1.2,
+    "mean_ret240_pips (+=continue)": 0.11
+  },
+  "CARRY FORWARD (pre-registered rule)": {
+    "london": false,
+    "ny": false
+  }
+}

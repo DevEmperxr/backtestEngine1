@@ -161,3 +161,8 @@ Primary EUR+GBP NR7: 149 trades, +5.5R (+2.2 / +3.3), +0.037R/trade [CI −0.19,
 real edge; pair-years flip sign; AUDUSD NR7 −20R. Every-day breakouts lose in 5/6 pair-years (EUR+GBP −42R, all three −160R).
 At the London open breakout traders are the losers; fading isn't free either (spread). Not adopted. Lesson: future pass bars
 need a minimum R/trade or a CI condition, not just "positive both years".
+
+## 060 — POI study: first touch of the previous FX day's high/low, London (07–11 London) and NY (08–11 NY) mornings — 2026-10-07
+First setup built with the user's template (layer 3: POI only). Race "X back vs X further" after the touch: London EUR+GBP
+52.4% reversal @0.25 ATR (p 0.51), NY 49.2%; mean move after 60 min ~1 pip. Coin flip; not carried forward. (0.5 ATR races
+mostly unresolved in 4h.) EURUSD London leaned to reversal (~58% both years), not significant.
