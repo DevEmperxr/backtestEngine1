@@ -264,3 +264,8 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
   NAS spread (~3.6 pts) is 27% of the 13-point ATR stop. Fixed the run_experiment ATR-stop audit to use the strategy's pip.
 - 081 on GER40 2023 (user request, 2023 only): −0.19R/trade after costs, −0.12R even BEFORE costs (cheap 1.5-pt spread at
   the DAX open). The fade loses at the DAX cash open; not run on 2024.
+
+## 2026-10-07 — 083 DAX open (descriptive) + 084 DAX-open reversal a/b (2023 in-sample)
+- 083: the first hour sets the day high or low on 65% of days; opening moves lean to reversal (weak, t −1.75).
+- 084 a (fade first 30 min) −0.11R, b (first-hour false break) −0.05R after costs; both stopped out ~80% of the time
+  with tight stops (13–16 pts). Not candidates; 2024 not run.

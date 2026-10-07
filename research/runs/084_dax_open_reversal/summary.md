@@ -19,4 +19,15 @@ one end of the day (083: 65% of days have the high or low in 09:00–10:00) and 
 After all FTMO costs on 2023: R per trade ≥ +0.05 and the FTMO 1-step scorecard beats its zero-edge twin.
 
 ## Results
-_(filled after the run)_
+GER40 2023, `--prop`, audits clean. Charts a_2023.png / b_2023.png; numbers results_2023.json.
+
+| | trades | R/trade after costs | before costs | win % | avg win / loss | stopped out | FTMO EV vs twin |
+|---|---|---|---|---|---|---|---|
+| a fade first 30 min | 245 | **−0.113** | −0.016 | 16 | +4.4R / −1.0R | 82% | $48 vs $218 |
+| b first-hour false break | 209 | **−0.053** | +0.051 | 20 | +3.9R / −1.0R | 80% | $102 vs $210 |
+
+- Neither meets the bar (≥ +0.05R after costs and beats the twin), even in-sample. Not taken to 2024 unless the user asks.
+- **a** made +974 points in total but loses in R: its stops (median 16 pts, ~3 minutes of normal open volatility)
+  are hit on 82% of trades; the profit comes from a few wide-stop days. The structure (tight stop beyond the opening
+  extreme + hold to 17:25) does not match a reversal that plays out over hours.
+- **b** is roughly break-even before costs; costs (0.10R on a 13-pt stop) push it negative. Longs +0.07, shorts −0.15.
