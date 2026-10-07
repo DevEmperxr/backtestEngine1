@@ -137,3 +137,9 @@ User idea. Net force = 13-week balance-sheet change as % of GDP (Fed − ECB), z
 Daily DEXUSEU 2009–2020 only (user allowed daily data for Test 1 only). FAIL: long−short tide +0.17% over 20 days but
 slope t 0.49, t 0.48 with momentum control, halves +0.21 / −0.001; bond-holdings version also fails. Markets price QE on
 announcement (EUR/USD fell 1.39 -> 1.05 in 2014 before ECB buying began). Test 2 not run. Code: research/regime/qe_force.py.
+
+## 056 — Monetary tide: 2y rate-gap change + QE/QT combined, and Wu–Xia shadow-rate gap -> EUR/USD, daily 2009–2020 — 2026-10-07
+User request (option 3 + shadow rate; allowed re-use of 2009–2020 daily). Pass bar t > 2.5. Combined: t −0.11; shadow: t 0.15;
+rate part alone t −0.41. All FAIL. Rate-gap change vs EUR/USD: r −0.39 over the same 20 days, +0.03 over the next 20,
+so it is priced as it happens. With 055: central bank tides don't predict EUR/USD; dropped. New dependency in .venv: xlrd
+(old .xls shadow-rate files).

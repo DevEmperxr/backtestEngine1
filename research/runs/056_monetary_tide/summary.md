@@ -1,7 +1,7 @@
 # 056 — Monetary tide: rates + QE/QT combined, and the shadow-rate gap -> EUR/USD? (daily 2009–2020)
 
-**Date:** 2026-10-07 · **Status:** pre-registered (user chose option 3 + the shadow-rate shortcut; user allowed
-re-use of daily EUR/USD 2009–2020 for this test).
+**Date:** 2026-10-07 · **Status:** done. **Both FAIL**; central bank tides dropped as a filter.
+(User chose option 3 + the shadow-rate shortcut and allowed re-use of daily EUR/USD 2009–2020.)
 Code: research/regime/monetary_tide.py (indices + test).
 
 ## Data (each value used only from the day it was usable)
@@ -34,4 +34,24 @@ If neither passes, central bank tides are dropped as a filter. If one passes, a 
 intraday trades gets its own pre-registration.
 
 ## Results
-_(filled after the run)_
+results.json, chart monetary_tide_2009_2020.png. The combined score starts 2010-10 (it needs 3 years of
+history for its own scaling).
+
+| 20-day horizon | long − short | slope t | t with momentum | halves (t) | verdict |
+|---|---|---|---|---|---|
+| **A combined (rates + QE/QT)** | +0.004% | −0.11 | −0.07 | +0.90 / −0.28 | **FAIL** |
+| **B shadow-rate gap** | −0.27% | 0.15 | 0.15 | −0.07 / +0.62 | **FAIL** |
+| rate component alone (reported) | +0.24% | −0.41 | −0.47 | −0.01 / −0.67 | (fail) |
+
+5-day horizon: all |t| < 0.8. The rate and QE parts are only weakly related (r = 0.19), so combining them
+added two kinds of noise, not signal.
+
+**The key fact:** the 2-year rate-gap change and EUR/USD move strongly **together** over the same 20 days
+(r = −0.39, right sign: US yields up relative to euro, EUR/USD down), but the gap says **nothing about
+the next 20 days** (r = +0.03). Rate expectations are priced into EUR/USD as they change, so by the time
+a "tide" is measurable, the move has already happened. Same lesson as 055 for QE.
+
+**Conclusion (055 + 056):** none of the slow central bank measures (balance sheets, 2-year rate gap, shadow
+rates, or the combination) predicts EUR/USD's next 1–4 weeks on 2009–2020. They describe the move as it
+happens; they don't anticipate it. Dropped as filters.
+
