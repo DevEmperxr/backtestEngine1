@@ -31,3 +31,7 @@ Still clean: EURGBP 2025, and 2021/2022/2025 for every other cross.
 
 ## Test-year use log
 - 2026-10-06, run 051: EURUSD 2021 + 2022 used for the London-open sideways fade (046) and its runner exits (050 B/C).
+- 2026-10-07, run 067 (**mistake, not asked for by the user**): EURUSD **2025** used for the London fade under FTMO
+  rules, plus EURUSD 2021/2022 reruns. The user had not asked for a reserved-year check. EURUSD 2025 is now **seen**
+  (London-fade family and, by exposure, any EURUSD idea judged afterwards); its 2025 trades were also used in 068.
+  Still unseen: GBPUSD 2025, AUDUSD 2025, all other pairs' reserved years, 2026.
