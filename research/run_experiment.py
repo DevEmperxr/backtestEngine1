@@ -32,9 +32,9 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 
-from lib.data import PIP, load_1s_data, resample
+from lib.data import PIP, load_1s_data, pip_size, resample
 from lib.engine import Engine
-from lib.prop import PropConfig
+from lib.prop import FTMO_GOLD, PropConfig
 from lib.evaluate import plot_equity, plot_mc_drawdown, plot_monthly
 
 ROOT = Path(__file__).resolve().parent
@@ -730,13 +730,17 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
 def main(nums: list[str], year: int = 2024, pair: str = "EURUSD", prop: bool = False) -> None:
     global YEAR, PAIR, PROP
     YEAR, PAIR = year, pair.upper()
-    PROP = PropConfig() if prop else None
+    PROP = (FTMO_GOLD if PAIR.startswith("XAU") else PropConfig()) if prop else None
+    pip = pip_size(PAIR)
     base = load_1s_data(str(DATA_DIR / f"{PAIR}_1s_{year}.csv"), verbose=False)
     engines: dict[str, Engine] = {}   # one Engine per signal timeframe
     for num in nums:
-        tf = _load(num).timeframe
+        st0 = _load(num)
+        tf = st0.timeframe
+        if pip != PIP and not getattr(st0, "pip_aware", False):
+            raise SystemExit(f"{num} assumes EURUSD-style pips; {PAIR} needs a pip-aware strategy (pip {pip})")
         if tf not in engines:
-            engines[tf] = Engine(resample(base, tf), base)
+            engines[tf] = Engine(resample(base, tf), base, pip=pip)
         r = run(num, engines[tf], engines[tf].signal_df)
         fy = r["full_year"]
         print(f"\n=== {r['run']} ===")
@@ -765,6 +769,4 @@ if __name__ == "__main__":
     a = ap.parse_args()
     if a.pair.upper().endswith("JPY"):
         raise SystemExit("JPY pairs need a 0.01 pip; lib.data.PIP is EURUSD-style 0.0001")
-    if a.pair.upper().startswith(("XAU", "XAG")):
-        raise SystemExit("metals need their own pip size (gold ~0.1); lib.data.PIP is EURUSD-style 0.0001")
     main(a.specs, a.year, a.pair, a.prop)

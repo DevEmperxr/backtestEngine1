@@ -118,3 +118,26 @@ def test_own_daily_stop_limits_the_day():
     from lib.prop import simulate_lifecycle
     b = simulate_lifecycle(tr, start, start + timedelta(days=41), risk_challenge=1.0, day_stop=1.5, n_sims=20)
     assert a["fail_%"] == 100.0 and b["pass_%"] == 0.0
+
+
+def test_engine_pip_size_for_gold_and_percent_commission():
+    from lib.prop import FTMO_GOLD
+    from lib.data import pip_size
+    assert pip_size("XAUUSD") == 0.1 and pip_size("EURUSD") == 0.0001 and pip_size("USDJPY") == 0.01
+    # a gold-like flat path: bid 2000.00 / ask 2000.40 -> 4-pip spread at pip 0.1
+    start = START
+    n = 40 * 60
+    ts = [start + timedelta(seconds=i) for i in range(n)]
+    base = pl.DataFrame({"timestamp": ts, "bid_open": [2000.0] * n, "bid_high": [2000.0] * n, "bid_low": [2000.0] * n,
+                         "bid_close": [2000.0] * n, "bid_volume": [1.0] * n, "ask_open": [2000.4] * n,
+                         "ask_high": [2000.4] * n, "ask_low": [2000.4] * n, "ask_close": [2000.4] * n,
+                         "ask_volume": [1.0] * n})
+    sig = _sig(START, 30).with_columns(**{f"{s}_{f}": pl.lit(2000.0 if s == "bid" else 2000.4)
+                                          for s in ("bid", "ask") for f in ("open", "high", "low", "close")})
+    longs = [F, Tr] + [F] * 28
+    t = Engine(sig, base, pip=0.1).backtest(_ColumnStrategy(longs, [F] * 30), prop=FTMO_GOLD)
+    row = t.row(0, named=True)
+    assert row["exit_reason"] == "exit_signal"
+    # spread 0.4 = 4 pips; commission 2000.4 x 7e-6 x 2 / 0.1 = 0.28 pips
+    assert row["commission_pips"] == pytest.approx(2000.4 * 7e-6 * 2 / 0.1)
+    assert row["pips"] == pytest.approx(-4.0 - 0.280056, abs=1e-6)

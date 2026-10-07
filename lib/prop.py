@@ -33,7 +33,8 @@ NY = "America/New_York"
 @dataclass(frozen=True)
 class PropConfig:
     commission_usd_per_lot: float = 5.0        # round trip
-    pip_value_usd_per_lot: float = 10.0        # XXX/USD pairs
+    pip_value_usd_per_lot: float = 10.0        # XXX/USD pairs (and gold at pip 0.1 with 100 oz lots)
+    commission_pct_per_side: float | None = None   # metals/CFDs: % of notional per side (FTMO gold 0.0007% = 7e-6)
     flat_time_ny: time = time(16, 55)          # flat before the 17:00 New York rollover
     rollover_ny: time = time(17, 0)
 
@@ -59,9 +60,17 @@ def apply_prop_signals(sig: pl.DataFrame, cfg: PropConfig) -> pl.DataFrame:
     ).drop("_prop_flat")
 
 
-def apply_prop_costs(trades: pl.DataFrame, cfg: PropConfig) -> pl.DataFrame:
-    c = cfg.commission_pips
-    return trades.with_columns(commission_pips=pl.lit(c, dtype=pl.Float64), pips=pl.col("pips") - c)
+def apply_prop_costs(trades: pl.DataFrame, cfg: PropConfig, pip: float = 0.0001) -> pl.DataFrame:
+    if cfg.commission_pct_per_side is not None:
+        # % of notional per side, both sides: price x pct x 2, in price units per unit -> pips
+        c = pl.col("entry_price") * cfg.commission_pct_per_side * 2 / pip
+    else:
+        c = pl.lit(cfg.commission_pips, dtype=pl.Float64)
+    return trades.with_columns(commission_pips=c.cast(pl.Float64)).with_columns(pips=pl.col("pips") - pl.col("commission_pips"))
+
+
+# FTMO gold (XAUUSD): $0 per lot, 0.0007% of notional per side (FTMO commission notice, 2026)
+FTMO_GOLD = PropConfig(commission_usd_per_lot=0.0, commission_pct_per_side=7e-6)
 
 
 # --------------------------------------------------------------------------- #

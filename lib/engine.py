@@ -476,11 +476,14 @@ class Engine:
         "sl_pips", "tp_pips",
     )
 
-    def __init__(self, signal_df: pl.DataFrame, base_1s: pl.DataFrame) -> None:
+    def __init__(self, signal_df: pl.DataFrame, base_1s: pl.DataFrame, pip: float = PIP) -> None:
         # Validate base_1s with the data layer's single source of truth
         # (spec §2.1) — never re-implement the §0.5 checks here.
         validate_1s(base_1s)
         self.base_1s = base_1s
+        # Price units per "pip" for this instrument (lib.data.pip_size). Default = EURUSD-style 0.0001, so every
+        # existing run is unchanged. Gold uses 0.1 ($10 per pip per 100 oz lot, like FX majors).
+        self.pip = float(pip)
 
         missing = [
             c for c in ("timestamp", "close_time", *_PRICE_COLUMNS)
@@ -588,6 +591,7 @@ class Engine:
             if (sig["exit_signal"] & (sig["_entry_long"] | sig["_entry_short"])).any():
                 raise ValueError("ambiguous bar: an entry edge and exit_signal both True")
 
+        PIP = self.pip                                            # this instrument's pip (shadows the module default)
         sig_ts = sig["timestamp"].to_list()                       # for the log
         sig_ts_ns = sig["timestamp"].dt.epoch("ns").to_numpy()    # for searchsorted
         ask_open = sig["ask_open"].to_list()
@@ -642,7 +646,7 @@ class Engine:
                     )
             else:
                 sl_pips, tp_pips = strategy.sl_pips, strategy.tp_pips
-            sl_level, tp_level = _sl_tp_levels(direction, entry_price, sl_pips, tp_pips)
+            sl_level, tp_level = _sl_tp_levels(direction, entry_price, sl_pips, tp_pips, pip=PIP)
 
             # First 1s row at/after entry — the entry second is exposed to its
             # own range (open first, then the range unfolds, §0.2).
@@ -829,7 +833,7 @@ class Engine:
         ).select(*self._TRADE_COLUMNS, *extra)
         if prop is not None:
             from lib.prop import apply_prop_costs
-            out = apply_prop_costs(out, prop)
+            out = apply_prop_costs(out, prop, pip=self.pip)
         return out
 
     def evaluate(

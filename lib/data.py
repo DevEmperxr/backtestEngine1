@@ -48,7 +48,18 @@ import polars as pl
 # constants
 # --------------------------------------------------------------------------- #
 
-PIP = 0.0001  # EURUSD; hardcoded on purpose (spec §2.4 — no premature multi-pair)
+PIP = 0.0001  # EURUSD default; other instruments via pip_size() (added 2026-10-07 for gold)
+
+# Price units per "pip" by instrument. Gold: 0.1 = $10 per pip per 100 oz lot, the same money per pip as FX majors.
+PIP_SIZE = {"XAUUSD": 0.1, "XAGUSD": 0.01}
+
+
+def pip_size(pair: str) -> float:
+    """Pip size for `pair` (default 0.0001; JPY pairs 0.01; metals from PIP_SIZE)."""
+    pair = pair.upper()
+    if pair in PIP_SIZE:
+        return PIP_SIZE[pair]
+    return 0.01 if pair.endswith("JPY") else PIP
 
 _SIDES = ("bid", "ask")
 _OHLC = ("open", "high", "low", "close")
