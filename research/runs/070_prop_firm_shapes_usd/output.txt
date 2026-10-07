@@ -1,0 +1,36 @@
+trade shape: 424 trades, median stop 6.1 pips
+
+== average edge +0.00R per trade BEFORE commission
+   FTMO 1-step                fee $  89 comm $3.0 | pass  41.5% | net $  310.5 | trades to pass 40 (61d) | to 1st payout 54 (84d) | to profit 56 (87d) | risk 1.0/1.0
+   Alpha Capital Pro 10%      fee $  80 comm $2.5 | pass  31.9% | net $  194.9 | trades to pass 25 (37d) | to 1st payout 37 (58d) | to profit 40 (63d) | risk 2.0/1.0
+   Alpha Capital Pro 8%       fee $  80 comm $2.5 | pass  34.8% | net $  174.7 | trades to pass 60 (92d) | to 1st payout 73 (111d) | to profit 76 (114d) | risk 1.0/1.0
+   FundedNext Stellar 2-step  fee $  90 comm $5.0 | pass  27.5% | net $  152.5 | trades to pass 22 (34d) | to 1st payout 34 (53d) | to profit 37 (57d) | risk 2.0/1.0
+   FTMO 2-step                fee $ 100 comm $3.0 | pass  30.9% | net $  129.5 | trades to pass 27 (40d) | to 1st payout 38 (60d) | to profit 41 (65d) | risk 2.0/1.0
+   The5ers High Stakes        fee $  75 comm $4.0 | pass  24.2% | net $   96.9 | trades to pass 80 (123d) | to 1st payout 95 (140d) | to profit 97 (143d) | risk 1.0/1.0
+   FundingPips 2-step (8/5)   fee $  60 comm $5.0 | pass  26.0% | net $   85.6 | trades to pass 22 (34d) | to 1st payout 36 (54d) | to profit 43 (67d) | risk 2.0/1.0
+   E8 2-phase (8/5)           fee $  80 comm $5.0 | pass  23.0% | net $   23.2 | trades to pass 67 (106d) | to 1st payout 81 (121d) | to profit 95 (144d) | risk 1.0/1.0
+   FundingPips 2-step Pro     fee $  55 comm $5.0 | pass  17.2% | net $   19.4 | trades to pass 53 (82d) | to 1st payout 63 (91d) | to profit 68 (105d) | risk 1.0/1.0
+
+== average edge +0.05R per trade BEFORE commission
+   FTMO 1-step                fee $  89 comm $3.0 | pass  53.0% | net $  615.9 | trades to pass 38 (59d) | to 1st payout 52 (78d) | to profit 53 (80d) | risk 1.0/1.0
+   Alpha Capital Pro 10%      fee $  80 comm $2.5 | pass  46.1% | net $  472.0 | trades to pass 77 (120d) | to 1st payout 95 (145d) | to profit 98 (149d) | risk 1.0/1.0
+   FTMO 2-step                fee $ 100 comm $3.0 | pass  42.0% | net $  385.7 | trades to pass 79 (119d) | to 1st payout 90 (140d) | to profit 94 (141d) | risk 1.0/1.0
+   Alpha Capital Pro 8%       fee $  80 comm $2.5 | pass  40.8% | net $  335.4 | trades to pass 58 (87d) | to 1st payout 74 (111d) | to profit 75 (115d) | risk 1.0/1.0
+   FundedNext Stellar 2-step  fee $  90 comm $5.0 | pass  35.1% | net $  316.1 | trades to pass 24 (36d) | to 1st payout 37 (54d) | to profit 38 (58d) | risk 2.0/1.0
+   The5ers High Stakes        fee $  75 comm $4.0 | pass  38.8% | net $  292.8 | trades to pass 75 (117d) | to 1st payout 92 (141d) | to profit 97 (149d) | risk 1.0/1.0
+   FundingPips 2-step (8/5)   fee $  60 comm $5.0 | pass  36.0% | net $  210.8 | trades to pass 73 (113d) | to 1st payout 91 (137d) | to profit 97 (152d) | risk 1.0/1.0
+   E8 2-phase (8/5)           fee $  80 comm $5.0 | pass  34.4% | net $  166.2 | trades to pass 63 (96d) | to 1st payout 77 (117d) | to profit 84 (126d) | risk 1.0/1.0
+   FundingPips 2-step Pro     fee $  55 comm $5.0 | pass  28.1% | net $   98.2 | trades to pass 47 (69d) | to 1st payout 57 (89d) | to profit 63 (97d) | risk 1.0/1.0
+
+== average edge +0.10R per trade BEFORE commission
+   FTMO 1-step                fee $  89 comm $3.0 | pass  67.5% | net $ 1107.5 | trades to pass 36 (55d) | to 1st payout 49 (74d) | to profit 50 (77d) | risk 1.0/1.0
+   Alpha Capital Pro 10%      fee $  80 comm $2.5 | pass  59.2% | net $  870.7 | trades to pass 74 (113d) | to 1st payout 89 (139d) | to profit 91 (140d) | risk 1.0/1.0
+   FTMO 2-step                fee $ 100 comm $3.0 | pass  59.5% | net $  793.6 | trades to pass 75 (113d) | to 1st payout 88 (135d) | to profit 89 (136d) | risk 1.0/1.0
+   The5ers High Stakes        fee $  75 comm $4.0 | pass  55.8% | net $  676.4 | trades to pass 78 (117d) | to 1st payout 91 (137d) | to profit 92 (138d) | risk 1.0/1.0
+   FundedNext Stellar 2-step  fee $  90 comm $5.0 | pass  53.0% | net $  653.8 | trades to pass 68 (100d) | to 1st payout 82 (124d) | to profit 83 (125d) | risk 1.0/1.0
+   Alpha Capital Pro 8%       fee $  80 comm $2.5 | pass  54.1% | net $  646.3 | trades to pass 55 (85d) | to 1st payout 67 (103d) | to profit 69 (104d) | risk 1.0/1.0
+   FundingPips 2-step (8/5)   fee $  60 comm $5.0 | pass  53.0% | net $  549.6 | trades to pass 66 (100d) | to 1st payout 81 (122d) | to profit 83 (128d) | risk 1.0/1.0
+   E8 2-phase (8/5)           fee $  80 comm $5.0 | pass  43.0% | net $  368.0 | trades to pass 58 (90d) | to 1st payout 71 (109d) | to profit 77 (120d) | risk 1.0/1.0
+   FundingPips 2-step Pro     fee $  55 comm $5.0 | pass  39.2% | net $  241.3 | trades to pass 43 (68d) | to 1st payout 52 (79d) | to profit 58 (88d) | risk 1.0/1.0
+C:\Users\SamAitHoussa\Documents\Sidequests\backtestEngine1\research\runs\070_prop_firm_shapes_usd\firm_shapes_usd.png
+EXIT 0

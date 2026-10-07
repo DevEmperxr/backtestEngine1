@@ -1,13 +1,15 @@
-"""Generic prop-firm rule sets and a simulator to compare the payoff "shape" of firms (run 069).
+"""Generic prop-firm rule sets and a simulator to compare the payoff "shape" of firms (runs 069–070).
 
 A FirmRules describes one program on a $10k account (all limits in % of the initial balance). simulate_firm()
 plays one paid attempt many times: the evaluation phase(s), then up to `funded_days` trading days funded with a
 payout every `payout_every` trading days (profit withdrawn, account reset), fee refund after the n-th payout,
-optional share of challenge profits. Trading days are drawn with replacement from a real trade history
-(lib.prop.daily_R); `edge_shift` replaces every trade's R with (R - mean R + edge_shift) to give the same trade
-shape a chosen average edge after costs (0 = zero-edge twin).
+optional share of evaluation profits (paid when funded). Trading days are drawn with replacement from a list of
+days of trade results in R (lib.prop.daily_R or prepared by the caller).
 
-Simplifications (stated in the run summary): funded accounts keep the evaluation's daily/max-loss rules;
+Also tracked (median over the attempts where it happens): trades and trading days to pass; trades and days until
+the first payout; trades and days until the money received (payouts + refund + profit share) exceeds the fee.
+
+Simplifications (stated in the run summaries): funded accounts keep the evaluation's daily/max-loss rules;
 consistency/best-day rules apply to the evaluation only; trailing max-loss floors trail end-of-day balances;
 a trader never opens a trade whose full stop could breach the daily limit, the own daily stop or the floor.
 """
@@ -38,7 +40,8 @@ class FirmRules:
     split: float = 0.8                    # trader's share when funded
     refund_after_payouts: int | None = 1  # fee refunded with the n-th payout (None = never)
     challenge_profit_share: float = 0.0   # share of evaluation profits paid when funded (FundedNext 15%)
-    fee: float = 89.0                     # indicative price for $10k (promos vary)
+    fee: float = 89.0                     # $10k price in USD (promos vary)
+    commission_usd: float = 5.0           # round trip per standard lot (forex)
 
 
 def _trail(firm: FirmRules, bal: float, peak: float, floor: float) -> tuple[float, float]:
@@ -51,9 +54,9 @@ def _trail(firm: FirmRules, bal: float, peak: float, floor: float) -> tuple[floa
 
 
 def run_phase(days, rng, firm: FirmRules, target: float, risk: float, day_stop: float | None, max_days: int):
-    """One evaluation phase. Returns (result, trading days used, final balance %)."""
+    """One evaluation phase. Returns (result, trading days used, final balance %, trades taken)."""
     bal, peak, floor = 0.0, 0.0, -firm.max_loss
-    n_traded, n_prof, day_profits = 0, 0, []
+    n_traded, n_prof, day_profits, n_trades = 0, 0, [], 0
     stop_at = min(firm.daily_loss, day_stop) if day_stop else firm.daily_loss
     for n in range(1, max_days + 1):
         day = days[rng.integers(len(days))]
@@ -63,8 +66,9 @@ def run_phase(days, rng, firm: FirmRules, target: float, risk: float, day_stop: 
                 break
             bal += r * risk
             took = True
+            n_trades += 1
             if bal <= floor or (bal - start) <= -firm.daily_loss:
-                return "fail", n, bal
+                return "fail", n, bal, n_trades
         pnl = bal - start
         n_traded += took
         n_prof += pnl >= firm.profitable_day_pct
@@ -76,14 +80,15 @@ def run_phase(days, rng, firm: FirmRules, target: float, risk: float, day_stop: 
                 pos = sum(p for p in day_profits if p > 0)
                 if pos <= 0 or max(day_profits) > firm.best_day_frac * pos:
                     continue
-            return "pass", n, bal
-    return "timeout", max_days, bal
+            return "pass", n, bal, n_trades
+    return "timeout", max_days, bal, n_trades
 
 
 def run_funded(days, rng, firm: FirmRules, risk: float, day_stop: float | None, n_days: int,
                payout_every: int, account: float):
-    """Funded stage. Returns (payouts $, number of payouts, breached)."""
-    bal, peak, floor, paid, n_pay = 0.0, 0.0, -firm.max_loss, 0.0, 0
+    """Funded stage. Returns (list of payouts as (day, trades so far, $ amount), breached)."""
+    bal, peak, floor, n_trades = 0.0, 0.0, -firm.max_loss, 0
+    events = []
     stop_at = min(firm.daily_loss, day_stop) if day_stop else firm.daily_loss
     for n in range(1, n_days + 1):
         day = days[rng.integers(len(days))]
@@ -92,34 +97,42 @@ def run_funded(days, rng, firm: FirmRules, risk: float, day_stop: float | None, 
             if (bal - start) - risk < -stop_at or bal - risk <= floor:
                 break
             bal += r * risk
+            n_trades += 1
             if bal <= floor or (bal - start) <= -firm.daily_loss:
-                return paid, n_pay, True
+                return events, True
         peak, floor = _trail(firm, bal, peak, floor)
         if n % payout_every == 0 and bal > 0:
-            paid += bal / 100 * account * firm.split
-            n_pay += 1
+            events.append((n, n_trades, bal / 100 * account * firm.split))
             bal, peak, floor = 0.0, 0.0, -firm.max_loss            # withdrawal resets the account
     if bal > 0:
-        paid += bal / 100 * account * firm.split
-        n_pay += 1
-    return paid, n_pay, False
+        events.append((n_days, n_trades, bal / 100 * account * firm.split))
+    return events, False
 
 
-def simulate_firm(trades: pl.DataFrame, start: date, end: date, firm: FirmRules, *, risk_challenge: float = 1.0,
-                  risk_funded: float = 0.5, day_stop: float | None = None, edge_shift: float | None = None,
-                  account: float = 10_000.0, payout_every: int = 10, funded_days: int = 260,
-                  max_days_per_phase: int = 260, n_sims: int = 2000, seed: int = 0) -> dict:
-    days = daily_R(trades, start, end)
-    if edge_shift is not None:
-        allr = [r for d in days for r in d]
-        mu = float(np.mean(allr)) if allr else 0.0
-        days = [[r - mu + edge_shift for r in d] for d in days]
+def firm_days(trades: pl.DataFrame, start: date, end: date, firm: FirmRules, edge_before_commission: float) -> list[list[float]]:
+    """Days of trade results in R for this firm: the trade shape of `trades` with its average R (before
+    commission) replaced by `edge_before_commission`, then this firm's commission charged on every trade.
+    `trades` must carry pips net of a commission given in `commission_pips` (added back here)."""
+    t = trades.with_columns(R0=(pl.col("pips") + pl.col("commission_pips")) / pl.col("sl_pips"))
+    mu = float(t["R0"].mean())
+    comm_pips = firm.commission_usd / 10.0                      # $10 per pip per lot on XXX/USD
+    t = t.with_columns(pips=(pl.col("R0") - mu + edge_before_commission) * pl.col("sl_pips") - comm_pips)
+    return daily_R(t, start, end)
+
+
+def simulate_firm(days: list[list[float]], firm: FirmRules, *, risk_challenge: float = 1.0, risk_funded: float = 0.5,
+                  day_stop: float | None = None, account: float = 10_000.0, payout_every: int = 10,
+                  funded_days: int = 260, max_days_per_phase: int = 260, n_sims: int = 2000, seed: int = 0) -> dict:
+    """Value of one attempt at `firm`, given days of trade results in R (see firm_days)."""
     rng = np.random.default_rng(seed)
     gross, passed = [], 0
+    to_pass_t, to_pass_d, to_pay_t, to_pay_d, to_profit_t, to_profit_d = [], [], [], [], [], []
     for _ in range(n_sims):
-        ok, ch_profit = True, 0.0
+        ok, ch_profit, tr_used, d_used = True, 0.0, 0, 0
         for tgt in firm.targets:
-            res, _n, bal = run_phase(days, rng, firm, tgt, risk_challenge, day_stop, max_days_per_phase)
+            res, n, bal, nt = run_phase(days, rng, firm, tgt, risk_challenge, day_stop, max_days_per_phase)
+            tr_used += nt
+            d_used += n
             if res != "pass":
                 ok = False
                 break
@@ -128,12 +141,27 @@ def simulate_firm(trades: pl.DataFrame, start: date, end: date, firm: FirmRules,
             gross.append(0.0)
             continue
         passed += 1
-        paid, n_pay, _ = run_funded(days, rng, firm, risk_funded, day_stop, funded_days, payout_every, account)
-        refund = firm.fee if (firm.refund_after_payouts is not None and n_pay >= firm.refund_after_payouts) else 0.0
-        share = firm.challenge_profit_share * ch_profit / 100 * account
-        gross.append(paid + refund + share)
+        to_pass_t.append(tr_used)
+        to_pass_d.append(d_used)
+        events, _ = run_funded(days, rng, firm, risk_funded, day_stop, funded_days, payout_every, account)
+        money = firm.challenge_profit_share * ch_profit / 100 * account
+        total = money
+        for k, (day_n, trades_n, amount) in enumerate(events, start=1):
+            total += amount + (firm.fee if firm.refund_after_payouts == k else 0.0)
+            if k == 1:
+                to_pay_t.append(tr_used + trades_n)
+                to_pay_d.append(d_used + day_n)
+            if total > firm.fee and (len(to_profit_t) < passed):
+                to_profit_t.append(tr_used + trades_n)
+                to_profit_d.append(d_used + day_n)
+        gross.append(total)
     g = np.array(gross)
+    med = lambda x: int(np.median(x)) if x else None
     return {"firm": firm.name, "risk_challenge": risk_challenge, "risk_funded": risk_funded, "day_stop": day_stop,
+            "fee": firm.fee, "commission_usd": firm.commission_usd,
             "pass_%": round(100 * passed / n_sims, 1), "expected_gross": round(float(g.mean()), 1),
             "EV_net": round(float(g.mean()) - firm.fee, 1), "value_per_fee": round(float(g.mean()) / firm.fee, 2),
-            "P(net>0)_%": round(100 * float((g > firm.fee).mean()), 1)}
+            "P(net>0)_%": round(100 * float((g > firm.fee).mean()), 1),
+            "trades_to_pass": med(to_pass_t), "days_to_pass": med(to_pass_d),
+            "trades_to_first_payout": med(to_pay_t), "days_to_first_payout": med(to_pay_d),
+            "trades_to_profit": med(to_profit_t), "days_to_profit": med(to_profit_d)}

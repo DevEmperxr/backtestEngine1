@@ -211,3 +211,8 @@ so a zero-gross-edge small-stop strategy is about break-even. A 2% own daily sto
 same trade shape (2023–24 London-fade trades, edge set to 0 / −0.05 / −0.10R). FTMO 1-step best at every edge (+$553 / +$241
 / +$89 per attempt net of fee, 51% / 39% / 26% pass), then FundedNext Stellar 2-step; tight programs (FundingPips Pro, E8,
 Alpha 8%) least lenient. Rules from secondary sources (2026-10-07); firm-specific costs not modelled.
+
+## 070 — Prop-firm shapes in USD with each firm's commission and trades to pass / to profit — 2026-10-07
+User request. Edge before commission 0 / +0.05 / +0.10R; commissions FTMO $3, Alpha $2.5, The5ers $4, FundedNext/FundingPips/E8 $5.
+FTMO 1-step first at every edge (+$311 / +$616 / +$1,108 per attempt; 42/53/68% pass; ~38–40 trades to pass, ~50–56 to profit).
+Alpha Pro 10% second; FundedNext drops to mid-table on its $5 commission. Tight programs (E8, FundingPips Pro) near zero at zero edge.
