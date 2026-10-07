@@ -35,3 +35,10 @@ policies. At 0.5% risk payouts are lower but breaches rarer (e.g. +0.01R: $595â€
   roughly halved ($1,571 -> $807). **Ask FTMO support** exactly how the 1-step trailing max loss is set after a reward.
 - Not modelled: FTMO's scaling plan (+25% balance every 4 months with consistent profit); check whether frequent
   withdrawals affect it.
+
+## Update (same day): FTMO confirmed the reset
+The user got FTMO's answer: "On the 1-Step FTMO Account, when a reward is withdrawn, the Maximum Loss Limit fully
+resets, returning the first-day limit back to 90% of the initial simulated capital." So the **"reset" column is the
+real one** (e.g. ~$1,571 a year at 1% risk with â‰ˆ +0.11R after costs); the "stays" case doesn't apply. After a reward
+the limit restarts at $9,000 and trails up again from the next end-of-day balances, so a buffer left in the account
+only adds cushion until the next end of day. Conclusion unchanged: withdraw early and often.
