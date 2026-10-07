@@ -1,6 +1,6 @@
 # 063 — POI study: the stretch from the mean at three scales (5m / 15m / 1h), London open, 2023 + 2024
 
-**Date:** 2026-10-07 · script: research/regime/poi_stretch_063.py · **Status:** pre-registered (descriptive)
+**Date:** 2026-10-07 · script: research/regime/poi_stretch_063.py · **Status:** done. No scale passes the POI layer
 Template layer: **3 — POI only.** Rebuilding the London fade (046) layer by layer at bigger scales; 046's
 context (1h sideways) and confirmation (1m sweep) are switched OFF here.
 
@@ -35,4 +35,26 @@ Also reported: median target size in pips, mean move after 30 / 60 / 120 min tow
 prop-firm costs. Each kept only if it improves both practice years.
 
 ## Results
-_(filled after the run)_
+results.json, events.parquet.
+
+| EUR+GBP | symmetric race 2023 | 2024 | both (p) | trade-shape: reach the mean before 1.5 ATR stop vs chance | typical ATR / target | move toward mean after 60 min |
+|---|---|---|---|---|---|---|
+| **5m** | 52.3% (n 681) | 51.0% (n 698) | 51.6% (0.23) | **44.1% vs 41.9%** (+2.2 pts) | 4.4 / 9.3 pips | +0.4 pips |
+| **15m** | 47.8% (n 527) | 51.6% (n 535) | 49.7% (0.85) | 40.6% vs 40.5% | 5.4 / 11.8 pips | +0.3 pips |
+| **1h** | 54.2% (n 378) | 51.9% (n 372) | 53.1% (0.09) | 41.0% vs 40.5% | 9.2 / 20.3 pips | +0.9 pips |
+
+AUDUSD symmetric race: 5m 50.0%, 15m 55.1%, 1h 51.4%.
+
+**Verdict:** none of the three scales passes (≥ 55% both years, p < 0.017). The stretch **on its own** is close
+to a coin flip at every scale:
+- **5m:** a small snap-back remains in the trade shape (+2 points over chance), the same size as 046 showed on
+  unseen years. In 046 (EURUSD 2023–24) the gap was +10 points, so most of that came from the other two
+  layers (the 1m sweep confirmation and the 1h-sideways context) plus luck.
+- **15m:** no snap-back at all. 053 (15m stretch + 5m sweep + 4h context) was also below chance, so adding
+  layers didn't rescue this scale either.
+- **1h:** the strongest of the three on the symmetric race (53%, both years above 50%), but not significant,
+  and the trade shape is exactly at chance.
+
+**Where it breaks:** the snap-back is a **short-scale effect** (the 1m–5m reaction at the London open). It
+fades as the scale grows, so it can't simply be scaled up to 20+ pip targets.
+

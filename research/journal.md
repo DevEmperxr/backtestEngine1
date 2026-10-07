@@ -175,3 +175,8 @@ p < 0.006). Previous-day high/low dropped as a POI: confirmation doesn't separat
 Round 00/50 levels: reversal at first touch 50.8% / 52.9% (~8 pips), continuation after a cross 50.4% / 45.5%. Asian high/low
 first touched 07–11 London: 52.5% reversal (~20 pips; 55.1% in 2023, 49.6% in 2024). Nothing passes (>= 55% both years,
 p < 0.01). Three level-type POIs (060 prev-day H/L, round numbers, Asia H/L) are all coin flips at 8–20 pip scales.
+
+## 063 — POI only: 2xATR stretch from the SMA20 at 5m / 15m / 1h, 08:00–10:00 London, 2023+2024 — 2026-10-07
+User request (rebuild the London fade layer by layer at bigger scales). EUR+GBP symmetric race: 5m 51.6%, 15m 49.7%, 1h 53.1%
+(p 0.09); trade shape vs chance: 5m +2.2 pts, 15m 0, 1h +0.5. Nothing passes. The snap-back is a short-scale (1m–5m) effect
+and fades with scale; 046's larger EURUSD 2023–24 edge came from the confirmation + context layers plus luck.
