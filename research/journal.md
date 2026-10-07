@@ -221,3 +221,8 @@ Alpha Pro 10% second; FundedNext drops to mid-table on its $5 commission. Tight 
 User asked how to pass faster. Risk per trade is the lever: 1% -> 2% cut median days to pass ~50 -> ~18 (money in hand ~75 -> ~40)
 and the pass rate rose (36 -> 43% at zero edge before commission): with ~zero/negative edge after costs, bolder bets win.
 3% daily limit caps risk at ~2%. More trades/day lowered pass rates at these edges (costs pile up faster). Lower risk once funded.
+
+## 072 — When to take profits out of a funded FTMO 1-step account (modelling) — 2026-10-07
+User question. Best: first payout as soon as allowed (14 days), then on demand whenever profit >= ~1%. Waiting for 5% or keeping a
+2% buffer pays less at every edge level (the trailing floor rises with profit, so a buffer isn't a cushion). Unknown FTMO rule:
+if the trailing floor stays where the peak put it after a payout, yearly payouts with a good strategy roughly halve. Ask FTMO.
