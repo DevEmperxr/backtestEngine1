@@ -1,0 +1,457 @@
+{
+  "gold_trend": {
+    "2023": {
+      "trades": 118,
+      "R_per_trade": -0.012,
+      "R_total": -1.4,
+      "R_ci95": [
+        -0.096,
+        0.075
+      ],
+      "win_%": 46.6,
+      "net_pips": -284.0,
+      "median_stop": 138.1,
+      "costs_R": 0.033
+    },
+    "2024": {
+      "trades": 191,
+      "R_per_trade": 0.022,
+      "R_total": 4.3,
+      "R_ci95": [
+        -0.057,
+        0.101
+      ],
+      "win_%": 48.2,
+      "net_pips": 235.5,
+      "median_stop": 160.2,
+      "costs_R": 0.029
+    },
+    "both": {
+      "trades": 309,
+      "R_per_trade": 0.009,
+      "R_total": 2.9,
+      "R_ci95": [
+        -0.05,
+        0.068
+      ],
+      "win_%": 47.6,
+      "net_pips": -48.5,
+      "median_stop": 150.3,
+      "costs_R": 0.03
+    },
+    "gross_pips": 1317.0,
+    "costs_pips_total": 1365.4,
+    "exits": {
+      "exit_signal": 283,
+      "sl": 26
+    },
+    "long": {
+      "trades": 309,
+      "R_per_trade": 0.009,
+      "R_total": 2.9,
+      "R_ci95": [
+        -0.05,
+        0.068
+      ],
+      "win_%": 47.6,
+      "net_pips": -48.5,
+      "median_stop": 150.3,
+      "costs_R": 0.03
+    },
+    "short": {
+      "trades": 0,
+      "R_per_trade": null
+    },
+    "scorecard": {
+      "strategy": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 38.2,
+        "expected_gross": 330.5,
+        "EV_net": 241.5,
+        "value_per_fee": 3.71,
+        "P(net>0)_%": 36.7,
+        "trades_to_pass": 115,
+        "days_to_pass": 179,
+        "trades_to_first_payout": 126,
+        "days_to_first_payout": 199,
+        "trades_to_profit": 128,
+        "days_to_profit": 200
+      },
+      "zero_edge_twin": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 18.3,
+        "expected_gross": 105.6,
+        "EV_net": 16.6,
+        "value_per_fee": 1.19,
+        "P(net>0)_%": 16.8,
+        "trades_to_pass": 114,
+        "days_to_pass": 177,
+        "trades_to_first_payout": 129,
+        "days_to_first_payout": 204,
+        "trades_to_profit": 129,
+        "days_to_profit": 204
+      },
+      "beats_twin": true
+    },
+    "candidate": false
+  },
+  "gold_always": {
+    "2023": {
+      "trades": 204,
+      "R_per_trade": -0.013,
+      "R_total": -2.7,
+      "R_ci95": [
+        -0.08,
+        0.053
+      ],
+      "win_%": 46.1,
+      "net_pips": -546.4,
+      "median_stop": 118.3,
+      "costs_R": 0.039
+    },
+    "2024": {
+      "trades": 255,
+      "R_per_trade": 0.037,
+      "R_total": 9.4,
+      "R_ci95": [
+        -0.028,
+        0.104
+      ],
+      "win_%": 51.0,
+      "net_pips": 935.8,
+      "median_stop": 167.1,
+      "costs_R": 0.028
+    },
+    "both": {
+      "trades": 459,
+      "R_per_trade": 0.015,
+      "R_total": 6.8,
+      "R_ci95": [
+        -0.031,
+        0.062
+      ],
+      "win_%": 48.8,
+      "net_pips": 389.4,
+      "median_stop": 144.5,
+      "costs_R": 0.033
+    },
+    "gross_pips": 2420.8,
+    "costs_pips_total": 2031.4,
+    "exits": {
+      "exit_signal": 428,
+      "sl": 31
+    },
+    "long": {
+      "trades": 459,
+      "R_per_trade": 0.015,
+      "R_total": 6.8,
+      "R_ci95": [
+        -0.031,
+        0.062
+      ],
+      "win_%": 48.8,
+      "net_pips": 389.4,
+      "median_stop": 144.5,
+      "costs_R": 0.033
+    },
+    "short": {
+      "trades": 0,
+      "R_per_trade": null
+    },
+    "scorecard": {
+      "strategy": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 60.1,
+        "expected_gross": 682.3,
+        "EV_net": 593.3,
+        "value_per_fee": 7.67,
+        "P(net>0)_%": 58.5,
+        "trades_to_pass": 143,
+        "days_to_pass": 150,
+        "trades_to_first_payout": 165,
+        "days_to_first_payout": 173,
+        "trades_to_profit": 165,
+        "days_to_profit": 174
+      },
+      "zero_edge_twin": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 27.2,
+        "expected_gross": 178.7,
+        "EV_net": 89.7,
+        "value_per_fee": 2.01,
+        "P(net>0)_%": 24.0,
+        "trades_to_pass": 153,
+        "days_to_pass": 161,
+        "trades_to_first_payout": 174,
+        "days_to_first_payout": 184,
+        "trades_to_profit": 179,
+        "days_to_profit": 188
+      },
+      "beats_twin": true
+    }
+  },
+  "aud_trend": {
+    "2023": {
+      "trades": 204,
+      "R_per_trade": -0.122,
+      "R_total": -24.9,
+      "R_ci95": [
+        -0.204,
+        -0.04
+      ],
+      "win_%": 38.7,
+      "net_pips": -858.7,
+      "median_stop": 33.2,
+      "costs_R": 0.053
+    },
+    "2024": {
+      "trades": 256,
+      "R_per_trade": -0.08,
+      "R_total": -20.4,
+      "R_ci95": [
+        -0.151,
+        -0.002
+      ],
+      "win_%": 42.6,
+      "net_pips": -586.2,
+      "median_stop": 27.4,
+      "costs_R": 0.057
+    },
+    "both": {
+      "trades": 460,
+      "R_per_trade": -0.098,
+      "R_total": -45.2,
+      "R_ci95": [
+        -0.151,
+        -0.042
+      ],
+      "win_%": 40.9,
+      "net_pips": -1444.9,
+      "median_stop": 30.5,
+      "costs_R": 0.055
+    },
+    "gross_pips": -689.7,
+    "costs_pips_total": 755.2,
+    "exits": {
+      "exit_signal": 399,
+      "sl": 61
+    },
+    "long": {
+      "trades": 195,
+      "R_per_trade": -0.091,
+      "R_total": -17.7,
+      "R_ci95": [
+        -0.167,
+        -0.014
+      ],
+      "win_%": 45.1,
+      "net_pips": -535.3,
+      "median_stop": 29.8,
+      "costs_R": 0.055
+    },
+    "short": {
+      "trades": 265,
+      "R_per_trade": -0.104,
+      "R_total": -27.5,
+      "R_ci95": [
+        -0.178,
+        -0.025
+      ],
+      "win_%": 37.7,
+      "net_pips": -909.6,
+      "median_stop": 30.7,
+      "costs_R": 0.055
+    },
+    "scorecard": {
+      "strategy": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 0.5,
+        "expected_gross": 0.9,
+        "EV_net": -88.1,
+        "value_per_fee": 0.01,
+        "P(net>0)_%": 0.4,
+        "trades_to_pass": 125,
+        "days_to_pass": 142,
+        "trades_to_first_payout": 134,
+        "days_to_first_payout": 152,
+        "trades_to_profit": 134,
+        "days_to_profit": 152
+      },
+      "zero_edge_twin": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 23.7,
+        "expected_gross": 151.6,
+        "EV_net": 62.6,
+        "value_per_fee": 1.7,
+        "P(net>0)_%": 21.0,
+        "trades_to_pass": 142,
+        "days_to_pass": 150,
+        "trades_to_first_payout": 169,
+        "days_to_first_payout": 183,
+        "trades_to_profit": 169,
+        "days_to_profit": 183
+      },
+      "beats_twin": false
+    },
+    "candidate": false
+  },
+  "aud_always": {
+    "2023": {
+      "trades": 204,
+      "R_per_trade": 0.006,
+      "R_total": 1.3,
+      "R_ci95": [
+        -0.077,
+        0.091
+      ],
+      "win_%": 50.0,
+      "net_pips": 11.5,
+      "median_stop": 33.2,
+      "costs_R": 0.053
+    },
+    "2024": {
+      "trades": 256,
+      "R_per_trade": -0.084,
+      "R_total": -21.6,
+      "R_ci95": [
+        -0.148,
+        -0.019
+      ],
+      "win_%": 44.1,
+      "net_pips": -560.5,
+      "median_stop": 27.4,
+      "costs_R": 0.057
+    },
+    "both": {
+      "trades": 460,
+      "R_per_trade": -0.044,
+      "R_total": -20.3,
+      "R_ci95": [
+        -0.097,
+        0.007
+      ],
+      "win_%": 46.7,
+      "net_pips": -549.0,
+      "median_stop": 30.5,
+      "costs_R": 0.055
+    },
+    "gross_pips": 205.7,
+    "costs_pips_total": 754.8,
+    "exits": {
+      "exit_signal": 405,
+      "sl": 55
+    },
+    "long": {
+      "trades": 460,
+      "R_per_trade": -0.044,
+      "R_total": -20.3,
+      "R_ci95": [
+        -0.097,
+        0.007
+      ],
+      "win_%": 46.7,
+      "net_pips": -549.0,
+      "median_stop": 30.5,
+      "costs_R": 0.055
+    },
+    "short": {
+      "trades": 0,
+      "R_per_trade": null
+    },
+    "scorecard": {
+      "strategy": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 9.9,
+        "expected_gross": 37.8,
+        "EV_net": -51.2,
+        "value_per_fee": 0.42,
+        "P(net>0)_%": 7.7,
+        "trades_to_pass": 137,
+        "days_to_pass": 147,
+        "trades_to_first_payout": 167,
+        "days_to_first_payout": 184,
+        "trades_to_profit": 176,
+        "days_to_profit": 189
+      },
+      "zero_edge_twin": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 29.9,
+        "expected_gross": 222.8,
+        "EV_net": 133.8,
+        "value_per_fee": 2.5,
+        "P(net>0)_%": 27.4,
+        "trades_to_pass": 136,
+        "days_to_pass": 145,
+        "trades_to_first_payout": 162,
+        "days_to_first_payout": 173,
+        "trades_to_profit": 163,
+        "days_to_profit": 171
+      },
+      "beats_twin": false
+    }
+  },
+  "hour_split_XAUUSD": {
+    "2023": {
+      "18:01->19:00": 1337.6,
+      "19:00->03:00": 406.7,
+      "days": 257
+    },
+    "2024": {
+      "18:01->19:00": 614.3,
+      "19:00->03:00": 2033.7,
+      "days": 258
+    }
+  },
+  "hour_split_AUDUSD": {
+    "2023": {
+      "18:01->19:00": 116.6,
+      "19:00->03:00": 240.7,
+      "days": 259
+    },
+    "2024": {
+      "18:01->19:00": 46.4,
+      "19:00->03:00": -117.0,
+      "days": 260
+    }
+  }
+}

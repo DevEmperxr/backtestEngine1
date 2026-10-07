@@ -247,3 +247,8 @@ drift check −0.09R. Shorts lose clearly (bull market). Gold's rise didn't appe
 Gold: Asia 18:00–03:00 NY +$454 (both years positive, t 1.6–2.0, 56% up days), London +$195, NY morning −$297 (both years
 negative), NY afternoon +$372 (both years positive). Explains 075's flat drift check (window on London + NY morning).
 EURUSD: London −742 pips, NY afternoon +706 (home-hours pattern again). Asia gold trade wouldn't cross the rollover.
+
+## 077 — Asian-session trades 19:00 -> 03:00 NY: gold long (uptrend / always), AUDUSD with trend / always long, 2023+2024 — 2026-10-07
+In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022), gold_always +0.015R (CI incl. 0); costs ≈ gross
+(~4.4 pips/trade). 2023's Asian rise was mostly 18:00–19:00 (skipped, wide reopen spread). FTMO scorecard for gold_always 60% pass /
++$593 (low-variance, barely positive, bull market). AUDUSD with trend −0.10R (CI below 0); always long −0.04R. No candidate.
