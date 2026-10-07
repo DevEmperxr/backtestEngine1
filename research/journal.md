@@ -237,3 +237,8 @@ is the first bias layer to help in both years. Daily indicators from 2023+2024 j
 User: keep the bias, try other POIs/entries. All negative in both years after FTMO costs (−0.07 / −0.11 / −0.09R per trade) and
 below their zero-edge twins on the FTMO scorecard. Breakouts with the trend lose (as 059). The RSI(2) sharp dip (073-B, ≈0) stays
 the best of the trend-bias family. No candidate.
+
+## 075 — Gold (XAUUSD) with the daily-trend bias: RSI(2) dip, 20-hour breakout, drift check, 2023+2024 — 2026-10-07
+New: gold support (Engine(pip=), lib.data.pip_size, FTMO_GOLD 0.0007%/side commission). Rules unchanged from 073-B / 074-P2.
+G1 dip −0.18R/trade (−0.11 before costs: dips keep going in gold); G2 breakout −0.08R (flat before costs, no better than drift);
+drift check −0.09R. Shorts lose clearly (bull market). Gold's rise didn't appear in the 08:00 London–16:00 NY window. No candidate.

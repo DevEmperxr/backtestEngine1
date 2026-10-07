@@ -1,0 +1,290 @@
+{
+  "g1": {
+    "2023": {
+      "trades": 121,
+      "R_per_trade": -0.166,
+      "R_total": -20.1,
+      "R_ci95": [
+        -0.327,
+        -0.001
+      ],
+      "win_%": 42.1,
+      "net_pips": -1143.3,
+      "median_stop": 48.5,
+      "costs_R": 0.079
+    },
+    "2024": {
+      "trades": 141,
+      "R_per_trade": -0.198,
+      "R_total": -28.0,
+      "R_ci95": [
+        -0.342,
+        -0.049
+      ],
+      "win_%": 41.1,
+      "net_pips": -2585.4,
+      "median_stop": 74.5,
+      "costs_R": 0.061
+    },
+    "both": {
+      "trades": 262,
+      "R_per_trade": -0.183,
+      "R_total": -48.0,
+      "R_ci95": [
+        -0.293,
+        -0.075
+      ],
+      "win_%": 41.6,
+      "net_pips": -3728.8,
+      "median_stop": 57.3,
+      "costs_R": 0.07
+    },
+    "long": {
+      "trades": 165,
+      "R_per_trade": -0.222,
+      "R_total": -36.6,
+      "R_ci95": [
+        -0.358,
+        -0.085
+      ],
+      "win_%": 39.4,
+      "net_pips": -3221.7,
+      "median_stop": 63.9,
+      "costs_R": 0.064
+    },
+    "short": {
+      "trades": 97,
+      "R_per_trade": -0.118,
+      "R_total": -11.4,
+      "R_ci95": [
+        -0.291,
+        0.061
+      ],
+      "win_%": 45.4,
+      "net_pips": -507.1,
+      "median_stop": 50.9,
+      "costs_R": 0.079
+    },
+    "gross_R_per_trade": -0.114,
+    "scorecard": {
+      "strategy": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 1.2,
+        "expected_gross": 2.0,
+        "EV_net": -87.0,
+        "value_per_fee": 0.02,
+        "P(net>0)_%": 0.6,
+        "trades_to_pass": 44,
+        "days_to_pass": 73,
+        "trades_to_first_payout": 55,
+        "days_to_first_payout": 106,
+        "trades_to_profit": 65,
+        "days_to_profit": 114
+      },
+      "zero_edge_twin": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 31.4,
+        "expected_gross": 222.4,
+        "EV_net": 133.4,
+        "value_per_fee": 2.5,
+        "P(net>0)_%": 26.0,
+        "trades_to_pass": 67,
+        "days_to_pass": 123,
+        "trades_to_first_payout": 80,
+        "days_to_first_payout": 143,
+        "trades_to_profit": 83,
+        "days_to_profit": 147
+      },
+      "beats_twin": false
+    },
+    "candidate": false
+  },
+  "g2": {
+    "2023": {
+      "trades": 107,
+      "R_per_trade": -0.128,
+      "R_total": -13.7,
+      "R_ci95": [
+        -0.291,
+        0.033
+      ],
+      "win_%": 38.3,
+      "net_pips": -493.8,
+      "median_stop": 47.2,
+      "costs_R": 0.084
+    },
+    "2024": {
+      "trades": 120,
+      "R_per_trade": -0.043,
+      "R_total": -5.1,
+      "R_ci95": [
+        -0.201,
+        0.115
+      ],
+      "win_%": 49.2,
+      "net_pips": -449.7,
+      "median_stop": 64.6,
+      "costs_R": 0.067
+    },
+    "both": {
+      "trades": 227,
+      "R_per_trade": -0.083,
+      "R_total": -18.8,
+      "R_ci95": [
+        -0.197,
+        0.032
+      ],
+      "win_%": 44.1,
+      "net_pips": -943.4,
+      "median_stop": 55.4,
+      "costs_R": 0.075
+    },
+    "long": {
+      "trades": 155,
+      "R_per_trade": 0.017,
+      "R_total": 2.6,
+      "R_ci95": [
+        -0.118,
+        0.154
+      ],
+      "win_%": 49.0,
+      "net_pips": -25.0,
+      "median_stop": 58.2,
+      "costs_R": 0.071
+    },
+    "short": {
+      "trades": 72,
+      "R_per_trade": -0.298,
+      "R_total": -21.5,
+      "R_ci95": [
+        -0.495,
+        -0.095
+      ],
+      "win_%": 33.3,
+      "net_pips": -918.5,
+      "median_stop": 48.1,
+      "costs_R": 0.083
+    },
+    "gross_R_per_trade": -0.008,
+    "scorecard": {
+      "strategy": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 6.4,
+        "expected_gross": 17.6,
+        "EV_net": -71.4,
+        "value_per_fee": 0.2,
+        "P(net>0)_%": 3.9,
+        "trades_to_pass": 58,
+        "days_to_pass": 120,
+        "trades_to_first_payout": 77,
+        "days_to_first_payout": 160,
+        "trades_to_profit": 80,
+        "days_to_profit": 170
+      },
+      "zero_edge_twin": {
+        "firm": "FTMO 1-step $10k",
+        "risk_challenge": 1.0,
+        "risk_funded": 1.0,
+        "day_stop": 1.2000000000000002,
+        "fee": 89.0,
+        "commission_usd": 5.0,
+        "pass_%": 25.7,
+        "expected_gross": 169.2,
+        "EV_net": 80.2,
+        "value_per_fee": 1.9,
+        "P(net>0)_%": 22.3,
+        "trades_to_pass": 63,
+        "days_to_pass": 129,
+        "trades_to_first_payout": 74,
+        "days_to_first_payout": 158,
+        "trades_to_profit": 77,
+        "days_to_profit": 162
+      },
+      "beats_twin": false
+    },
+    "candidate": false
+  },
+  "drift": {
+    "2023": {
+      "trades": 205,
+      "R_per_trade": -0.148,
+      "R_total": -30.3,
+      "R_ci95": [
+        -0.276,
+        -0.014
+      ],
+      "win_%": 42.9,
+      "net_pips": -1630.3,
+      "median_stop": 40.2,
+      "costs_R": 0.089
+    },
+    "2024": {
+      "trades": 253,
+      "R_per_trade": -0.04,
+      "R_total": -10.2,
+      "R_ci95": [
+        -0.153,
+        0.072
+      ],
+      "win_%": 48.2,
+      "net_pips": -504.1,
+      "median_stop": 63.0,
+      "costs_R": 0.068
+    },
+    "both": {
+      "trades": 458,
+      "R_per_trade": -0.088,
+      "R_total": -40.4,
+      "R_ci95": [
+        -0.175,
+        -0.002
+      ],
+      "win_%": 45.9,
+      "net_pips": -2134.4,
+      "median_stop": 51.2,
+      "costs_R": 0.078
+    },
+    "long": {
+      "trades": 307,
+      "R_per_trade": -0.024,
+      "R_total": -7.4,
+      "R_ci95": [
+        -0.13,
+        0.082
+      ],
+      "win_%": 49.5,
+      "net_pips": -484.0,
+      "median_stop": 56.3,
+      "costs_R": 0.071
+    },
+    "short": {
+      "trades": 151,
+      "R_per_trade": -0.219,
+      "R_total": -33.0,
+      "R_ci95": [
+        -0.367,
+        -0.066
+      ],
+      "win_%": 38.4,
+      "net_pips": -1650.4,
+      "median_stop": 40.1,
+      "costs_R": 0.091
+    },
+    "gross_R_per_trade": -0.011
+  }
+}
