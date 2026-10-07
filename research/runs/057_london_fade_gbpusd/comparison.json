@@ -1,0 +1,107 @@
+{
+  "GBPUSD 2023": {
+    "trades": 205,
+    "net": -48.9,
+    "net_per_trade": -0.24,
+    "gross_per_trade": 0.64,
+    "spread_per_trade": 0.88,
+    "net_ci95": [
+      -1.92,
+      1.49
+    ],
+    "win_%": 40.0,
+    "median_stop": 9.3,
+    "median_target": 13.6,
+    "max_dd": -191.5
+  },
+  "GBPUSD 2024": {
+    "trades": 215,
+    "net": -18.1,
+    "net_per_trade": -0.08,
+    "gross_per_trade": 0.64,
+    "spread_per_trade": 0.73,
+    "net_ci95": [
+      -1.39,
+      1.24
+    ],
+    "win_%": 40.5,
+    "median_stop": 6.8,
+    "median_target": 10.3,
+    "max_dd": -145.5
+  },
+  "EURUSD 2021": {
+    "trades": 229,
+    "net": -3.0,
+    "net_per_trade": -0.01,
+    "gross_per_trade": 0.26,
+    "spread_per_trade": 0.28,
+    "net_ci95": [
+      -1.09,
+      1.1
+    ],
+    "win_%": 41.0,
+    "median_stop": 6.2,
+    "median_target": 9.3,
+    "max_dd": -161.8
+  },
+  "EURUSD 2022": {
+    "trades": 205,
+    "net": 107.5,
+    "net_per_trade": 0.52,
+    "gross_per_trade": 0.95,
+    "spread_per_trade": 0.42,
+    "net_ci95": [
+      -1.36,
+      2.56
+    ],
+    "win_%": 39.5,
+    "median_stop": 9.5,
+    "median_target": 14.6,
+    "max_dd": -233.9
+  },
+  "EURUSD 2023": {
+    "trades": 199,
+    "net": 263.5,
+    "net_per_trade": 1.32,
+    "gross_per_trade": 1.62,
+    "spread_per_trade": 0.3,
+    "net_ci95": [
+      0.08,
+      2.64
+    ],
+    "win_%": 49.2,
+    "median_stop": 7.0,
+    "median_target": 10.0,
+    "max_dd": -130.6
+  },
+  "EURUSD 2024": {
+    "trades": 210,
+    "net": 191.6,
+    "net_per_trade": 0.91,
+    "gross_per_trade": 1.12,
+    "spread_per_trade": 0.21,
+    "net_ci95": [
+      -0.1,
+      1.93
+    ],
+    "win_%": 48.6,
+    "median_stop": 5.2,
+    "median_target": 7.6,
+    "max_dd": -71.8
+  },
+  "GBPUSD 2023+2024": {
+    "trades": 420,
+    "net": -67.0,
+    "net_per_trade": -0.16,
+    "gross_per_trade": 0.64,
+    "spread_per_trade": 0.8,
+    "net_ci95": [
+      -1.22,
+      0.89
+    ],
+    "win_%": 40.2,
+    "median_stop": 8.1,
+    "median_target": 12.0,
+    "max_dd": -227.4
+  }
+}

@@ -143,3 +143,8 @@ User request (option 3 + shadow rate; allowed re-use of 2009–2020 daily). Pass
 rate part alone t −0.41. All FAIL. Rate-gap change vs EUR/USD: r −0.39 over the same 20 days, +0.03 over the next 20,
 so it is priced as it happens. With 055: central bank tides don't predict EUR/USD; dropped. New dependency in .venv: xlrd
 (old .xls shadow-rate files).
+
+## 057 — London fade (046 unchanged) on GBPUSD 2023+2024 — 2026-10-07
+FAIL after costs: −48.9 / −18.1 (420 trades, −0.16/trade). Gross +0.64/trade both years and target-first 2–3 pts above
+chance, same as unseen EURUSD 2021–22 and EURGBP gross (038). Spread ~0.8 pips/trade eats it. The effect looks real but
+small (~0.3–1 pip gross per trade); not viable at prop-firm costs (commission ~0.5–0.7 pip). GBPUSD 2023/24 now used.
