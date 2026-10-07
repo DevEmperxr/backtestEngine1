@@ -316,3 +316,10 @@ the highest end-of-day balance; best day ≤ 50% of total positive-day profit; 9
   attempt, pass rate, trades/days to pass and until money received > fee, next to the zero-edge twin.
 - Design implications: keep daily risk well inside 3% (one or two trades a day at ~1%, own daily stop ~1.2%);
   avoid lumpy profit (one big day > 50% of profits blocks the pass); steady, many small independent trades suit it.
+
+## Standing rule (user, 2026-10-07): no more over-fitting
+"From now on stop our overfitting experiment. No more overfitting." Runs 085–088 were the user-requested over-fit
+experiments (GER40 2023): every searched "best" setup decayed on unseen data, and walk-forward re-picking each month
+(088) made −0.14R / ~0R per trade. No parameter grids, setup searches or filter-mining, not even as experiments: one
+idea (who loses + setup template), one pre-registered rule set, tested once. Also from 087: index trades block USD red
+news as well as the home currency (US releases were driving the "best" 3R trades on the DAX).
