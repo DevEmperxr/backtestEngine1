@@ -23,4 +23,9 @@ the open marks real order flow, and the faders' stops above/below feed the conti
 beats its zero-edge twin. 2023 is reported only as an in-sample sanity check.
 
 ## Results
-_(filled after the run)_
+**2023 (in-sample, user asked to see it before 2024):** 231 trades, audit ok. −0.016R/trade after costs (CI −0.13 …
++0.09), +0.04R before costs, win 58%; median stop 32 pts vs target 21 pts, so the fade's −0.12R does not mirror into
++0.12R. Break-even, below the +0.05 bar even in-sample.
+
+**2024 note:** 2024 was run in the same command before the user's "before running on 2024" message arrived; only its
+headline total (+420 pts, 212 trades) was seen; not scored yet, pending the user's decision.
