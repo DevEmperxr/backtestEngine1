@@ -258,3 +258,7 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
 - 079: **first CANDIDATE after FTMO costs**. +0.133R/trade (2023 +0.135, 2024 +0.131), pooled CI +0.01…+0.26, 410 trades,
   costs only 0.025R. FTMO 1-step: pass 70% / EV +$1,434 vs twin 38% / +$280. Caveats: longs carry it (+0.22R vs +0.04R),
   depends on fat-tail days; next check a long-only drift baseline, then DAX/Nikkei.
+
+## 2026-10-07 — 081 London fade (066 rules) on NAS100
+- Not a candidate: −0.24R/trade after costs (both years negative, CI below 0); +0.045R before costs. The 03:00–05:00 NY
+  NAS spread (~3.6 pts) is 27% of the 13-point ATR stop. Fixed the run_experiment ATR-stop audit to use the strategy's pip.

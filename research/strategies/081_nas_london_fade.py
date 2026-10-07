@@ -18,6 +18,7 @@ _046 = import_module("research.strategies.046_london_fade_standalone")
 
 class NasLondonFade(_046.LondonFade):
     pip_aware = True
+    pip = pip_size("NAS100")    # read by the lookahead audit's ATR-stop check
 
     def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
         out = super().generate_signals(df)

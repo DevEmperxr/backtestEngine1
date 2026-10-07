@@ -554,6 +554,7 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
                 last_l = L[j]
         conf_hi[i], conf_lo[i] = last_h, last_l
     bad_stretch = bad_sweep = missing = bad_stop = 0
+    sp = getattr(strategy, "pip", PIP)              # stop unit of a pip-aware strategy (index points etc.)
     sl_by_entry = dict(zip(trades["entry_time"].to_list(), trades["sl_pips"].to_list()))
     for et, d in zip(trades["entry_time"].to_list(), trades["direction"].to_list()):
         i = idx.get(et)
@@ -566,10 +567,10 @@ def _sweep022_audit(strategy, trades: pl.DataFrame, base_1s: pl.DataFrame) -> di
             continue
         m5, a5 = ma5[cts5[jj]], atr5[cts5[jj]]
         if getattr(strategy, "stop_mode", "sweep") == "atr":
-            bad_stop += abs(sl_by_entry[et] - strategy.stop_atr_mult * a5 / PIP) > 1e-6
+            bad_stop += abs(sl_by_entry[et] - strategy.stop_atr_mult * a5 / sp) > 1e-6
         elif getattr(strategy, "stop_mode", "sweep") == "sweep_buffer":
             dist = (H[i] - C[i]) if d == "short" else (C[i] - L[i])
-            bad_stop += abs(sl_by_entry[et] - (dist + strategy.buffer_atr * a5) / PIP) > 1e-6
+            bad_stop += abs(sl_by_entry[et] - (dist + strategy.buffer_atr * a5) / sp) > 1e-6
         if d == "short":
             bad_stretch += not (H[i] >= m5 + strategy.stretch_atr * a5 - 1e-9)
             if strategy.mode == "sweep":

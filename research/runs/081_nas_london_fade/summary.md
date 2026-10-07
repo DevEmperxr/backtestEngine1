@@ -21,4 +21,19 @@ to the mean in a sideways hour. On NAS100 these hours are thin pre-market future
 `ftmo_1step_scorecard` beats its zero-edge twin.
 
 ## Results
-_(filled after the run)_
+2026-10-07, NAS100 2023 + 2024, `--prop`. Lookahead audit clean both years (after fixing the audit's ATR-stop check,
+which was recomputing stops in EURUSD pips; it now uses the strategy's own pip; EURUSD 066 still audits clean).
+
+| | trades | R/trade after costs | 95% CI | win % |
+|---|---|---|---|---|
+| 2023 | 250 | **−0.254** | −0.40 … −0.11 | 31 |
+| 2024 | 189 | **−0.221** | −0.39 … −0.04 | 31 |
+| both | 439 | **−0.240** | −0.35 … −0.13 | 31 |
+
+- Before costs only +0.045R per trade. **Costs eat 0.285R per trade**: the median stop is 13 points, but the
+  03:00–05:00 NY spread is ~3.6 points (27% of the stop). On EURUSD the same rules paid ~0.75 pip on a larger stop.
+- Long and short both negative. FTMO 1-step: pass 2%, EV −$85 per attempt vs zero-edge twin 23% / +$47.
+
+**Verdict: NOT a candidate.** The EURUSD edge does not carry over; the pre-market hours are too thin and expensive
+on NAS100, and even before costs the fade is barely positive.
+
