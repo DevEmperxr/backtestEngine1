@@ -37,3 +37,16 @@ which was recomputing stops in EURUSD pips; it now uses the strategy's own pip; 
 **Verdict: NOT a candidate.** The EURUSD edge does not carry over; the pre-market hours are too thin and expensive
 on NAS100, and even before costs the fade is barely positive.
 
+
+---
+
+## Addendum (pre-registered 2026-10-07, before running): same rules on GER40 (DAX), **2023 only** (user request)
+- Identical code (`081 --pair GER40 --prop`): 03:00–04:59 New York entries = **09:00–10:59 Frankfurt, the DAX cash
+  open**, which suits a London-open fade much better than NAS pre-market. News: EUR red news ±2 min (pair_currencies).
+  FTMO index costs: no commission, +0.15-point spread top-up.
+- Who loses: the same early-breakout stop-runs, here at the real DAX opening auction / first hour.
+- Bar for "worth checking 2024": R per trade after costs ≥ +0.05 in 2023 and the FTMO 1-step scorecard beats its
+  zero-edge twin. 2024 then decides.
+
+### GER40 2023 result
+_(filled after the run)_
