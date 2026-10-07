@@ -88,3 +88,33 @@ def test_simulator_daily_safety_skips_trades_that_could_breach():
     tr = _trades_from_days([[-1.0, -1.0, -1.0]] * 20, start)
     s = simulate_challenge(tr, start, start + timedelta(days=27), risk_pct=3.0, n_sims=20)
     assert s["fail_%"] == 100.0                               # fails on max loss (-12% after 4 days), never daily
+
+
+def test_lifecycle_always_winning_collects_payouts_and_refund():
+    from lib.prop import simulate_lifecycle
+    start = date(2024, 1, 1)
+    tr = _trades_from_days([[1.0]] * 40, start)
+    s = simulate_lifecycle(tr, start, start + timedelta(days=55), risk_challenge=1.0, risk_funded=0.5,
+                           funded_days=20, payout_every=10, n_sims=20)
+    assert s["pass_%"] == 100.0
+    # funded: +0.5% a day for 20 days -> two payouts of 5% x 10k x 0.8 = 400 each; + fee refund - fee
+    assert s["funded_mean_payout"] == pytest.approx(800.0)
+    assert s["EV_per_attempt"] == pytest.approx(800.0)
+
+
+def test_lifecycle_always_losing_loses_the_fee():
+    from lib.prop import simulate_lifecycle
+    start = date(2024, 1, 1)
+    tr = _trades_from_days([[-1.0]] * 40, start)
+    s = simulate_lifecycle(tr, start, start + timedelta(days=55), n_sims=20, fee=89.0)
+    assert s["pass_%"] == 0.0 and s["EV_per_attempt"] == pytest.approx(-89.0)
+
+
+def test_own_daily_stop_limits_the_day():
+    # three -1R trades a day at 1% risk with a 1.5% own daily stop: only one trade per day is taken
+    start = date(2024, 1, 1)
+    tr = _trades_from_days([[-1.0, -1.0, -1.0]] * 30, start)
+    a = simulate_challenge(tr, start, start + timedelta(days=41), risk_pct=1.0, n_sims=20)
+    from lib.prop import simulate_lifecycle
+    b = simulate_lifecycle(tr, start, start + timedelta(days=41), risk_challenge=1.0, day_stop=1.5, n_sims=20)
+    assert a["fail_%"] == 100.0 and b["pass_%"] == 0.0

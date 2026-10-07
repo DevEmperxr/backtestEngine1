@@ -84,15 +84,17 @@ def daily_R(trades: pl.DataFrame, start: date, end: date) -> list[list[float]]:
     return days
 
 
-def _phase(days, rng, target, risk, daily_lim, max_lim, min_days, max_days):
-    """Run one phase. Returns ("pass"/"fail"/"timeout", trading days used)."""
+def _phase(days, rng, target, risk, daily_lim, max_lim, min_days, max_days, day_stop=None):
+    """Run one phase. Returns ("pass"/"fail"/"timeout", trading days used). `day_stop` = the trader's own
+    daily stop in % (stop trading for the day once a new trade's full stop could take the day below it)."""
     bal, traded_days = 0.0, 0                    # in % of the initial balance
+    stop_at = min(daily_lim, day_stop) if day_stop else daily_lim
     for n in range(1, max_days + 1):
         day = days[rng.integers(len(days))]
         start_bal = bal
         took = False
         for r in day:
-            if (bal - start_bal) - risk < -daily_lim:      # its stop could breach the daily limit: skip
+            if (bal - start_bal) - risk < -stop_at:        # its stop could breach the daily limit: skip
                 break
             bal += r * risk
             took = True
@@ -132,3 +134,74 @@ def simulate_challenge(trades: pl.DataFrame, start: date, end: date, *, risk_pct
             "timeout_%": round(100 * (o == "timeout").mean(), 1),
             "median_days_to_pass": int(np.median(u[passed])) if passed.any() else None,
             "trades_per_day": round(sum(len(d) for d in days) / len(days), 2), "n_days": len(days)}
+
+
+def _funded(days, rng, risk, daily_lim, max_lim, n_days, payout_every, split, account, day_stop=None):
+    """Funded stage: trade day by day; every `payout_every` trading days withdraw profit (trader keeps `split`)
+    and reset to the initial balance. Ends on a breach or after `n_days`. Returns (payout $, days survived,
+    number of payouts, breached)."""
+    bal, paid, n_pay = 0.0, 0.0, 0
+    stop_at = min(daily_lim, day_stop) if day_stop else daily_lim
+    for n in range(1, n_days + 1):
+        day = days[rng.integers(len(days))]
+        start_bal = bal
+        for r in day:
+            if (bal - start_bal) - risk < -stop_at:
+                break
+            bal += r * risk
+            if bal <= -max_lim or (bal - start_bal) <= -daily_lim:
+                return paid, n, n_pay, True
+        if n % payout_every == 0 and bal > 0:
+            paid += bal / 100 * account * split
+            n_pay += 1
+            bal = 0.0
+    if bal > 0:
+        paid += bal / 100 * account * split
+        n_pay += 1
+    return paid, n_days, n_pay, False
+
+
+def simulate_lifecycle(trades: pl.DataFrame, start: date, end: date, *, risk_challenge: float = 1.0,
+                       risk_funded: float = 0.5, day_stop: float | None = None, fee: float = 89.0,
+                       account: float = 10_000.0, split: float = 0.8, payout_every: int = 10,
+                       funded_days: int = 260, targets: tuple[float, ...] = (10.0, 5.0),
+                       daily_loss_pct: float = 5.0, max_loss_pct: float = 10.0, min_trading_days: int = 4,
+                       max_days_per_phase: int = 260, n_sims: int = 3000, seed: int = 0,
+                       demean: bool = False) -> dict:
+    """Value of one paid attempt: challenge (FTMO 2-step) then up to `funded_days` trading days funded, with a
+    payout every `payout_every` trading days (~2 weeks), profit split `split`, and the fee refunded with the
+    first payout. `day_stop` = the trader's own daily stop (% of the account). Money in account currency."""
+    days = daily_R(trades, start, end)
+    if demean:
+        allr = [r for d in days for r in d]
+        mu = float(np.mean(allr)) if allr else 0.0
+        days = [[r - mu for r in d] for d in days]
+    rng = np.random.default_rng(seed)
+    net, passed, payouts, surv, breached = [], 0, [], [], 0
+    for _ in range(n_sims):
+        ok = True
+        for tgt in targets:
+            res, _n = _phase(days, rng, tgt, risk_challenge, daily_loss_pct, max_loss_pct, min_trading_days,
+                             max_days_per_phase, day_stop)
+            if res != "pass":
+                ok = False
+                break
+        if not ok:
+            net.append(-fee)
+            continue
+        passed += 1
+        paid, n, n_pay, br = _funded(days, rng, risk_funded, daily_loss_pct, max_loss_pct, funded_days,
+                                     payout_every, split, account, day_stop)
+        refund = fee if n_pay > 0 else 0.0
+        net.append(paid + refund - fee)
+        payouts.append(paid)
+        surv.append(n)
+        breached += br
+    net_a = np.array(net)
+    return {"risk_challenge": risk_challenge, "risk_funded": risk_funded, "day_stop": day_stop,
+            "pass_%": round(100 * passed / n_sims, 1),
+            "EV_per_attempt": round(float(net_a.mean()), 1),
+            "P(net > 0)_%": round(100 * float((net_a > 0).mean()), 1),
+            "funded_mean_payout": round(float(np.mean(payouts)), 1) if payouts else None,
+            "funded_median_days_survived": int(np.median(surv)) if surv else None,
+            "funded_breach_%": round(100 * breached / passed, 1) if passed else None}
