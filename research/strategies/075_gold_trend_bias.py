@@ -55,7 +55,7 @@ class GoldTrendBias(Strategy):
         lon = pl.col("close_time").dt.convert_time_zone(LONDON)
         ny = pl.col("close_time").dt.convert_time_zone(NY)
         win = ((lon.dt.time() >= time(8, 0)) & (ny.dt.time() < time(12, 0)) & (ny.dt.weekday() <= 5)
-               & (ny.dt.date() == lon.dt.date()))
+               & (ny.dt.date() == lon.dt.date()) & pl.col("atr1h").is_not_null())   # no signal before the 1h ATR exists
         up, dn = pl.col("trend_prev") == 1, pl.col("trend_prev") == -1
         if self.poi == "rsi2_dip":
             long_, short = up & (pl.col("rsi2") <= 10), dn & (pl.col("rsi2") >= 90)
