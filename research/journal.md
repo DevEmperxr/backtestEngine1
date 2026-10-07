@@ -216,3 +216,8 @@ Alpha 8%) least lenient. Rules from secondary sources (2026-10-07); firm-specifi
 User request. Edge before commission 0 / +0.05 / +0.10R; commissions FTMO $3, Alpha $2.5, The5ers $4, FundedNext/FundingPips/E8 $5.
 FTMO 1-step first at every edge (+$311 / +$616 / +$1,108 per attempt; 42/53/68% pass; ~38–40 trades to pass, ~50–56 to profit).
 Alpha Pro 10% second; FundedNext drops to mid-table on its $5 commission. Tight programs (E8, FundingPips Pro) near zero at zero edge.
+
+## 071 — Passing FTMO 1-step faster (modelling) — 2026-10-07
+User asked how to pass faster. Risk per trade is the lever: 1% -> 2% cut median days to pass ~50 -> ~18 (money in hand ~75 -> ~40)
+and the pass rate rose (36 -> 43% at zero edge before commission): with ~zero/negative edge after costs, bolder bets win.
+3% daily limit caps risk at ~2%. More trades/day lowered pass rates at these edges (costs pile up faster). Lower risk once funded.
