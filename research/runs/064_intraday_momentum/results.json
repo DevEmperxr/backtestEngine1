@@ -1,0 +1,214 @@
+{
+  "T1 NY afternoon 12-16": {
+    "news-free": {
+      "EUR+GBP 2023": {
+        "n": 360,
+        "mean_pips": -1.27,
+        "t": -1.3,
+        "hit_%": 47.2
+      },
+      "EUR+GBP 2024": {
+        "n": 345,
+        "mean_pips": -0.15,
+        "t": -0.18,
+        "hit_%": 48.4
+      },
+      "EUR+GBP both": {
+        "n": 705,
+        "mean_pips": -0.72,
+        "t": -1.13,
+        "hit_%": 47.8
+      },
+      "EURUSD both": {
+        "n": 355,
+        "mean_pips": -0.49,
+        "t": -0.65,
+        "hit_%": 48.7
+      },
+      "GBPUSD both": {
+        "n": 350,
+        "mean_pips": -0.96,
+        "t": -0.93,
+        "hit_%": 46.9
+      },
+      "AUDUSD both": {
+        "n": 358,
+        "mean_pips": -0.48,
+        "t": -0.7,
+        "hit_%": 50.6
+      },
+      "corr(morning, target)": -0.032,
+      "big morning moves": {
+        "n": 353,
+        "mean_pips": -0.26,
+        "t": -0.26,
+        "hit_%": 48.2
+      },
+      "small morning moves": {
+        "n": 352,
+        "mean_pips": -1.18,
+        "t": -1.49,
+        "hit_%": 47.4
+      }
+    },
+    "all days": {
+      "EUR+GBP 2023": {
+        "n": 414,
+        "mean_pips": -0.84,
+        "t": -0.81,
+        "hit_%": 46.9
+      },
+      "EUR+GBP 2024": {
+        "n": 412,
+        "mean_pips": 0.17,
+        "t": 0.2,
+        "hit_%": 49.5
+      },
+      "EUR+GBP both": {
+        "n": 826,
+        "mean_pips": -0.33,
+        "t": -0.49,
+        "hit_%": 48.2
+      },
+      "EURUSD both": {
+        "n": 413,
+        "mean_pips": -0.21,
+        "t": -0.24,
+        "hit_%": 48.4
+      },
+      "GBPUSD both": {
+        "n": 413,
+        "mean_pips": -0.46,
+        "t": -0.43,
+        "hit_%": 47.9
+      },
+      "AUDUSD both": {
+        "n": 413,
+        "mean_pips": -0.26,
+        "t": -0.34,
+        "hit_%": 50.6
+      },
+      "corr(morning, target)": -0.05,
+      "big morning moves": {
+        "n": 413,
+        "mean_pips": -1.29,
+        "t": -1.3,
+        "hit_%": 47.5
+      },
+      "small morning moves": {
+        "n": 413,
+        "mean_pips": 0.62,
+        "t": 0.67,
+        "hit_%": 48.9
+      }
+    }
+  },
+  "T2 last half hour 15:30-16": {
+    "news-free": {
+      "EUR+GBP 2023": {
+        "n": 387,
+        "mean_pips": 0.49,
+        "t": 1.94,
+        "hit_%": 58.4
+      },
+      "EUR+GBP 2024": {
+        "n": 380,
+        "mean_pips": -0.02,
+        "t": -0.11,
+        "hit_%": 50.0
+      },
+      "EUR+GBP both": {
+        "n": 767,
+        "mean_pips": 0.23,
+        "t": 1.44,
+        "hit_%": 54.2
+      },
+      "EURUSD both": {
+        "n": 385,
+        "mean_pips": 0.24,
+        "t": 1.25,
+        "hit_%": 55.1
+      },
+      "GBPUSD both": {
+        "n": 382,
+        "mean_pips": 0.23,
+        "t": 0.87,
+        "hit_%": 53.4
+      },
+      "AUDUSD both": {
+        "n": 388,
+        "mean_pips": 0.15,
+        "t": 0.84,
+        "hit_%": 51.5
+      },
+      "corr(morning, target)": 0.056,
+      "big morning moves": {
+        "n": 384,
+        "mean_pips": 0.37,
+        "t": 1.47,
+        "hit_%": 57.3
+      },
+      "small morning moves": {
+        "n": 383,
+        "mean_pips": 0.09,
+        "t": 0.46,
+        "hit_%": 51.2
+      }
+    },
+    "all days": {
+      "EUR+GBP 2023": {
+        "n": 414,
+        "mean_pips": 0.38,
+        "t": 1.35,
+        "hit_%": 59.2
+      },
+      "EUR+GBP 2024": {
+        "n": 412,
+        "mean_pips": -0.14,
+        "t": -0.57,
+        "hit_%": 50.0
+      },
+      "EUR+GBP both": {
+        "n": 826,
+        "mean_pips": 0.12,
+        "t": 0.65,
+        "hit_%": 54.6
+      },
+      "EURUSD both": {
+        "n": 413,
+        "mean_pips": 0.06,
+        "t": 0.29,
+        "hit_%": 55.0
+      },
+      "GBPUSD both": {
+        "n": 413,
+        "mean_pips": 0.18,
+        "t": 0.6,
+        "hit_%": 54.2
+      },
+      "AUDUSD both": {
+        "n": 413,
+        "mean_pips": -0.06,
+        "t": -0.28,
+        "hit_%": 50.4
+      },
+      "corr(morning, target)": 0.013,
+      "big morning moves": {
+        "n": 413,
+        "mean_pips": -0.01,
+        "t": -0.04,
+        "hit_%": 56.7
+      },
+      "small morning moves": {
+        "n": 413,
+        "mean_pips": 0.25,
+        "t": 1.1,
+        "hit_%": 52.5
+      }
+    }
+  },
+  "CARRY FORWARD": {
+    "T1 NY afternoon 12-16": false,
+    "T2 last half hour 15:30-16": false
+  }
+}

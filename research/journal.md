@@ -180,3 +180,7 @@ p < 0.01). Three level-type POIs (060 prev-day H/L, round numbers, Asia H/L) are
 User request (rebuild the London fade layer by layer at bigger scales). EUR+GBP symmetric race: 5m 51.6%, 15m 49.7%, 1h 53.1%
 (p 0.09); trade shape vs chance: 5m +2.2 pts, 15m 0, 1h +0.5. Nothing passes. The snap-back is a short-scale (1m–5m) effect
 and fades with scale; 046's larger EURUSD 2023–24 edge came from the confirmation + context layers plus luck.
+
+## 064 — Intraday momentum (Gao et al. 2018 adapted): FX-day open -> 09:30 NY move predicts NY afternoon / last half hour? — 2026-10-07
+EUR+GBP news-free: NY afternoon 12–16 −0.72 pips in the morning's direction (t −1.1); last half hour 15:30–16 +0.23 pips
+(t 1.4, hit 54%, only 2023). FAIL: no momentum in the afternoon; last-half-hour effect right sign but far below the spread.

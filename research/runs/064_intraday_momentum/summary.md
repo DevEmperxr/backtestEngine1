@@ -1,6 +1,6 @@
 # 064 — Intraday momentum: does the morning move predict the NY afternoon? EURUSD / GBPUSD / AUDUSD 2023 + 2024
 
-**Date:** 2026-10-07 · script: research/regime/intraday_momentum_064.py · **Status:** pre-registered (descriptive, POI layer)
+**Date:** 2026-10-07 · script: research/regime/intraday_momentum_064.py · **Status:** done. FAIL on both targets
 
 ## Literature
 Gao, Han, Li & Zhou (2018, JFE): on US stock indices the first half-hour return (previous close -> 10:00 ET)
@@ -35,4 +35,21 @@ Also reported: correlation of morning move and target move, results by morning-m
 AUDUSD as a check. A target that passes goes to the next layers (confirmation, context, execution with costs).
 
 ## Results
-_(filled after the run)_
+results.json, days.parquet. Result = target move in the direction of the morning move (pips, mid, before costs).
+
+| EUR+GBP, news-free days | 2023 | 2024 | both | hit rate |
+|---|---|---|---|---|
+| **T1 NY afternoon 12–16** | −1.27 (t −1.3, n 360) | −0.15 (t −0.2, n 345) | **−0.72 (t −1.1)** | 47.8% |
+| **T2 last half hour 15:30–16** | +0.49 (t 1.9, n 387) | −0.02 (t −0.1, n 380) | **+0.23 (t 1.4)** | 54.2% |
+
+All days (reference): T1 −0.33 pips (t −0.5); T2 +0.12 (t 0.7). By pair (news-free, T1): EUR −0.49, GBP −0.96,
+AUD −0.48; (T2): EUR +0.24, GBP +0.23, AUD +0.15. Correlation morning move vs target: T1 −0.03, T2 +0.06.
+Big vs small morning moves: no consistent difference.
+
+**Verdict: FAIL on both.**
+- **NY afternoon:** no momentum. If anything the afternoon leans slightly *against* the morning move
+  (−0.7 pips, not significant).
+- **Last half hour:** the right direction, and price moves with the morning 54% of the time, but the average is
+  only **+0.2 pips**, below even EURUSD's spread, and it only showed in 2023. The literature's equity effect exists
+  here in sign only, far too small to trade.
+
