@@ -131,3 +131,9 @@ User asked what was different before 2023. 12/16 quarters positive (from 2021-Q3
 Volatility, spread, trend, choppiness, 1m autocorrelation don't line up with results (|r| <= 0.3, except quarterly move
 +0.48, mixed). Only the strategy-free snap-back rate tracks results (r +0.48), but that is the edge itself. With +0.66/trade
 and SD 10.2, ~5 of 16 quarters should lose by luck alone; 4 did. Steady small edge plus noise; no regime filter justified.
+
+## 055 — "Q Tide": net Fed vs ECB QE/QT force -> EUR/USD? Test 1, daily 2009–2020 — 2026-10-07
+User idea. Net force = 13-week balance-sheet change as % of GDP (Fed − ECB), z-scored over 3 years; states at ±1.
+Daily DEXUSEU 2009–2020 only (user allowed daily data for Test 1 only). FAIL: long−short tide +0.17% over 20 days but
+slope t 0.49, t 0.48 with momentum control, halves +0.21 / −0.001; bond-holdings version also fails. Markets price QE on
+announcement (EUR/USD fell 1.39 -> 1.05 in 2014 before ECB buying began). Test 2 not run. Code: research/regime/qe_force.py.
