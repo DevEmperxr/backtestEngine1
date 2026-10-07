@@ -38,3 +38,14 @@ The winner on the searched half fell apart on the second half, like 086. The run
 it was singled out partly BECAUSE its Jul–Dec looked good, so Jul–Dec is no longer a clean test for it. If it is
 taken further it must be frozen exactly as is (EUR + USD news) and tested once on GER40 2024 (user's decision).
 Lesson kept: the DAX news filter for future work should include USD.
+
+---
+
+## Test (pre-registered 2026-10-07 before running): runner-up FROZEN on GER40 Jan–Jun 2024
+User: "look at the first half of 2024". Config exactly as in winner.json["runner_up"], EUR + USD red news ±2 min, FTMO
+costs. Data loaded from 2023-12-01 (warm-up only) to 2024-06-30 (Jul–Dec 2024 not loaded); only 2024 trades count.
+**Pass:** R per trade after costs > 0 with 3R hit rate > 25%, and the FTMO 1-step scorecard beats its zero-edge twin.
+A pass means "worth one more out-of-sample check", not a strategy; a fail ends it.
+
+### Result
+_(filled after the run)_
