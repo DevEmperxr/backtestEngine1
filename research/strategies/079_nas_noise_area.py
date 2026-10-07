@@ -1,4 +1,4 @@
-"""079 — NAS100 "noise area" intraday momentum (Zarattini, Aziz & Barbon 2024), FTMO rules. Pip-aware (1 point).
+"""079 â€” NAS100 "noise area" intraday momentum (Zarattini, Aziz & Barbon 2024), FTMO rules. Pip-aware (1 point).
 
 The noise table (day open, previous close, sigma per minute of session over the previous 14 sessions) is built from
 NAS100 2023+2024 joined by build_noise_table() and cached in data/derived/nas100_noise_2023_2024.parquet.
@@ -23,7 +23,7 @@ SESSION_START, SESSION_END = time(9, 30), time(16, 0)
 
 
 def build_noise_table(pair: str = "NAS100", years=(2023, 2024), lookback: int = 14) -> Path:
-    """Per session day and minute-of-session: open, previous close, sigma (mean |price/open − 1| at that minute over the
+    """Per session day and minute-of-session: open, previous close, sigma (mean |price/open âˆ’ 1| at that minute over the
     previous `lookback` sessions; the current day is never included)."""
     parts = []
     for y in years:
@@ -34,8 +34,8 @@ def build_noise_table(pair: str = "NAS100", years=(2023, 2024), lookback: int = 
     t = pl.col("timestamp").dt.convert_time_zone(NY)
     m = m.with_columns(day=t.dt.date(), clock=t.dt.time(), wd=t.dt.weekday())
     s = m.filter((pl.col("clock") >= SESSION_START) & (pl.col("clock") < SESSION_END) & (pl.col("wd") <= 5))
-    s = s.with_columns(minute=((pl.col("timestamp").dt.convert_time_zone(NY).dt.hour() * 60
-                                + pl.col("timestamp").dt.convert_time_zone(NY).dt.minute()) - 570).cast(pl.Int32))
+    ts = pl.col("timestamp").dt.convert_time_zone(NY)
+    s = s.with_columns(minute=ts.dt.hour().cast(pl.Int32) * 60 + ts.dt.minute().cast(pl.Int32) - 570)
     day = (s.group_by("day").agg(open=pl.col("mo").first(), close=pl.col("mc").last(), n=pl.len()).sort("day")
            .filter(pl.col("n") >= 300).with_columns(prev_close=pl.col("close").shift(1)))
     s = s.join(day.select("day", "open"), on="day").with_columns(move=(pl.col("mc") / pl.col("open") - 1).abs())
@@ -66,7 +66,7 @@ class NoiseArea(Strategy):
             build_noise_table()
         t = pl.col("close_time").dt.convert_time_zone(NY)
         out = df.with_columns(day=t.dt.date(), clock=t.dt.time(), wd=t.dt.weekday(),
-                              cmin=(t.dt.hour() * 60 + t.dt.minute() - 570).cast(pl.Int32),
+                              cmin=t.dt.hour().cast(pl.Int32) * 60 + t.dt.minute().cast(pl.Int32) - 570,
                               mc=(pl.col("bid_close") + pl.col("ask_close")) / 2)
         out = out.join(pl.read_parquet(TABLE), on=["day", "cmin"], how="left")
         up = pl.max_horizontal("open", "prev_close") * (1 + pl.col("sigma"))
@@ -78,7 +78,7 @@ class NoiseArea(Strategy):
         out = out.with_columns(
             long_signal=(check & (state == 1)).fill_null(False),
             short_signal=(check & (state == -1)).fill_null(False),
-            in_window=((pl.col("clock") > time(10, 0)) & (pl.col("clock") < time(15, 55)) & (pl.col("wd") <= 5)).fill_null(False),
+            in_window=((pl.col("clock") >= time(10, 0)) & (pl.col("clock") < time(15, 55)) & (pl.col("wd") <= 5)).fill_null(False),
         )
         sig = pl.col("long_signal") | pl.col("short_signal")
         width = self.stop_widths * pl.col("open") * pl.col("sigma") / self.pip

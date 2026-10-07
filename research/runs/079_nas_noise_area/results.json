@@ -1,0 +1,118 @@
+{
+  "2023": {
+    "trades": 198,
+    "R_per_trade": 0.135,
+    "R_total": 26.6,
+    "R_ci95": [
+      -0.029,
+      0.313
+    ],
+    "win_%": 42.9,
+    "net_pips": 1783.4,
+    "median_stop": 60.5,
+    "costs_R": 0.027
+  },
+  "2024": {
+    "trades": 212,
+    "R_per_trade": 0.131,
+    "R_total": 27.8,
+    "R_ci95": [
+      -0.042,
+      0.32
+    ],
+    "win_%": 38.7,
+    "net_pips": 1204.1,
+    "median_stop": 70.3,
+    "costs_R": 0.024
+  },
+  "both": {
+    "trades": 410,
+    "R_per_trade": 0.133,
+    "R_total": 54.4,
+    "R_ci95": [
+      0.013,
+      0.262
+    ],
+    "win_%": 40.7,
+    "net_pips": 2987.5,
+    "median_stop": 64.9,
+    "costs_R": 0.025
+  },
+  "long": {
+    "trades": 213,
+    "R_per_trade": 0.218,
+    "R_total": 46.5,
+    "R_ci95": [
+      0.052,
+      0.401
+    ],
+    "win_%": 46.9,
+    "net_pips": 2230.4,
+    "median_stop": 64.5,
+    "costs_R": 0.025
+  },
+  "short": {
+    "trades": 197,
+    "R_per_trade": 0.04,
+    "R_total": 7.9,
+    "R_ci95": [
+      -0.131,
+      0.225
+    ],
+    "win_%": 34.0,
+    "net_pips": 757.1,
+    "median_stop": 65.9,
+    "costs_R": 0.025
+  },
+  "gross_R_per_trade": 0.158,
+  "exits": {
+    "exit_signal": 318,
+    "sl": 92
+  },
+  "days_traded": 281,
+  "trades_per_traded_day": 1.46,
+  "best_day_share_of_profit_%": 15.5,
+  "best_day_R": 8.42,
+  "scorecard": {
+    "strategy": {
+      "firm": "FTMO 1-step $10k",
+      "risk_challenge": 1.0,
+      "risk_funded": 1.0,
+      "day_stop": 1.2000000000000002,
+      "fee": 89.0,
+      "commission_usd": 5.0,
+      "pass_%": 69.9,
+      "expected_gross": 1522.5,
+      "EV_net": 1433.5,
+      "value_per_fee": 17.11,
+      "P(net>0)_%": 64.1,
+      "trades_to_pass": 36,
+      "days_to_pass": 58,
+      "trades_to_first_payout": 50,
+      "days_to_first_payout": 80,
+      "trades_to_profit": 51,
+      "days_to_profit": 82
+    },
+    "zero_edge_twin": {
+      "firm": "FTMO 1-step $10k",
+      "risk_challenge": 1.0,
+      "risk_funded": 1.0,
+      "day_stop": 1.2000000000000002,
+      "fee": 89.0,
+      "commission_usd": 5.0,
+      "pass_%": 38.2,
+      "expected_gross": 368.5,
+      "EV_net": 279.5,
+      "value_per_fee": 4.14,
+      "P(net>0)_%": 29.7,
+      "trades_to_pass": 34,
+      "days_to_pass": 57,
+      "trades_to_first_payout": 49,
+      "days_to_first_payout": 80,
+      "trades_to_profit": 52,
+      "days_to_profit": 85
+    },
+    "beats_twin": true
+  },
+  "candidate": true
+}

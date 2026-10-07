@@ -252,3 +252,9 @@ EURUSD: London −742 pips, NY afternoon +706 (home-hours pattern again). Asia g
 In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022), gold_always +0.015R (CI incl. 0); costs ≈ gross
 (~4.4 pips/trade). 2023's Asian rise was mostly 18:00–19:00 (skipped, wide reopen spread). FTMO scorecard for gold_always 60% pass /
 +$593 (low-variance, barely positive, bull market). AUDUSD with trend −0.10R (CI below 0); always long −0.04R. No candidate.
+
+## 2026-10-07 — 079 NAS100 noise-area momentum (Zarattini/Aziz/Barbon, no VWAP) + 080 NAS100 sessions
+- 080 sessions 2023–24: gains came overnight (mostly 2024) and in the 10:00–14:00 cash hours; 14:00–16:00 fell in 2024.
+- 079: **first CANDIDATE after FTMO costs**. +0.133R/trade (2023 +0.135, 2024 +0.131), pooled CI +0.01…+0.26, 410 trades,
+  costs only 0.025R. FTMO 1-step: pass 70% / EV +$1,434 vs twin 38% / +$280. Caveats: longs carry it (+0.22R vs +0.04R),
+  depends on fat-tail days; next check a long-only drift baseline, then DAX/Nikkei.
