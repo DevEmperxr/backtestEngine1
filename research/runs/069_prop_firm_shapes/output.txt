@@ -1,0 +1,34 @@
+
+== average edge +0.00R per trade (after costs)
+   FTMO 1-step                  pass  50.6% | expected out $  632.4 | net of fee $  553.4 | per $ of fee   8.0 | P(ahead) 44.8% | risk ch 1.0% fu 1.0%
+   FundedNext Stellar 2-step    pass  45.8% | expected out $  597.9 | net of fee $  507.9 | per $ of fee  6.64 | P(ahead) 45.8% | risk ch 1.0% fu 1.0%
+   FundingPips 2-step (8/5)     pass  45.4% | expected out $  468.9 | net of fee $  408.9 | per $ of fee  7.81 | P(ahead) 38.9% | risk ch 1.0% fu 1.0%
+   FTMO 2-step                  pass  40.9% | expected out $  420.1 | net of fee $  331.1 | per $ of fee  4.72 | P(ahead) 34.4% | risk ch 1.0% fu 1.0%
+   Alpha Capital Pro 10%        pass  40.1% | expected out $  403.1 | net of fee $  323.1 | per $ of fee  5.04 | P(ahead) 33.4% | risk ch 1.0% fu 1.0%
+   The5ers High Stakes          pass  40.1% | expected out $  401.4 | net of fee $  326.4 | per $ of fee  5.35 | P(ahead) 33.4% | risk ch 1.0% fu 1.0%
+   Alpha Capital Pro 8%         pass  40.0% | expected out $  339.6 | net of fee $  259.6 | per $ of fee  4.25 | P(ahead) 33.5% | risk ch 1.0% fu 1.0%
+   E8 2-phase (8/5)             pass  41.0% | expected out $  307.9 | net of fee $  227.9 | per $ of fee  3.85 | P(ahead) 30.6% | risk ch 1.0% fu 1.0%
+   FundingPips 2-step Pro       pass  35.6% | expected out $  223.2 | net of fee $  168.2 | per $ of fee  4.06 | P(ahead) 25.9% | risk ch 1.0% fu 1.0%
+
+== average edge -0.05R per trade (after costs)
+   FTMO 1-step                  pass  39.4% | expected out $  320.2 | net of fee $  241.2 | per $ of fee  4.05 | P(ahead) 32.0% | risk ch 1.0% fu 1.0%
+   FundedNext Stellar 2-step    pass  28.0% | expected out $  298.7 | net of fee $  208.7 | per $ of fee  3.32 | P(ahead) 28.0% | risk ch 2.0% fu 1.0%
+   FundingPips 2-step (8/5)     pass  30.2% | expected out $  230.3 | net of fee $  170.3 | per $ of fee  3.84 | P(ahead) 24.0% | risk ch 2.0% fu 1.0%
+   The5ers High Stakes          pass  26.4% | expected out $  214.6 | net of fee $  139.6 | per $ of fee  2.86 | P(ahead) 22.0% | risk ch 2.0% fu 1.0%
+   Alpha Capital Pro 10%        pass  26.4% | expected out $  211.1 | net of fee $  131.1 | per $ of fee  2.64 | P(ahead) 22.5% | risk ch 2.0% fu 1.0%
+   FTMO 2-step                  pass  25.6% | expected out $  204.2 | net of fee $  115.2 | per $ of fee  2.29 | P(ahead) 21.0% | risk ch 2.0% fu 1.0%
+   Alpha Capital Pro 8%         pass  25.4% | expected out $  176.9 | net of fee $   96.9 | per $ of fee  2.21 | P(ahead) 20.0% | risk ch 1.0% fu 1.0%
+   E8 2-phase (8/5)             pass  26.5% | expected out $  171.7 | net of fee $   91.7 | per $ of fee  2.15 | P(ahead) 19.5% | risk ch 1.0% fu 1.0%
+   FundingPips 2-step Pro       pass  23.6% | expected out $  100.1 | net of fee $   45.1 | per $ of fee  1.82 | P(ahead) 15.2% | risk ch 1.0% fu 1.0%
+
+== average edge -0.10R per trade (after costs)
+   FTMO 1-step                  pass  25.9% | expected out $  167.8 | net of fee $   88.8 | per $ of fee  2.12 | P(ahead) 20.4% | risk ch 1.0% fu 1.0%
+   FundedNext Stellar 2-step    pass  20.9% | expected out $  159.7 | net of fee $   69.7 | per $ of fee  1.77 | P(ahead) 20.9% | risk ch 2.0% fu 1.0%
+   The5ers High Stakes          pass  21.8% | expected out $  114.1 | net of fee $   39.1 | per $ of fee  1.52 | P(ahead) 15.9% | risk ch 2.0% fu 1.0%
+   Alpha Capital Pro 10%        pass  20.0% | expected out $  111.1 | net of fee $   31.1 | per $ of fee  1.39 | P(ahead) 15.2% | risk ch 2.0% fu 1.0%
+   FTMO 2-step                  pass  20.1% | expected out $  108.7 | net of fee $   19.7 | per $ of fee  1.22 | P(ahead) 14.2% | risk ch 2.0% fu 1.0%
+   FundingPips 2-step (8/5)     pass  23.8% | expected out $  105.6 | net of fee $   45.6 | per $ of fee  1.76 | P(ahead) 16.2% | risk ch 2.0% fu 1.0%
+   Alpha Capital Pro 8%         pass  19.0% | expected out $   81.2 | net of fee $    1.2 | per $ of fee  1.01 | P(ahead) 13.2% | risk ch 1.0% fu 1.0%
+   E8 2-phase (8/5)             pass  18.2% | expected out $   70.9 | net of fee $   -9.1 | per $ of fee  0.89 | P(ahead) 11.1% | risk ch 1.0% fu 1.0%
+   FundingPips 2-step Pro       pass  15.8% | expected out $   55.3 | net of fee $    0.3 | per $ of fee  1.01 | P(ahead) 9.9% | risk ch 1.0% fu 1.0%
+ALLDONE

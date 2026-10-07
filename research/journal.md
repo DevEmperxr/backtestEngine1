@@ -205,3 +205,9 @@ Under FTMO costs it is negative in 2021, 2022 and 2025; only the discovery years
 Zero-edge twin: +$390 EV per attempt (1% challenge, 1% funded, 2% own daily stop), 43% pass. Edge sweep: break-even at
 about −0.05 to −0.10R/trade after costs; +0.05R -> +$430–890; +0.10R -> +$790–1,550. FTMO costs ≈ 0.1R/trade on 6-pip stops,
 so a zero-gross-edge small-stop strategy is about break-even. A 2% own daily stop raised pass rates.
+
+## 069 — Which prop firm has the most lenient payoff shape? (modelling, lib/prop_firms.py) — 2026-10-07
+9 programs (FTMO 2-step/1-step, FundedNext Stellar 2-step, The5ers High Stakes, FundingPips 2-step/Pro, Alpha Pro 10%/8%, E8),
+same trade shape (2023–24 London-fade trades, edge set to 0 / −0.05 / −0.10R). FTMO 1-step best at every edge (+$553 / +$241
+/ +$89 per attempt net of fee, 51% / 39% / 26% pass), then FundedNext Stellar 2-step; tight programs (FundingPips Pro, E8,
+Alpha 8%) least lenient. Rules from secondary sources (2026-10-07); firm-specific costs not modelled.
