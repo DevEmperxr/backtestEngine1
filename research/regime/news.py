@@ -38,8 +38,9 @@ def red_news_dates(currencies: list[str], path: Path = CAL) -> set[date]:
     return set(out["day"].to_list())
 
 
-# stock indices follow their home economy's news
-INDEX_CURRENCIES = {"NAS100": ["USD"], "GER40": ["EUR"], "JPN225": ["JPY"]}
+# stock indices follow their home economy's news, plus USD for non-US indices (user rule 2026-10-07, from 087:
+# US releases move the DAX and Nikkei too)
+INDEX_CURRENCIES = {"NAS100": ["USD"], "GER40": ["EUR", "USD"], "JPN225": ["JPY", "USD"]}
 
 
 def pair_currencies(pair: str) -> list[str]:
