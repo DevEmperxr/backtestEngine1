@@ -269,3 +269,8 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
 - 083: the first hour sets the day high or low on 65% of days; opening moves lean to reversal (weak, t −1.75).
 - 084 a (fade first 30 min) −0.11R, b (first-hour false break) −0.05R after costs; both stopped out ~80% of the time
   with tight stops (13–16 pts). Not candidates; 2024 not run.
+
+## 2026-10-07 — 085 DELIBERATE OVERFIT lesson (user-approved one-off, GER40 2023 only; not evidence)
+- 084a stops (16 pts) inside open noise: 82% stopped, 41% of those right by the close; raw lean +9 pts/trade (t 1.45).
+  084b: nothing there (t 0.03).
+- Best of 968 configs on Jan–Jun (+0.85R) -> −0.06R Jul–Dec; its profit was 2 crisis days (17/20 Mar 2023). Never again.
