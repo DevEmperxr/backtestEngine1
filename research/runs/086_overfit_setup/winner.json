@@ -1,0 +1,26 @@
+{
+ "config": {
+  "context": "vol_rising",
+  "bias": "against_prevday",
+  "poi": "round_100",
+  "window": "10-12",
+  "confirm": "retest",
+  "stop": 0.1,
+  "target": null
+ },
+ "fast_sim": {
+  "context": "vol_rising",
+  "bias": "against_prevday",
+  "poi": "round_100",
+  "window": "10-12",
+  "confirm": "retest",
+  "stop_atr": 0.1,
+  "target_R": null,
+  "H1_n": 30,
+  "H1_R": 71.77761469500611,
+  "H1_R_per_trade": 2.3925871565002037,
+  "H2_n": 36,
+  "H2_R": 0.15828986057083871,
+  "H2_R_per_trade": 0.004396940571412187
+ }
+}

@@ -274,3 +274,5 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
 - 084a stops (16 pts) inside open noise: 82% stopped, 41% of those right by the close; raw lean +9 pts/trade (t 1.45).
   084b: nothing there (t 0.03).
 - Best of 968 configs on Jan–Jun (+0.85R) -> −0.06R Jul–Dec; its profit was 2 crisis days (17/20 Mar 2023). Never again.
+- 086 (same day): user asked for a proper over-fit over the setup template. 16,128 GER40 setups on Jan–Jun 2023; winner
+  +2.39R/trade (FTMO pass 95%) -> 0.00R/trade Jul–Dec. H1-vs-H2 correlation across setups −0.09. Never again.
