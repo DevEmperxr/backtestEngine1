@@ -49,4 +49,6 @@ on NAS100, and even before costs the fade is barely positive.
   zero-edge twin. 2024 then decides.
 
 ### GER40 2023 result
-_(filled after the run)_
+244 trades, audit clean. **−0.192R per trade after costs** (CI −0.34 … −0.04), win 35%; **before costs −0.116R**, so
+the loss is the fade itself, not costs (median spread 1.5 pts on a 21-point stop = 0.08R). Long −0.19, short −0.19.
+FTMO 1-step: pass 1.8%, EV −$87 vs twin 33.5% / +$155. **Fails the bar; 2024 not run.** Chart ger40_2023.png.

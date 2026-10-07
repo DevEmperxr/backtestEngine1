@@ -1,0 +1,89 @@
+{
+  "2023": {
+    "trades": 244,
+    "R_per_trade": -0.192,
+    "R_total": -46.7,
+    "R_ci95": [
+      -0.338,
+      -0.044
+    ],
+    "win_%": 34.8,
+    "net_pips": -919.8,
+    "median_stop": 20.6,
+    "costs_R": 0.076
+  },
+  "long": {
+    "trades": 108,
+    "R_per_trade": -0.193,
+    "R_total": -20.9,
+    "R_ci95": [
+      -0.411,
+      0.039
+    ],
+    "win_%": 33.3,
+    "net_pips": -478.8,
+    "median_stop": 22.1,
+    "costs_R": 0.073
+  },
+  "short": {
+    "trades": 136,
+    "R_per_trade": -0.19,
+    "R_total": -25.8,
+    "R_ci95": [
+      -0.378,
+      0.006
+    ],
+    "win_%": 36.0,
+    "net_pips": -441.0,
+    "median_stop": 20.2,
+    "costs_R": 0.078
+  },
+  "gross_R_per_trade": -0.116,
+  "exits": {
+    "exit_signal": 5,
+    "tp": 82,
+    "sl": 157
+  },
+  "median_spread_pts": 1.47,
+  "scorecard": {
+    "strategy": {
+      "firm": "FTMO 1-step $10k",
+      "risk_challenge": 1.0,
+      "risk_funded": 0.5,
+      "day_stop": 1.2000000000000002,
+      "fee": 89.0,
+      "commission_usd": 5.0,
+      "pass_%": 1.8,
+      "expected_gross": 2.5,
+      "EV_net": -86.5,
+      "value_per_fee": 0.03,
+      "P(net>0)_%": 0.9,
+      "trades_to_pass": 29,
+      "days_to_pass": 35,
+      "trades_to_first_payout": 39,
+      "days_to_first_payout": 52,
+      "trades_to_profit": 47,
+      "days_to_profit": 67
+    },
+    "zero_edge_twin": {
+      "firm": "FTMO 1-step $10k",
+      "risk_challenge": 0.5,
+      "risk_funded": 0.5,
+      "day_stop": 1.2000000000000002,
+      "fee": 89.0,
+      "commission_usd": 5.0,
+      "pass_%": 33.5,
+      "expected_gross": 243.7,
+      "EV_net": 154.7,
+      "value_per_fee": 2.74,
+      "P(net>0)_%": 30.3,
+      "trades_to_pass": 129,
+      "days_to_pass": 152,
+      "trades_to_first_payout": 155,
+      "days_to_first_payout": 181,
+      "trades_to_profit": 157,
+      "days_to_profit": 182
+    },
+    "beats_twin": false
+  }
+}

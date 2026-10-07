@@ -262,3 +262,5 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
 ## 2026-10-07 — 081 London fade (066 rules) on NAS100
 - Not a candidate: −0.24R/trade after costs (both years negative, CI below 0); +0.045R before costs. The 03:00–05:00 NY
   NAS spread (~3.6 pts) is 27% of the 13-point ATR stop. Fixed the run_experiment ATR-stop audit to use the strategy's pip.
+- 081 on GER40 2023 (user request, 2023 only): −0.19R/trade after costs, −0.12R even BEFORE costs (cheap 1.5-pt spread at
+  the DAX open). The fade loses at the DAX cash open; not run on 2024.
