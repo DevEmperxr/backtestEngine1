@@ -1,0 +1,279 @@
+{
+ "nas100_drift_check": {
+  "strategy_R_per_trade": 0.133,
+  "always_long_twin_R_per_trade": 0.07,
+  "2023": {
+   "strategy": 0.135,
+   "long_twin": 0.135
+  },
+  "2024": {
+   "strategy": 0.131,
+   "long_twin": 0.009
+  },
+  "short_trades": {
+   "n": 197,
+   "strategy_R": 0.04,
+   "long_twin_R": -0.091
+  },
+  "edge_over_long_twin": 0.063,
+  "direction_adds_value": true
+ },
+ "NAS100": {
+  "2023": {
+   "trades": 198,
+   "R_per_trade": 0.135,
+   "R_total": 26.6,
+   "R_ci95": [
+    -0.029,
+    0.313
+   ],
+   "win_%": 42.9,
+   "net_pips": 1783.4,
+   "median_stop": 60.5,
+   "costs_R": 0.027
+  },
+  "2024": {
+   "trades": 212,
+   "R_per_trade": 0.131,
+   "R_total": 27.8,
+   "R_ci95": [
+    -0.042,
+    0.32
+   ],
+   "win_%": 38.7,
+   "net_pips": 1204.1,
+   "median_stop": 70.3,
+   "costs_R": 0.024
+  },
+  "both": {
+   "trades": 410,
+   "R_per_trade": 0.133,
+   "R_total": 54.4,
+   "R_ci95": [
+    0.013,
+    0.262
+   ],
+   "win_%": 40.7,
+   "net_pips": 2987.5,
+   "median_stop": 64.9,
+   "costs_R": 0.025
+  },
+  "long": {
+   "trades": 213,
+   "R_per_trade": 0.218,
+   "R_total": 46.5,
+   "R_ci95": [
+    0.052,
+    0.401
+   ],
+   "win_%": 46.9,
+   "net_pips": 2230.4,
+   "median_stop": 64.5,
+   "costs_R": 0.025
+  },
+  "short": {
+   "trades": 197,
+   "R_per_trade": 0.04,
+   "R_total": 7.9,
+   "R_ci95": [
+    -0.131,
+    0.225
+   ],
+   "win_%": 34.0,
+   "net_pips": 757.1,
+   "median_stop": 65.9,
+   "costs_R": 0.025
+  },
+  "gross_R_per_trade": 0.158,
+  "exits": {
+   "exit_signal": 318,
+   "sl": 92
+  },
+  "ftmo": {
+   "strategy": {
+    "risk_challenge": 1.0,
+    "pass_%": 69.9,
+    "EV_net": 1433.5,
+    "days_to_pass": 58
+   },
+   "twin": {
+    "pass_%": 38.2,
+    "EV_net": 279.5
+   },
+   "beats_twin": true
+  },
+  "candidate": true
+ },
+ "GER40": {
+  "2023": {
+   "trades": 361,
+   "R_per_trade": -0.143,
+   "R_total": -51.6,
+   "R_ci95": [
+    -0.25,
+    -0.024
+   ],
+   "win_%": 29.4,
+   "net_pips": -1973.4,
+   "median_stop": 45.7,
+   "costs_R": 0.036
+  },
+  "2024": {
+   "trades": 364,
+   "R_per_trade": -0.028,
+   "R_total": -10.2,
+   "R_ci95": [
+    -0.133,
+    0.084
+   ],
+   "win_%": 37.9,
+   "net_pips": 5.9,
+   "median_stop": 48.4,
+   "costs_R": 0.038
+  },
+  "both": {
+   "trades": 725,
+   "R_per_trade": -0.085,
+   "R_total": -61.8,
+   "R_ci95": [
+    -0.163,
+    -0.006
+   ],
+   "win_%": 33.7,
+   "net_pips": -1967.5,
+   "median_stop": 46.8,
+   "costs_R": 0.037
+  },
+  "long": {
+   "trades": 390,
+   "R_per_trade": -0.041,
+   "R_total": -15.9,
+   "R_ci95": [
+    -0.134,
+    0.057
+   ],
+   "win_%": 38.2,
+   "net_pips": -465.6,
+   "median_stop": 46.9,
+   "costs_R": 0.038
+  },
+  "short": {
+   "trades": 335,
+   "R_per_trade": -0.137,
+   "R_total": -46.0,
+   "R_ci95": [
+    -0.259,
+    -0.004
+   ],
+   "win_%": 28.4,
+   "net_pips": -1501.9,
+   "median_stop": 46.8,
+   "costs_R": 0.036
+  },
+  "gross_R_per_trade": -0.048,
+  "exits": {
+   "sl": 181,
+   "exit_signal": 544
+  },
+  "ftmo": {
+   "strategy": {
+    "risk_challenge": 1.0,
+    "pass_%": 19.1,
+    "EV_net": 16.6,
+    "days_to_pass": 40
+   },
+   "twin": {
+    "pass_%": 38.4,
+    "EV_net": 310.6
+   },
+   "beats_twin": false
+  },
+  "candidate": false
+ },
+ "JPN225": {
+  "2023": {
+   "trades": 193,
+   "R_per_trade": -0.08,
+   "R_total": -15.4,
+   "R_ci95": [
+    -0.205,
+    0.054
+   ],
+   "win_%": 35.2,
+   "net_pips": -879.5,
+   "median_stop": 103.1,
+   "costs_R": 0.108
+  },
+  "2024": {
+   "trades": 188,
+   "R_per_trade": 0.004,
+   "R_total": 0.8,
+   "R_ci95": [
+    -0.214,
+    0.273
+   ],
+   "win_%": 29.3,
+   "net_pips": -381.2,
+   "median_stop": 140.5,
+   "costs_R": 0.081
+  },
+  "both": {
+   "trades": 381,
+   "R_per_trade": -0.038,
+   "R_total": -14.6,
+   "R_ci95": [
+    -0.166,
+    0.107
+   ],
+   "win_%": 32.3,
+   "net_pips": -1260.6,
+   "median_stop": 122.6,
+   "costs_R": 0.095
+  },
+  "long": {
+   "trades": 208,
+   "R_per_trade": -0.036,
+   "R_total": -7.5,
+   "R_ci95": [
+    -0.207,
+    0.156
+   ],
+   "win_%": 32.7,
+   "net_pips": -1518.4,
+   "median_stop": 117.4,
+   "costs_R": 0.098
+  },
+  "short": {
+   "trades": 173,
+   "R_per_trade": -0.042,
+   "R_total": -7.2,
+   "R_ci95": [
+    -0.226,
+    0.195
+   ],
+   "win_%": 31.8,
+   "net_pips": 257.7,
+   "median_stop": 129.2,
+   "costs_R": 0.091
+  },
+  "gross_R_per_trade": 0.056,
+  "exits": {
+   "exit_signal": 277,
+   "sl": 104
+  },
+  "ftmo": {
+   "strategy": {
+    "risk_challenge": 1.0,
+    "pass_%": 72.7,
+    "EV_net": 1352.5,
+    "days_to_pass": 78
+   },
+   "twin": {
+    "pass_%": 61.5,
+    "EV_net": 856.8
+   },
+   "beats_twin": true
+  },
+  "candidate": false
+ }
+}

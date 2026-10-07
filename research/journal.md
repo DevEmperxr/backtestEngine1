@@ -287,3 +287,8 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
 - Re-pick the most-3R-wins setup each month from the previous 1 or 3 months, trade it the next month: L1 −0.135R/trade
   (worse than a random setup), L3 +0.01R (~0, 3R hit 23%). Chosen-on months looked +0.6…+1.1R. Method fails as
   pre-registered. Longer lookback = less noise but still no edge.
+
+## 2026-10-07 — 089 noise-area: NAS100 drift check + DAX / Nikkei (rules frozen from 079)
+- Index news rule now includes USD for GER40/JPN225 (user-approved).
+- NAS100 beats its always-long twin by +0.063R/trade pooled (2023: 0.000, 2024: +0.122); shorts' long-twin −0.09.
+- GER40 −0.085R/trade (negative before costs too), JPN225 −0.038R. Not candidates. Noise-area = Nasdaq-specific.

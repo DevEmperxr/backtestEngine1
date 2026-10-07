@@ -22,5 +22,27 @@ shorts −(gross move) − spread. Same stop as R unit.
 **Candidate (each index separately):** after costs R per trade > 0 in both years, pooled ≥ +0.05, and the FTMO 1-step
 scorecard beats its zero-edge twin.
 
-## Results
-_(filled after the run)_
+## Results (all audits clean; NAS100 through the general code reproduces 079 exactly)
+
+### (1) NAS100 vs always-long twin
+| | strategy R/trade | always-long twin | difference |
+|---|---|---|---|
+| 2023 | +0.135 | +0.135 | 0.000 |
+| 2024 | +0.131 | +0.009 | +0.122 |
+| both | **+0.133** | **+0.070** | **+0.063** |
+- During the 197 short trades, being long would have made −0.091R per trade; the shorts made +0.04. So the shorts were
+  on the right side. **Passes the pre-registered check (≥ +0.05, shorts' twin negative)**, but all the extra came in
+  2024; in 2023 the direction choice added nothing over being long.
+
+### (2) Same rules on other indices (after FTMO costs)
+| | 2023 | 2024 | both [CI] | before costs | FTMO 1-step (twin) | candidate |
+|---|---|---|---|---|---|---|
+| NAS100 | +0.135 | +0.131 | +0.133 [+0.01, +0.26] | +0.158 | 70% / $1,434 (38% / $280) | **yes** |
+| GER40 | −0.143 | −0.028 | −0.085 [−0.16, −0.01] | −0.048 | 19% / $17 (38% / $311) | no |
+| JPN225 | −0.080 | +0.004 | −0.038 [−0.17, +0.11] | +0.056 | 73% / $1,353 (62% / $857) | no |
+- GER40 loses even before costs (shorts worst, −0.14). JPN225 is ~0 before costs and costs (0.10R: 7–10-point spread)
+  take it below zero; its FTMO score beats the twin only through fat tails (fails the R bar).
+
+**Verdict:** the noise-area rule works on NAS100 only. It does not generalise to the DAX or Nikkei with these rules,
+so the NAS100 result should be treated as Nasdaq-specific (consistent with the US-market origin of the paper).
+
