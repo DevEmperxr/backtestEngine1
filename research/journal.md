@@ -232,3 +232,8 @@ User asked for an indicator-based strategy in the setup template. Bias (daily cl
 (daily ATR > 100d median) DROPPED, 15m confirmation DROPPED. Final B: 2023 +0.099R, 2024 −0.061R; 277 trades, +0.009R/trade after
 costs. FTMO 1-step scorecard: 36% pass vs 31.5% twin, +$194 vs +$146 per attempt. Not a candidate (negative 2024). Daily-trend bias
 is the first bias layer to help in both years. Daily indicators from 2023+2024 joined (data/derived/eurusd_daily_2023_2024.parquet).
+
+## 074 — Daily-trend bias + three POIs (SMA20 pullback, 20-hour breakout, previous-day break), EURUSD 2023+2024 — 2026-10-07
+User: keep the bias, try other POIs/entries. All negative in both years after FTMO costs (−0.07 / −0.11 / −0.09R per trade) and
+below their zero-edge twins on the FTMO scorecard. Breakouts with the trend lose (as 059). The RSI(2) sharp dip (073-B, ≈0) stays
+the best of the trend-bias family. No candidate.

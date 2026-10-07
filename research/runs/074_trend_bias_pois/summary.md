@@ -1,7 +1,7 @@
 # 074 — Daily-trend bias + three different POIs (immediate entry), FTMO 1-step shape, EURUSD 2023 + 2024
 
 **Date:** 2026-10-07 · strategy: research/strategies/074_trend_bias_pois.py · analysis: research/regime/trend_bias_074.py
-**Status:** pre-registered. User: "Keep the daily-trend bias and try a different POI or entry under it." In-sample.
+**Status:** done. No candidate; all three negative in both years. User: "Keep the daily-trend bias and try a different POI or entry under it." In-sample.
 
 ## Kept from 073
 - **Bias:** previous completed FX day's close vs its 50-day SMA (data/derived/eurusd_daily_2023_2024.parquet):
@@ -25,4 +25,21 @@ A POI is a **candidate** only if, after all FTMO costs: R per trade > 0 in **bot
 Reference: 073-B (RSI(2) dip + bias) pooled +0.009R.
 
 ## Results
-_(filled after the run)_
+All 6 runs: lookahead audit ok. Analysis: research/regime/trend_bias_074.py -> results.json; charts pois_equity.png,
+equity_R_<p>.png. R after spread + $5 commission (costs ≈ 0.06R per trade).
+
+| POI (+ daily-trend bias) | 2023 (from Mar 13): trades, R/trade | 2024: trades, R/trade | both: R/trade [CI] | FTMO 1-step pass / $ per attempt (twin) |
+|---|---|---|---|---|
+| P1 pullback to 1h SMA20 | 135, −0.111 | 155, −0.036 | −0.071 [−0.17, +0.03] | 9.7% / −$50 (32.3% / +$139) |
+| P2 20-hour breakout | 95, −0.063 | 132, −0.149 | −0.113 [−0.23, +0.01] | 4.3% / −$78 (25.7% / +$80) |
+| P3 previous-day break | 82, −0.016 | 100, −0.141 | −0.085 [−0.22, +0.06] | 6.8% / −$63 (23.7% / +$62) |
+| *ref. 073-B RSI(2) dip* | *121, +0.099* | *156, −0.061* | *+0.009* | *36.0% / +$194 (31.5% / +$146)* |
+
+**Verdict: no candidate.** All three lose in both years after costs, and all three are worse than their zero-edge
+twins on the FTMO scorecard (they lose the fee on average). Before costs they are roughly flat to slightly negative.
+- **Trend continuation (P2, P3) loses**: buying breakouts in the trend's direction doesn't pay at this scale, the
+  same as plain breakouts in 059 (breakout traders are the losers at these times).
+- **A calm pullback to the average (P1)** does worse than the sharp RSI(2) dip (073-B): the trend bias only seemed to
+  help when combined with a sharp, oversold move.
+- The daily-trend bias on its own doesn't create an edge; in 073 it improved a near-zero signal, nothing more.
+
