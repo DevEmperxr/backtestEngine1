@@ -242,3 +242,8 @@ the best of the trend-bias family. No candidate.
 New: gold support (Engine(pip=), lib.data.pip_size, FTMO_GOLD 0.0007%/side commission). Rules unchanged from 073-B / 074-P2.
 G1 dip −0.18R/trade (−0.11 before costs: dips keep going in gold); G2 breakout −0.08R (flat before costs, no better than drift);
 drift check −0.09R. Shorts lose clearly (bull market). Gold's rise didn't appear in the 08:00 London–16:00 NY window. No candidate.
+
+## 076 — Where in the day did gold move in 2023–24? (descriptive) — 2026-10-07
+Gold: Asia 18:00–03:00 NY +$454 (both years positive, t 1.6–2.0, 56% up days), London +$195, NY morning −$297 (both years
+negative), NY afternoon +$372 (both years positive). Explains 075's flat drift check (window on London + NY morning).
+EURUSD: London −742 pips, NY afternoon +706 (home-hours pattern again). Asia gold trade wouldn't cross the rollover.
