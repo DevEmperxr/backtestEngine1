@@ -1,7 +1,7 @@
 # 065 — AUDUSD: fade a sweep of the Tokyo first-hour range during the second hour of Asia, 2023 + 2024
 
 **Date:** 2026-10-07 · files: research/strategies/065_tokyo_sweep.py, research/regime/tokyo_sweep_065.py
-**Status:** pre-registered (user request; user chose Tokyo 10:00–11:00 and "fade a sweep of the first hour's range")
+**Status:** done. **FAIL** (AUDUSD loses at every layer)
 
 ## 0. Who loses, and why
 At 09:55 Tokyo the Tokyo fix concentrates Japanese corporate dollar buying (a forced, price-insensitive flow;
@@ -38,4 +38,22 @@ AUDUSD strategy: total R > 0 in **both** 2023 and 2024, pooled **R per trade ≥
 CI of R per trade **above 0**.
 
 ## Results
-_(filled after the run)_
+Engine runs: research/runs/065_tokyo_sweep/ (lookahead audit ok, all pairs/years). Analysis:
+research/regime/tokyo_sweep_065.py -> results.json; charts equity_monthly_R_<PAIR>.png.
+
+Races: "back to the first-hour midpoint" vs "the same distance further", chance 50%.
+
+| | L3 POI only 2023 / 2024 | L4 + sweep 2023 / 2024 | L5 trade: R 2023 / 2024 | R per trade [CI], both years | net / gross pips |
+|---|---|---|---|---|---|
+| **AUDUSD** | 45.8% / 49.5% | 44.7% / 49.5% | −49.9 / −34.4 | **−0.22 [−0.30, −0.14]** | −638 / −228 |
+| EURUSD | 47.8% / 54.2% | 46.8% / 51.3% | −15.4 / −4.9 | −0.05 [−0.13, +0.03] | −48 / +73 |
+| GBPUSD | 53.1% / 56.9% | 53.4% / 56.4% | −27.0 / −18.2 | −0.11 [−0.19, −0.03] | −278 / +132 |
+
+AUDUSD trades: 385, win 45.5%, median stop 6.6 / target 4.3 pips, spread 1.07 pips per trade (~0.16R).
+
+**Verdict: FAIL.** On AUDUSD the first-hour range break in the second Tokyo hour **does not reverse**: price
+goes back to the midpoint less often than chance at the POI layer (46–50%), the sweep confirmation doesn't change
+that (45–50%), and the trade loses even before costs (gross −228 pips); after AUDUSD's ~1 pip spread on ~4-pip
+targets it loses clearly (−84R). EURUSD is flat before costs. GBPUSD leaned toward reversal (53–57%, gross +132
+pips) but its ~1 pip spread turns it negative (−45R); a hint only, not the primary.
+

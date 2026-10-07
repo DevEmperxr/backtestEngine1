@@ -1,0 +1,267 @@
+{
+  "AUDUSD 2023": {
+    "L3 POI only": {
+      "n": 203,
+      "success_%": 45.8,
+      "p": 0.2328,
+      "open": 13
+    },
+    "L4 + sweep": {
+      "n": 188,
+      "success_%": 44.7,
+      "p": 0.1447,
+      "open": 4
+    },
+    "L5 trades": {
+      "trades": 192,
+      "net_pips": -385.0,
+      "gross_pips": -160.1,
+      "R_total": -49.85,
+      "R_per_trade": -0.26,
+      "R_ci95": [
+        -0.372,
+        -0.146
+      ],
+      "win_%": 43.8,
+      "median_stop": 7.0,
+      "median_target": 4.6,
+      "spread_per_trade": 1.17,
+      "exits": {
+        "tp": 79,
+        "exit_signal": 15,
+        "sl": 98
+      }
+    }
+  },
+  "AUDUSD 2024": {
+    "L3 POI only": {
+      "n": 202,
+      "success_%": 49.5,
+      "p": 0.8881,
+      "open": 21
+    },
+    "L4 + sweep": {
+      "n": 182,
+      "success_%": 49.5,
+      "p": 0.8821,
+      "open": 11
+    },
+    "L5 trades": {
+      "trades": 193,
+      "net_pips": -253.4,
+      "gross_pips": -67.6,
+      "R_total": -34.36,
+      "R_per_trade": -0.178,
+      "R_ci95": [
+        -0.294,
+        -0.065
+      ],
+      "win_%": 47.2,
+      "median_stop": 6.3,
+      "median_target": 4.1,
+      "spread_per_trade": 0.96,
+      "exits": {
+        "sl": 89,
+        "exit_signal": 21,
+        "tp": 83
+      }
+    }
+  },
+  "AUDUSD 2023+2024 L5": {
+    "trades": 385,
+    "net_pips": -638.4,
+    "gross_pips": -227.7,
+    "R_total": -84.22,
+    "R_per_trade": -0.219,
+    "R_ci95": [
+      -0.299,
+      -0.137
+    ],
+    "win_%": 45.5,
+    "median_stop": 6.6,
+    "median_target": 4.3,
+    "spread_per_trade": 1.07,
+    "exits": {
+      "exit_signal": 36,
+      "sl": 187,
+      "tp": 162
+    }
+  },
+  "EURUSD 2023": {
+    "L3 POI only": {
+      "n": 209,
+      "success_%": 47.8,
+      "p": 0.5336,
+      "open": 24
+    },
+    "L4 + sweep": {
+      "n": 203,
+      "success_%": 46.8,
+      "p": 0.3615,
+      "open": 9
+    },
+    "L5 trades": {
+      "trades": 212,
+      "net_pips": -57.6,
+      "gross_pips": 15.0,
+      "R_total": -15.38,
+      "R_per_trade": -0.073,
+      "R_ci95": [
+        -0.18,
+        0.035
+      ],
+      "win_%": 53.8,
+      "median_stop": 5.7,
+      "median_target": 4.0,
+      "spread_per_trade": 0.34,
+      "exits": {
+        "tp": 100,
+        "exit_signal": 31,
+        "sl": 81
+      }
+    }
+  },
+  "EURUSD 2024": {
+    "L3 POI only": {
+      "n": 201,
+      "success_%": 54.2,
+      "p": 0.2305,
+      "open": 25
+    },
+    "L4 + sweep": {
+      "n": 193,
+      "success_%": 51.3,
+      "p": 0.7189,
+      "open": 15
+    },
+    "L5 trades": {
+      "trades": 208,
+      "net_pips": 9.5,
+      "gross_pips": 58.1,
+      "R_total": -4.86,
+      "R_per_trade": -0.023,
+      "R_ci95": [
+        -0.133,
+        0.081
+      ],
+      "win_%": 56.7,
+      "median_stop": 4.1,
+      "median_target": 2.9,
+      "spread_per_trade": 0.23,
+      "exits": {
+        "exit_signal": 27,
+        "tp": 107,
+        "sl": 74
+      }
+    }
+  },
+  "EURUSD 2023+2024 L5": {
+    "trades": 420,
+    "net_pips": -48.1,
+    "gross_pips": 73.1,
+    "R_total": -20.24,
+    "R_per_trade": -0.048,
+    "R_ci95": [
+      -0.125,
+      0.026
+    ],
+    "win_%": 55.2,
+    "median_stop": 5.0,
+    "median_target": 3.4,
+    "spread_per_trade": 0.29,
+    "exits": {
+      "exit_signal": 58,
+      "tp": 207,
+      "sl": 155
+    }
+  },
+  "GBPUSD 2023": {
+    "L3 POI only": {
+      "n": 207,
+      "success_%": 53.1,
+      "p": 0.3662,
+      "open": 27
+    },
+    "L4 + sweep": {
+      "n": 193,
+      "success_%": 53.4,
+      "p": 0.3494,
+      "open": 16
+    },
+    "L5 trades": {
+      "trades": 209,
+      "net_pips": -222.7,
+      "gross_pips": 5.4,
+      "R_total": -26.99,
+      "R_per_trade": -0.129,
+      "R_ci95": [
+        -0.239,
+        -0.022
+      ],
+      "win_%": 50.2,
+      "median_stop": 7.1,
+      "median_target": 5.0,
+      "spread_per_trade": 1.09,
+      "exits": {
+        "exit_signal": 28,
+        "sl": 87,
+        "tp": 94
+      }
+    }
+  },
+  "GBPUSD 2024": {
+    "L3 POI only": {
+      "n": 209,
+      "success_%": 56.9,
+      "p": 0.0449,
+      "open": 17
+    },
+    "L4 + sweep": {
+      "n": 195,
+      "success_%": 56.4,
+      "p": 0.0734,
+      "open": 11
+    },
+    "L5 trades": {
+      "trades": 207,
+      "net_pips": -55.0,
+      "gross_pips": 126.1,
+      "R_total": -18.23,
+      "R_per_trade": -0.088,
+      "R_ci95": [
+        -0.197,
+        0.019
+      ],
+      "win_%": 52.2,
+      "median_stop": 5.5,
+      "median_target": 3.8,
+      "spread_per_trade": 0.87,
+      "exits": {
+        "sl": 81,
+        "tp": 97,
+        "exit_signal": 29
+      }
+    }
+  },
+  "GBPUSD 2023+2024 L5": {
+    "trades": 416,
+    "net_pips": -277.7,
+    "gross_pips": 131.5,
+    "R_total": -45.22,
+    "R_per_trade": -0.109,
+    "R_ci95": [
+      -0.188,
+      -0.031
+    ],
+    "win_%": 51.2,
+    "median_stop": 6.3,
+    "median_target": 4.5,
+    "spread_per_trade": 0.98,
+    "exits": {
+      "tp": 191,
+      "sl": 168,
+      "exit_signal": 57
+    }
+  },
+  "VERDICT (AUDUSD)": "FAIL"
+}

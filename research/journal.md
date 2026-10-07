@@ -184,3 +184,8 @@ and fades with scale; 046's larger EURUSD 2023–24 edge came from the confirmat
 ## 064 — Intraday momentum (Gao et al. 2018 adapted): FX-day open -> 09:30 NY move predicts NY afternoon / last half hour? — 2026-10-07
 EUR+GBP news-free: NY afternoon 12–16 −0.72 pips in the morning's direction (t −1.1); last half hour 15:30–16 +0.23 pips
 (t 1.4, hit 54%, only 2023). FAIL: no momentum in the afternoon; last-half-hour effect right sign but far below the spread.
+
+## 065 — AUDUSD: fade a sweep of the Tokyo first-hour range during 10:00–11:00 Tokyo, 2023+2024 — 2026-10-07
+User idea (user chose Tokyo 2nd hour + sweep of the first-hour range). AUDUSD: POI 46/50% back to midpoint, + sweep 45/50%,
+trade −84R (−0.22R/trade, CI below 0), gross −228 pips. FAIL. Targets ~4 pips vs ~1 pip spread. GBPUSD leaned to reversal
+(53–57%, gross +132) but costs make it −45R; hint only.
