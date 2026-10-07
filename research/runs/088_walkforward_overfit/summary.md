@@ -18,5 +18,14 @@ or is it a fallacy?" -> "yes run it but only on 2023".
 average next-month percentile > 60, and the FTMO 1-step scorecard beats its zero-edge twin. Otherwise: over-fitting
 month by month does not carry forward (the fallacy).
 
-## Results
-_(filled after the run)_
+## Results (~100k setups re-ranked every month; chart walkforward.png; picks in results.json)
+| | months | trades | R/trade when chosen | **R/trade next month (traded)** | 3R hit | random pick | pick's next-month percentile | FTMO 1-step (twin) |
+|---|---|---|---|---|---|---|---|---|
+| L = 1 month | 11 | 196 | +1.10 | **−0.135** | 19.9% | −0.10 | 44.9 | 18% / −$19 (35% / $204) |
+| L = 3 months | 9 | 177 | +0.61 | **+0.011** | 23.2% | −0.10 | 55.4 | 40% / $239 (34% / $191) |
+
+**Verdict (pre-registered): the method does not work.** The pick looked like +0.6…+1.1R per trade on the months it
+was chosen on and made −0.14 (1-month lookback) or ~0 (3-month lookback) the next month. With a 1-month lookback the
+pick did WORSE than a random setup (percentile 45). The 3-month lookback is about break-even (above the −0.10
+average setup, which is the cost drag), not an edge. The month-to-month "best setup" kept changing (11 different
+picks); explaining each change would have been explaining noise.

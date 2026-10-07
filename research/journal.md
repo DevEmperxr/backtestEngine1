@@ -282,3 +282,8 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
   (US releases were the best 3R trades). #2 only meaningful if frozen and tested once on 2024.
 - 087 runner-up frozen on GER40 Jan–Jun 2024 (pre-registered): −0.19R/trade, 3R hit 15.7% (vs 28% in 2023). FAIL, dropped.
   Over-fit lesson confirmed even for the setup that held both 2023 halves.
+
+## 2026-10-07 — 088 walk-forward of month-by-month over-fitting (GER40 2023, user's question "will this method work?")
+- Re-pick the most-3R-wins setup each month from the previous 1 or 3 months, trade it the next month: L1 −0.135R/trade
+  (worse than a random setup), L3 +0.01R (~0, 3R hit 23%). Chosen-on months looked +0.6…+1.1R. Method fails as
+  pre-registered. Longer lookback = less noise but still no edge.

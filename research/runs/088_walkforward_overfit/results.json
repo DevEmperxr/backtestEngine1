@@ -1,0 +1,445 @@
+{
+ "setups": 42954,
+ "L1": {
+  "months_traded": 11,
+  "trades": 196,
+  "3R_wins": 39,
+  "hit_%": 19.9,
+  "R_per_trade": -0.135,
+  "R_total": -26.5,
+  "picks_lookback_R_per_trade": 1.101,
+  "random_pick_R_per_trade_avg": -0.101,
+  "avg_next_percentile": 44.9,
+  "ftmo": {
+   "pass_%": 18.1,
+   "EV": -18.7,
+   "twin_pass_%": 34.8,
+   "twin_EV": 204.3,
+   "beats_twin": false
+  },
+  "picks": [
+   {
+    "month": 2,
+    "setup": {
+     "context": "er_15",
+     "bias": "range_breakout",
+     "level": "boll_5m",
+     "side": "breakout",
+     "window": "09-17",
+     "confirm": "engulf",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 17,
+    "lookback_3R_wins": 8,
+    "lookback_R_per_trade": 0.948,
+    "next_trades": 17,
+    "next_3R_wins": 5,
+    "next_R_per_trade": 0.201,
+    "next_percentile": 75.4,
+    "all_setups_next_R_per_trade": -0.074
+   },
+   {
+    "month": 3,
+    "setup": {
+     "context": "sma_15",
+     "bias": "with",
+     "level": "round_100",
+     "side": "breakout",
+     "window": "09-17",
+     "confirm": "bos",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 20,
+    "lookback_3R_wins": 10,
+    "lookback_R_per_trade": 0.99,
+    "next_trades": 22,
+    "next_3R_wins": 3,
+    "next_R_per_trade": -0.362,
+    "next_percentile": 21.2,
+    "all_setups_next_R_per_trade": -0.059
+   },
+   {
+    "month": 4,
+    "setup": {
+     "context": "sma_60",
+     "bias": "range_meanrev",
+     "level": "pre_open",
+     "side": "pullback",
+     "window": "09-17",
+     "confirm": "none",
+     "stop": "swing"
+    },
+    "lookback_trades": 16,
+    "lookback_3R_wins": 9,
+    "lookback_R_per_trade": 1.234,
+    "next_trades": 13,
+    "next_3R_wins": 1,
+    "next_R_per_trade": -0.673,
+    "next_percentile": 10.4,
+    "all_setups_next_R_per_trade": -0.104
+   },
+   {
+    "month": 5,
+    "setup": {
+     "context": "struct_15",
+     "bias": "with",
+     "level": "prev_close",
+     "side": "pullback",
+     "window": "09-17",
+     "confirm": "none",
+     "stop": "swing"
+    },
+    "lookback_trades": 14,
+    "lookback_3R_wins": 8,
+    "lookback_R_per_trade": 1.308,
+    "next_trades": 21,
+    "next_3R_wins": 2,
+    "next_R_per_trade": -0.603,
+    "next_percentile": 12.4,
+    "all_setups_next_R_per_trade": -0.153
+   },
+   {
+    "month": 6,
+    "setup": {
+     "context": "sma_15",
+     "bias": "range_breakout",
+     "level": "day_open",
+     "side": "pullback",
+     "window": "09-17",
+     "confirm": "none",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 21,
+    "lookback_3R_wins": 10,
+    "lookback_R_per_trade": 0.943,
+    "next_trades": 19,
+    "next_3R_wins": 6,
+    "next_R_per_trade": 0.446,
+    "next_percentile": 87.0,
+    "all_setups_next_R_per_trade": -0.071
+   },
+   {
+    "month": 7,
+    "setup": {
+     "context": "sma_15",
+     "bias": "with",
+     "level": "boll_5m",
+     "side": "breakout",
+     "window": "09-17",
+     "confirm": "engulf",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 21,
+    "lookback_3R_wins": 10,
+    "lookback_R_per_trade": 0.895,
+    "next_trades": 21,
+    "next_3R_wins": 5,
+    "next_R_per_trade": -0.058,
+    "next_percentile": 57.3,
+    "all_setups_next_R_per_trade": -0.101
+   },
+   {
+    "month": 8,
+    "setup": {
+     "context": "er_15",
+     "bias": "range_breakout",
+     "level": "first_hour",
+     "side": "breakout",
+     "window": "09-17",
+     "confirm": "hold3",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 20,
+    "lookback_3R_wins": 9,
+    "lookback_R_per_trade": 0.884,
+    "next_trades": 15,
+    "next_3R_wins": 3,
+    "next_R_per_trade": -0.209,
+    "next_percentile": 36.0,
+    "all_setups_next_R_per_trade": -0.008
+   },
+   {
+    "month": 9,
+    "setup": {
+     "context": "sma_15",
+     "bias": "range_breakout",
+     "level": "boll_5m",
+     "side": "breakout",
+     "window": "09-17",
+     "confirm": "bos",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 22,
+    "lookback_3R_wins": 12,
+    "lookback_R_per_trade": 1.425,
+    "next_trades": 17,
+    "next_3R_wins": 8,
+    "next_R_per_trade": 1.061,
+    "next_percentile": 99.1,
+    "all_setups_next_R_per_trade": -0.099
+   },
+   {
+    "month": 10,
+    "setup": {
+     "context": "sma_15",
+     "bias": "with",
+     "level": "boll_5m",
+     "side": "pullback",
+     "window": "09-17",
+     "confirm": "reject",
+     "stop": "swing"
+    },
+    "lookback_trades": 21,
+    "lookback_3R_wins": 10,
+    "lookback_R_per_trade": 0.989,
+    "next_trades": 19,
+    "next_3R_wins": 0,
+    "next_R_per_trade": -0.874,
+    "next_percentile": 5.4,
+    "all_setups_next_R_per_trade": -0.191
+   },
+   {
+    "month": 11,
+    "setup": {
+     "context": "sma_15",
+     "bias": "against",
+     "level": "first_hour",
+     "side": "pullback",
+     "window": "10-12",
+     "confirm": "reject",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 17,
+    "lookback_3R_wins": 11,
+    "lookback_R_per_trade": 1.579,
+    "next_trades": 15,
+    "next_3R_wins": 2,
+    "next_R_per_trade": -0.477,
+    "next_percentile": 22.3,
+    "all_setups_next_R_per_trade": -0.14
+   },
+   {
+    "month": 12,
+    "setup": {
+     "context": "struct_60",
+     "bias": "range_meanrev",
+     "level": "day_open",
+     "side": "pullback",
+     "window": "09-17",
+     "confirm": "none",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 19,
+    "lookback_3R_wins": 9,
+    "lookback_R_per_trade": 1.038,
+    "next_trades": 17,
+    "next_3R_wins": 4,
+    "next_R_per_trade": 0.063,
+    "next_percentile": 67.5,
+    "all_setups_next_R_per_trade": -0.11
+   }
+  ],
+  "method_shows_something": false
+ },
+ "L3": {
+  "months_traded": 9,
+  "trades": 177,
+  "3R_wins": 41,
+  "hit_%": 23.2,
+  "R_per_trade": 0.011,
+  "R_total": 2.0,
+  "picks_lookback_R_per_trade": 0.609,
+  "random_pick_R_per_trade_avg": -0.099,
+  "avg_next_percentile": 55.4,
+  "ftmo": {
+   "pass_%": 39.8,
+   "EV": 239.0,
+   "twin_pass_%": 33.7,
+   "twin_EV": 190.5,
+   "beats_twin": true
+  },
+  "picks": [
+   {
+    "month": 4,
+    "setup": {
+     "context": "er_15",
+     "bias": "against",
+     "level": "pre_open",
+     "side": "pullback",
+     "window": "09-17",
+     "confirm": "rsi",
+     "stop": "swing"
+    },
+    "lookback_trades": 48,
+    "lookback_3R_wins": 19,
+    "lookback_R_per_trade": 0.609,
+    "next_trades": 14,
+    "next_3R_wins": 1,
+    "next_R_per_trade": -0.729,
+    "next_percentile": 2.9,
+    "all_setups_next_R_per_trade": -0.076
+   },
+   {
+    "month": 5,
+    "setup": {
+     "context": "sma_60",
+     "bias": "against",
+     "level": "prev_close",
+     "side": "pullback",
+     "window": "14:30-17",
+     "confirm": "bos",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 57,
+    "lookback_3R_wins": 19,
+    "lookback_R_per_trade": 0.659,
+    "next_trades": 23,
+    "next_3R_wins": 3,
+    "next_R_per_trade": -0.26,
+    "next_percentile": 37.7,
+    "all_setups_next_R_per_trade": -0.135
+   },
+   {
+    "month": 6,
+    "setup": {
+     "context": "sma_15",
+     "bias": "against",
+     "level": "prev_close",
+     "side": "pullback",
+     "window": "09-17",
+     "confirm": "rsi",
+     "stop": "swing"
+    },
+    "lookback_trades": 61,
+    "lookback_3R_wins": 19,
+    "lookback_R_per_trade": 0.262,
+    "next_trades": 21,
+    "next_3R_wins": 4,
+    "next_R_per_trade": -0.124,
+    "next_percentile": 47.0,
+    "all_setups_next_R_per_trade": -0.078
+   },
+   {
+    "month": 7,
+    "setup": {
+     "context": "er_15",
+     "bias": "range_breakout",
+     "level": "day_open",
+     "side": "pullback",
+     "window": "09-17",
+     "confirm": "none",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 61,
+    "lookback_3R_wins": 22,
+    "lookback_R_per_trade": 0.549,
+    "next_trades": 20,
+    "next_3R_wins": 8,
+    "next_R_per_trade": 0.59,
+    "next_percentile": 95.9,
+    "all_setups_next_R_per_trade": -0.095
+   },
+   {
+    "month": 8,
+    "setup": {
+     "context": "sma_15",
+     "bias": "range_breakout",
+     "level": "day_open",
+     "side": "pullback",
+     "window": "09-17",
+     "confirm": "none",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 58,
+    "lookback_3R_wins": 24,
+    "lookback_R_per_trade": 0.726,
+    "next_trades": 22,
+    "next_3R_wins": 8,
+    "next_R_per_trade": 0.64,
+    "next_percentile": 90.9,
+    "all_setups_next_R_per_trade": 0.005
+   },
+   {
+    "month": 9,
+    "setup": {
+     "context": "sma_15",
+     "bias": "with",
+     "level": "boll_5m",
+     "side": "breakout",
+     "window": "09-17",
+     "confirm": "engulf",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 65,
+    "lookback_3R_wins": 25,
+    "lookback_R_per_trade": 0.551,
+    "next_trades": 21,
+    "next_3R_wins": 2,
+    "next_R_per_trade": -0.629,
+    "next_percentile": 7.7,
+    "all_setups_next_R_per_trade": -0.098
+   },
+   {
+    "month": 10,
+    "setup": {
+     "context": "sma_15",
+     "bias": "range_breakout",
+     "level": "boll_5m",
+     "side": "breakout",
+     "window": "09-17",
+     "confirm": "bos",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 58,
+    "lookback_3R_wins": 25,
+    "lookback_R_per_trade": 0.866,
+    "next_trades": 20,
+    "next_3R_wins": 5,
+    "next_R_per_trade": -0.006,
+    "next_percentile": 69.1,
+    "all_setups_next_R_per_trade": -0.166
+   },
+   {
+    "month": 11,
+    "setup": {
+     "context": "sma_15",
+     "bias": "range_breakout",
+     "level": "boll_5m",
+     "side": "breakout",
+     "window": "09-17",
+     "confirm": "bos",
+     "stop": "atr0.1"
+    },
+    "lookback_trades": 59,
+    "lookback_3R_wins": 25,
+    "lookback_R_per_trade": 0.835,
+    "next_trades": 19,
+    "next_3R_wins": 3,
+    "next_R_per_trade": -0.124,
+    "next_percentile": 55.4,
+    "all_setups_next_R_per_trade": -0.154
+   },
+   {
+    "month": 12,
+    "setup": {
+     "context": "sma_15",
+     "bias": "against",
+     "level": "first_hour",
+     "side": "pullback",
+     "window": "09-17",
+     "confirm": "none",
+     "stop": "swing"
+    },
+    "lookback_trades": 62,
+    "lookback_3R_wins": 22,
+    "lookback_R_per_trade": 0.456,
+    "next_trades": 17,
+    "next_3R_wins": 7,
+    "next_R_per_trade": 0.621,
+    "next_percentile": 92.4,
+    "all_setups_next_R_per_trade": -0.09
+   }
+  ],
+  "method_shows_something": false
+ }
+}
