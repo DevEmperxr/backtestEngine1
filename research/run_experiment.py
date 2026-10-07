@@ -34,6 +34,7 @@ import polars as pl
 
 from lib.data import PIP, load_1s_data, resample
 from lib.engine import Engine
+from lib.prop import PropConfig
 from lib.evaluate import plot_equity, plot_mc_drawdown, plot_monthly
 
 ROOT = Path(__file__).resolve().parent
@@ -41,6 +42,7 @@ DATA_DIR = ROOT.parent / "data"
 SEED = 0
 YEAR = 2024                                     # set by main(); H1/H2 split at Jul 1 of it
 PAIR = "EURUSD"                                 # set by main(); data/<PAIR>_1s_<YEAR>.csv
+PROP = None                                     # set by main(); lib.prop.PropConfig in prop-firm mode
 
 
 def _find(num: str, folder: str, suffix: str) -> Path:
@@ -687,7 +689,7 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
     run_dir = _run_dir(num)
     split = datetime(YEAR, 7, 1, tzinfo=timezone.utc)   # H1 = Jan-Jun, H2 = Jul-Dec (by entry)
 
-    trades = engine.backtest(strategy)
+    trades = engine.backtest(strategy, prop=PROP)
     trades.write_parquet(run_dir / "trades.parquet")
     report = engine.evaluate(trades, starting_balance=10_000, pip_value=1.0, seed=SEED)
 
@@ -725,9 +727,10 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
     return result
 
 
-def main(nums: list[str], year: int = 2024, pair: str = "EURUSD") -> None:
-    global YEAR, PAIR
+def main(nums: list[str], year: int = 2024, pair: str = "EURUSD", prop: bool = False) -> None:
+    global YEAR, PAIR, PROP
     YEAR, PAIR = year, pair.upper()
+    PROP = PropConfig() if prop else None
     base = load_1s_data(str(DATA_DIR / f"{PAIR}_1s_{year}.csv"), verbose=False)
     engines: dict[str, Engine] = {}   # one Engine per signal timeframe
     for num in nums:
@@ -757,9 +760,11 @@ if __name__ == "__main__":
     ap.add_argument("specs", nargs="*", default=["001", "002", "003"])
     ap.add_argument("--year", type=int, default=2024)
     ap.add_argument("--pair", default="EURUSD", help="data/<PAIR>_1s_<YEAR>.csv (pip size 0.0001 pairs only)")
+    ap.add_argument("--prop", action="store_true",
+                    help="prop-firm mode (lib.prop.PropConfig): $5/lot commission, flat by 16:55 New York")
     a = ap.parse_args()
     if a.pair.upper().endswith("JPY"):
         raise SystemExit("JPY pairs need a 0.01 pip; lib.data.PIP is EURUSD-style 0.0001")
     if a.pair.upper().startswith(("XAU", "XAG")):
         raise SystemExit("metals need their own pip size (gold ~0.1); lib.data.PIP is EURUSD-style 0.0001")
-    main(a.specs, a.year, a.pair)
+    main(a.specs, a.year, a.pair, a.prop)

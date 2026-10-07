@@ -109,9 +109,14 @@ def red_news_times(currencies: list[str], path: Path = CAL) -> tuple[list[dateti
     return sorted(set(times)), whole_days
 
 
-def apply_news_blackout(sig: pl.DataFrame, currencies: list[str], minutes: int = 60,
+# FTMO Standard (funded) account: no opening or closing of trades from 2 minutes before to 2 minutes after
+# a high-impact release. Standing rule from 2026-10-07 (replaces the earlier ±60 min).
+FTMO_NEWS_MIN = 2
+
+
+def apply_news_blackout(sig: pl.DataFrame, currencies: list[str], minutes: int = FTMO_NEWS_MIN,
                         path: Path = CAL) -> pl.DataFrame:
-    """Prop-firm news rule (user's standing rule since run 045): for every red release of
+    """Prop-firm news rule (standing rule; ±60 min from run 045, FTMO's ±2 min from 2026-10-07): for every red release of
     `currencies`, no entries from `minutes` before to `minutes` after, and any open trade is closed
     `minutes` before (engine exit_signal, filled at the next bar's open = this bar's close_time).
     Days with a red event of unknown time are blocked entirely. Needs close_time, long_signal and

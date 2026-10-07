@@ -502,8 +502,13 @@ class Engine:
         self._ask_low = base_1s["ask_low"].to_numpy()
         self._ask_close = base_1s["ask_close"].to_numpy()
 
-    def backtest(self, strategy: Strategy) -> pl.DataFrame:
+    def backtest(self, strategy: Strategy, prop=None) -> pl.DataFrame:
         """Run `strategy`; return the trade log.
+
+        `prop` (lib.prop.PropConfig, optional) = prop-firm mode: every bar closing in
+        [flat_time, 17:00 New York) forces flat and blocks entries (no overnight, weekend or
+        rollover holding), and commission is charged per round trip (column
+        `commission_pips`; `pips` is net of it).
 
         Columns: entry_time, entry_price, direction ("long"/"short"), exit_time,
         exit_price, pips, exit_reason in {"sl", "tp", "opposite_signal",
@@ -536,6 +541,9 @@ class Engine:
             Null = off for that trade.
         """
         sig = strategy.generate_signals(self.signal_df)
+        if prop is not None:
+            from lib.prop import apply_prop_signals
+            sig = apply_prop_signals(sig, prop)
         # A reordered / filtered / duplicated frame (e.g. a join that does not
         # keep row order) would silently misalign t and t+1 below.
         if not sig["timestamp"].equals(self.signal_df["timestamp"]):
@@ -810,7 +818,7 @@ class Engine:
 
         ts_dtype = self.base_1s["timestamp"].dtype
         extra = {"partial_filled": pl.Boolean, "partial_time": ts_dtype} if has_partial else {}
-        return pl.DataFrame(
+        out = pl.DataFrame(
             trades,
             schema={
                 "entry_time": ts_dtype,
@@ -819,6 +827,10 @@ class Engine:
                 **extra,
             },
         ).select(*self._TRADE_COLUMNS, *extra)
+        if prop is not None:
+            from lib.prop import apply_prop_costs
+            out = apply_prop_costs(out, prop)
+        return out
 
     def evaluate(
         self,

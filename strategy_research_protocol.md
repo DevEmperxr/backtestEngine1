@@ -298,3 +298,12 @@ Every setup is written and tested in this structure:
 Build one layer at a time: **POI alone first**, then add confirmation, then context, then bias (hardest; every
 direction-prediction attempt so far failed). Keep a layer only if it improves results in both practice years.
 Pass bars include a minimum R per trade or a confidence-interval condition, not just "positive" (lesson from 059).
+
+## Standing rule (user, 2026-10-07): FTMO prop-firm mode
+The user trades FTMO's cheapest account (Standard). Every run from now on:
+- **News:** FTMO's window, no position open from 2 minutes before to 2 minutes after a red release for the pair's
+  currencies (`apply_news_blackout`, default `FTMO_NEWS_MIN = 2`; replaces the earlier ±60 min used in 045–065).
+- **No overnight, weekend or rollover holding:** `run_experiment --prop` / `Engine.backtest(..., prop=PropConfig())`
+  forces flat by 16:55 New York, blocks entries 16:55–17:00, and charges $5/lot round-trip commission (0.5 pip).
+- **Scorecard:** `lib.prop.simulate_challenge` (FTMO 2-step) pass probability at several risk levels, next to a
+  zero-edge twin of the same strategy (`demean=True`).
