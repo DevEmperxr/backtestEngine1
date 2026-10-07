@@ -307,3 +307,12 @@ The user trades FTMO's cheapest account (Standard). Every run from now on:
   forces flat by 16:55 New York, blocks entries 16:55–17:00, and charges $5/lot round-trip commission (0.5 pip).
 - **Scorecard:** `lib.prop.simulate_challenge` (FTMO 2-step) pass probability at several risk levels, next to a
   zero-edge twin of the same strategy (`demean=True`).
+
+## Standing rule (user, 2026-10-07): target = FTMO 1-step, $10k
+All strategies are built for and judged on **FTMO 1-step $10k**: one +10% target; −3% daily loss; −10% max loss trailing
+the highest end-of-day balance; best day ≤ 50% of total positive-day profit; 90% split; fee ≈ $89 (€79).
+- Backtests: `run_experiment --prop` (±2 min news, flat by 16:55 NY, $5/lot commission until the user confirms the real figure).
+- Scorecard: `lib.prop_firms.ftmo_1step_scorecard(trades, start, end)` on the strategy's own trades: average $ per
+  attempt, pass rate, trades/days to pass and until money received > fee, next to the zero-edge twin.
+- Design implications: keep daily risk well inside 3% (one or two trades a day at ~1%, own daily stop ~1.2%);
+  avoid lumpy profit (one big day > 50% of profits blocks the pass); steady, many small independent trades suit it.

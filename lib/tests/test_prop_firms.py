@@ -61,3 +61,12 @@ def test_min_profitable_days():
     f = FirmRules("t", targets=(4.0,), daily_loss=5.0, max_loss=10.0, min_profitable_days=3, profitable_day_pct=0.5)
     res, n, _, _ = run_phase(days, _Seq(len(days)), f, 4.0, 1.0, None, 5)
     assert res == "pass" and n == 3
+
+
+def test_ftmo_1step_scorecard_runs_and_compares_with_twin():
+    from lib.prop_firms import ftmo_1step_scorecard
+    start = date(2024, 1, 1)
+    tr = _trades_from_days([[0.5]] * 30 + [[-0.3]] * 30, start)     # positive average R
+    sc = ftmo_1step_scorecard(tr, start, start + timedelta(days=90), n_sims=50)
+    assert sc["avg_R_per_trade"] == pytest.approx(0.1)
+    assert sc["strategy"]["EV_net"] > sc["zero_edge_twin"]["EV_net"] and sc["beats_twin"]

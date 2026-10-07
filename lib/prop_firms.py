@@ -165,3 +165,36 @@ def simulate_firm(days: list[list[float]], firm: FirmRules, *, risk_challenge: f
             "trades_to_pass": med(to_pass_t), "days_to_pass": med(to_pass_d),
             "trades_to_first_payout": med(to_pay_t), "days_to_first_payout": med(to_pay_d),
             "trades_to_profit": med(to_profit_t), "days_to_profit": med(to_profit_d)}
+
+
+# --------------------------------------------------------------------------- #
+# The user's target (locked in 2026-10-07): FTMO 1-step, $10k
+# --------------------------------------------------------------------------- #
+
+FTMO_1STEP = FirmRules(
+    "FTMO 1-step $10k", targets=(10.0,), daily_loss=3.0, max_loss=10.0, trailing_eod=True, best_day_frac=0.5,
+    split=0.9, refund_after_payouts=1, fee=89.0,          # EUR 79 at EUR/USD 1.126
+    commission_usd=5.0)                                  # conservative; sources say $3-5, confirm in the platform
+
+
+def ftmo_1step_scorecard(trades: pl.DataFrame, start: date, end: date, *, firm: FirmRules = FTMO_1STEP,
+                         risks: tuple[tuple[float, float], ...] = ((0.5, 0.5), (1.0, 0.5), (1.0, 1.0), (2.0, 1.0)),
+                         day_stop_frac: float = 0.4, n_sims: int = 1500, seed: int = 0) -> dict:
+    """Standard scorecard for a strategy's OWN trades (pips already net of spread + commission, as from
+    `run_experiment --prop`): best risk setting by average $ per attempt, and the same for its zero-edge twin
+    (same trades, average R removed). `day_stop_frac` x the firm's daily limit = the trader's own daily stop."""
+    days = daily_R(trades, start, end)
+    allr = [r for d in days for r in d]
+    mu = float(np.mean(allr)) if allr else 0.0
+    twin = [[r - mu for r in d] for d in days]
+    out = {"firm": firm.name, "trades": len(allr), "avg_R_per_trade": round(mu, 3)}
+    for name, d in (("strategy", days), ("zero_edge_twin", twin)):
+        best = None
+        for rc, rf in risks:
+            s = simulate_firm(d, firm, risk_challenge=rc, risk_funded=rf, day_stop=day_stop_frac * firm.daily_loss,
+                              n_sims=n_sims, seed=seed)
+            if best is None or s["EV_net"] > best["EV_net"]:
+                best = s
+        out[name] = best
+    out["beats_twin"] = out["strategy"]["EV_net"] > out["zero_edge_twin"]["EV_net"]
+    return out
