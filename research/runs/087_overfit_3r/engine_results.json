@@ -1,0 +1,118 @@
+{
+ "winner": {
+  "H1": {
+   "trades": 121,
+   "R_per_trade": 0.322,
+   "R_total": 39.0,
+   "R_ci95": [
+    -0.006,
+    0.652
+   ],
+   "win_%": 34.7,
+   "net_pips": 620.0,
+   "median_stop": 15.4,
+   "costs_R": 0.095,
+   "3R_wins": 39,
+   "hit_%": 32.2,
+   "long_R": 0.297,
+   "short_R": 0.347,
+   "R_total_ex_top3": 30.0,
+   "ftmo": {
+    "pass_%": 95.3,
+    "EV": 3253.9,
+    "twin_pass_%": 35.9,
+    "twin_EV": 187.5
+   }
+  },
+  "H2": {
+   "trades": 124,
+   "R_per_trade": -0.1,
+   "R_total": -12.4,
+   "R_ci95": [
+    -0.382,
+    0.201
+   ],
+   "win_%": 24.2,
+   "net_pips": -161.9,
+   "median_stop": 15.7,
+   "costs_R": 0.101,
+   "3R_wins": 27,
+   "hit_%": 21.8,
+   "long_R": 0.066,
+   "short_R": -0.277,
+   "R_total_ex_top3": -21.4,
+   "ftmo": {
+    "pass_%": 21.5,
+    "EV": 9.5,
+    "twin_pass_%": 32.8,
+    "twin_EV": 167.2
+   }
+  },
+  "fast_sim": {
+   "H1_n": 121,
+   "H1_3R_wins": 39,
+   "H1_R": 38.97190973023975,
+   "H2_n": 124,
+   "H2_3R_wins": 27,
+   "H2_R": -12.429597998427404
+  }
+ },
+ "runner-up": {
+  "H1": {
+   "trades": 111,
+   "R_per_trade": 0.489,
+   "R_total": 54.3,
+   "R_ci95": [
+    0.146,
+    0.833
+   ],
+   "win_%": 40.5,
+   "net_pips": 835.7,
+   "median_stop": 15.4,
+   "costs_R": 0.094,
+   "3R_wins": 38,
+   "hit_%": 34.2,
+   "long_R": 0.422,
+   "short_R": 0.57,
+   "R_total_ex_top3": 45.3,
+   "ftmo": {
+    "pass_%": 86.9,
+    "EV": 5931.9,
+    "twin_pass_%": 37.1,
+    "twin_EV": 222.6
+   }
+  },
+  "H2": {
+   "trades": 116,
+   "R_per_trade": 0.383,
+   "R_total": 44.4,
+   "R_ci95": [
+    0.04,
+    0.727
+   ],
+   "win_%": 36.2,
+   "net_pips": 727.1,
+   "median_stop": 15.7,
+   "costs_R": 0.101,
+   "3R_wins": 39,
+   "hit_%": 33.6,
+   "long_R": 0.299,
+   "short_R": 0.458,
+   "R_total_ex_top3": 35.4,
+   "ftmo": {
+    "pass_%": 96.3,
+    "EV": 3864.0,
+    "twin_pass_%": 36.9,
+    "twin_EV": 230.7
+   }
+  },
+  "fast_sim": {
+   "H1_n": 111,
+   "H1_3R_wins": 38,
+   "H1_R": 54.25147759446443,
+   "H2_n": 116,
+   "H2_3R_wins": 39,
+   "H2_R": 44.40031424282879
+  }
+ }
+}

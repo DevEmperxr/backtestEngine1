@@ -276,3 +276,7 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
 - Best of 968 configs on Jan–Jun (+0.85R) -> −0.06R Jul–Dec; its profit was 2 crisis days (17/20 Mar 2023). Never again.
 - 086 (same day): user asked for a proper over-fit over the setup template. 16,128 GER40 setups on Jan–Jun 2023; winner
   +2.39R/trade (FTMO pass 95%) -> 0.00R/trade Jul–Dec. H1-vs-H2 correlation across setups −0.09. Never again.
+- 087 (same day, user-requested over-fit #2): most 3R wins over the setup elements, GER40 Jan–Jun 2023, 29k setups.
+  #1 +0.32 -> −0.10R Jul–Dec. #2 (15m range context, lean with the side of the midpoint, pullback to the day open,
+  no confirmation, 0.1 ATR stop, 3R) +0.36 / +0.28 with EUR+USD news blocked. Found: DAX trades must block USD news too
+  (US releases were the best 3R trades). #2 only meaningful if frozen and tested once on 2024.

@@ -1,0 +1,60 @@
+{
+ "config": {
+  "reader": "sma_15",
+  "bias": "with",
+  "level": "boll_5m",
+  "side": "breakout",
+  "window": "09-17",
+  "confirm": "engulf",
+  "stop": "atr0.1"
+ },
+ "fast_sim": {
+  "context": "sma_15",
+  "bias": "with",
+  "level": "boll_5m",
+  "side": "breakout",
+  "window": "09-17",
+  "confirm": "engulf",
+  "stop": "atr0.1",
+  "H1_n": 121,
+  "H1_3R_wins": 39,
+  "H1_R": 38.97190973023975,
+  "H2_n": 124,
+  "H2_3R_wins": 27,
+  "H2_R": -12.429597998427404,
+  "H1_hit_pct": 32.231404958677686,
+  "H2_hit_pct": 21.774193548387096,
+  "H1_R_per_trade": 0.32208189859702274,
+  "H2_R_per_trade": -0.10023869353570487
+ },
+ "runner_up": {
+  "config": {
+   "reader": "sma_15",
+   "bias": "range_breakout",
+   "level": "day_open",
+   "side": "pullback",
+   "window": "09-17",
+   "confirm": "none",
+   "stop": "atr0.1"
+  },
+  "fast_sim": {
+   "context": "sma_15",
+   "bias": "range_breakout",
+   "level": "day_open",
+   "side": "pullback",
+   "window": "09-17",
+   "confirm": "none",
+   "stop": "atr0.1",
+   "H1_n": 111,
+   "H1_3R_wins": 38,
+   "H1_R": 54.25147759446443,
+   "H2_n": 116,
+   "H2_3R_wins": 39,
+   "H2_R": 44.40031424282879,
+   "H1_hit_pct": 34.234234234234236,
+   "H2_hit_pct": 33.62068965517241,
+   "H1_R_per_trade": 0.48875205040058045,
+   "H2_R_per_trade": 0.38276132967955856
+  }
+ }
+}
