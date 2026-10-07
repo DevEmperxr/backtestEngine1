@@ -35,6 +35,7 @@ class PropConfig:
     commission_usd_per_lot: float = 5.0        # round trip
     pip_value_usd_per_lot: float = 10.0        # XXX/USD pairs (and gold at pip 0.1 with 100 oz lots)
     commission_pct_per_side: float | None = None   # metals/CFDs: % of notional per side (FTMO gold 0.0007% = 7e-6)
+    extra_spread_pips: float = 0.0                 # per round trip: FTMO's spread minus our data's (index CFDs)
     flat_time_ny: time = time(16, 55)          # flat before the 17:00 New York rollover
     rollover_ny: time = time(17, 0)
 
@@ -66,11 +67,30 @@ def apply_prop_costs(trades: pl.DataFrame, cfg: PropConfig, pip: float = 0.0001)
         c = pl.col("entry_price") * cfg.commission_pct_per_side * 2 / pip
     else:
         c = pl.lit(cfg.commission_pips, dtype=pl.Float64)
-    return trades.with_columns(commission_pips=c.cast(pl.Float64)).with_columns(pips=pl.col("pips") - pl.col("commission_pips"))
+    # extra spread (FTMO wider than our data) is counted with the spread actually paid
+    return trades.with_columns(commission_pips=c.cast(pl.Float64)).with_columns(
+        pips=pl.col("pips") - pl.col("commission_pips") - cfg.extra_spread_pips,
+        spread_pips_paid=pl.col("spread_pips_paid") + cfg.extra_spread_pips)
 
 
 # FTMO gold (XAUUSD): $0 per lot, 0.0007% of notional per side (FTMO commission notice, 2026)
 FTMO_GOLD = PropConfig(commission_usd_per_lot=0.0, commission_pct_per_side=7e-6)
+
+# FTMO index CFDs: commission-free (user-confirmed 2026-10-07); spread top-up = FTMO typical spread minus our Dukascopy
+# main-session median (US100 1.66 vs 1.46, GER40 1.58 vs ~1.44, JP225 10 vs 7.1 points)
+FTMO_INDEX = {
+    "NAS100": PropConfig(commission_usd_per_lot=0.0, extra_spread_pips=0.2),
+    "GER40": PropConfig(commission_usd_per_lot=0.0, extra_spread_pips=0.15),
+    "JPN225": PropConfig(commission_usd_per_lot=0.0, extra_spread_pips=2.9),
+}
+
+
+def prop_config_for(pair: str) -> PropConfig:
+    """FTMO prop-mode settings for an instrument (FX default $5/lot; gold; index CFDs)."""
+    pair = pair.upper()
+    if pair.startswith("XAU"):
+        return FTMO_GOLD
+    return FTMO_INDEX.get(pair, PropConfig())
 
 
 # --------------------------------------------------------------------------- #

@@ -141,3 +141,21 @@ def test_engine_pip_size_for_gold_and_percent_commission():
     # spread 0.4 = 4 pips; commission 2000.4 x 7e-6 x 2 / 0.1 = 0.28 pips
     assert row["commission_pips"] == pytest.approx(2000.4 * 7e-6 * 2 / 0.1)
     assert row["pips"] == pytest.approx(-4.0 - 0.280056, abs=1e-6)
+
+
+def test_index_settings():
+    from lib.data import pip_size
+    from lib.prop import prop_config_for, FTMO_GOLD
+    from research.regime.news import pair_currencies
+    assert pip_size("NAS100") == 1.0 and pip_size("GER40") == 1.0 and pip_size("JPN225") == 1.0
+    assert prop_config_for("NAS100").commission_usd_per_lot == 0.0 and prop_config_for("NAS100").extra_spread_pips == 0.2
+    assert prop_config_for("XAUUSD") is FTMO_GOLD and prop_config_for("EURUSD").commission_usd_per_lot == 5.0
+    assert pair_currencies("NAS100") == ["USD"] and pair_currencies("JPN225") == ["JPY"]
+    assert pair_currencies("EURUSD") == ["EUR", "USD"]
+
+
+def test_extra_spread_is_charged_as_spread():
+    from lib.prop import apply_prop_costs, PropConfig
+    t = pl.DataFrame({"entry_price": [18000.0], "pips": [10.0], "spread_pips_paid": [1.5]})
+    out = apply_prop_costs(t, PropConfig(commission_usd_per_lot=0.0, extra_spread_pips=0.2), pip=1.0).row(0, named=True)
+    assert out["pips"] == pytest.approx(9.8) and out["spread_pips_paid"] == pytest.approx(1.7) and out["commission_pips"] == 0.0

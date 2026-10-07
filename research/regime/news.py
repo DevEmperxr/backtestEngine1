@@ -38,8 +38,14 @@ def red_news_dates(currencies: list[str], path: Path = CAL) -> set[date]:
     return set(out["day"].to_list())
 
 
+# stock indices follow their home economy's news
+INDEX_CURRENCIES = {"NAS100": ["USD"], "GER40": ["EUR"], "JPN225": ["JPY"]}
+
+
 def pair_currencies(pair: str) -> list[str]:
     pair = pair.upper()
+    if pair in INDEX_CURRENCIES:
+        return list(INDEX_CURRENCIES[pair])
     return [pair[:3], pair[3:]]
 
 
@@ -58,7 +64,8 @@ OFFICIAL_TIMES = {
     ("AUD", "Unemployment Rate"): "11:30", ("AUD", "CPI y/y"): "11:30", ("AUD", "Trimmed Mean CPI q/q"): "11:30",
     ("AUD", "Wage Price Index q/q"): "11:30", ("AUD", "RBA Rate Statement"): "14:30",
 }
-HOME_TZ = {"USD": "America/New_York", "EUR": "Europe/Berlin", "GBP": "Europe/London", "AUD": "Australia/Sydney"}
+HOME_TZ = {"USD": "America/New_York", "EUR": "Europe/Berlin", "GBP": "Europe/London", "AUD": "Australia/Sydney",
+           "JPY": "Asia/Tokyo"}
 
 
 def red_news_times(currencies: list[str], path: Path = CAL) -> tuple[list[datetime], set[date]]:

@@ -34,7 +34,7 @@ import polars as pl
 
 from lib.data import PIP, load_1s_data, pip_size, resample
 from lib.engine import Engine
-from lib.prop import FTMO_GOLD, PropConfig
+from lib.prop import prop_config_for
 from lib.evaluate import plot_equity, plot_mc_drawdown, plot_monthly
 
 ROOT = Path(__file__).resolve().parent
@@ -730,7 +730,7 @@ def run(num: str, engine: Engine, bars: pl.DataFrame) -> dict:
 def main(nums: list[str], year: int = 2024, pair: str = "EURUSD", prop: bool = False) -> None:
     global YEAR, PAIR, PROP
     YEAR, PAIR = year, pair.upper()
-    PROP = (FTMO_GOLD if PAIR.startswith("XAU") else PropConfig()) if prop else None
+    PROP = prop_config_for(PAIR) if prop else None
     pip = pip_size(PAIR)
     base = load_1s_data(str(DATA_DIR / f"{PAIR}_1s_{year}.csv"), verbose=False)
     engines: dict[str, Engine] = {}   # one Engine per signal timeframe

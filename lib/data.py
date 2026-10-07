@@ -51,7 +51,9 @@ import polars as pl
 PIP = 0.0001  # EURUSD default; other instruments via pip_size() (added 2026-10-07 for gold)
 
 # Price units per "pip" by instrument. Gold: 0.1 = $10 per pip per 100 oz lot, the same money per pip as FX majors.
-PIP_SIZE = {"XAUUSD": 0.1, "XAGUSD": 0.01}
+PIP_SIZE = {"XAUUSD": 0.1, "XAGUSD": 0.01,
+            # stock indices: 1 "pip" = 1 index point (FTMO US100.cash / GER40.cash contract size 1, JP225.cash 10)
+            "NAS100": 1.0, "GER40": 1.0, "JPN225": 1.0}
 
 
 def pip_size(pair: str) -> float:
