@@ -302,3 +302,5 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
 - 2021 +0.144R, 2022 +0.143R (bear year), pooled +0.143 (CI +0.04…+0.26); FTMO pass 85% / EV $2,589 vs twin 52% / $510.
   PASS. Five years 2021–25: 1,085 trades, +0.120R/trade (CI +0.05…+0.20). 2025 the weak year (+0.045).
   The NAS100 noise-area rule is the programme's first strategy confirmed on unseen data.
+- 093 addendum: post-publication (from Jun 2024) +0.077R/trade vs +0.140 before; not significant (SE ~0.08) but in line
+  with the usual ~50% post-publication decay. 1% challenge risk beats 0.5% at every assumed edge (+0.12 … 0).
