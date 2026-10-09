@@ -297,3 +297,8 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
 - News after 2025-04-07 rebuilt from official schedules (validated 99/99 vs ForexFactory); sensitivities negligible.
 - 2025: +0.045R/trade (209 trades, CI −0.11…+0.22), H1 +0.10, H2 −0.01; +0.085R better than always-long; FTMO EV $286 vs
   twin $110. Pre-registered bar ≥ +0.05: FAIL narrowly. Edge ~1/3 of in-sample; weak / possibly decaying.
+
+## 2026-10-09 — 092 NAS100 noise-area on 2021 + 2022 (out-of-sample, user named the years)
+- 2021 +0.144R, 2022 +0.143R (bear year), pooled +0.143 (CI +0.04…+0.26); FTMO pass 85% / EV $2,589 vs twin 52% / $510.
+  PASS. Five years 2021–25: 1,085 trades, +0.120R/trade (CI +0.05…+0.20). 2025 the weak year (+0.045).
+  The NAS100 noise-area rule is the programme's first strategy confirmed on unseen data.

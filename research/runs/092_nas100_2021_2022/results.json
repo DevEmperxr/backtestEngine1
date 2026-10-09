@@ -1,0 +1,216 @@
+{
+ "2021": {
+  "trades": 214,
+  "R_per_trade": 0.144,
+  "R_total": 30.8,
+  "R_ci95": [
+   -0.024,
+   0.326
+  ],
+  "win_%": 41.1,
+  "net_pips": 1412.9,
+  "median_stop": 56.8,
+  "costs_R": 0.028
+ },
+ "2022": {
+  "trades": 252,
+  "R_per_trade": 0.143,
+  "R_total": 35.9,
+  "R_ci95": [
+   0.007,
+   0.286
+  ],
+  "win_%": 40.5,
+  "net_pips": 3474.8,
+  "median_stop": 88.4,
+  "costs_R": 0.017
+ },
+ "both": {
+  "trades": 466,
+  "R_per_trade": 0.143,
+  "R_total": 66.8,
+  "R_ci95": [
+   0.037,
+   0.257
+  ],
+  "win_%": 40.8,
+  "net_pips": 4887.7,
+  "median_stop": 70.0,
+  "costs_R": 0.022
+ },
+ "long": {
+  "trades": 218,
+  "R_per_trade": 0.237,
+  "R_total": 51.7,
+  "R_ci95": [
+   0.094,
+   0.386
+  ],
+  "win_%": 47.2,
+  "net_pips": 3434.6,
+  "median_stop": 70.8,
+  "costs_R": 0.023
+ },
+ "short": {
+  "trades": 248,
+  "R_per_trade": 0.061,
+  "R_total": 15.0,
+  "R_ci95": [
+   -0.094,
+   0.233
+  ],
+  "win_%": 35.1,
+  "net_pips": 1453.0,
+  "median_stop": 68.1,
+  "costs_R": 0.022
+ },
+ "gross_R_per_trade": 0.166,
+ "always_long_twin": {
+  "2021": 0.1,
+  "2022": 0.018,
+  "both": 0.056
+ },
+ "exits": {
+  "sl": 97,
+  "exit_signal": 369
+ },
+ "2021_long": {
+  "trades": 106,
+  "R_per_trade": 0.275,
+  "R_total": 29.1,
+  "R_ci95": [
+   0.07,
+   0.487
+  ],
+  "win_%": 50.9,
+  "net_pips": 1192.8,
+  "median_stop": 58.1,
+  "costs_R": 0.028
+ },
+ "2021_short": {
+  "trades": 108,
+  "R_per_trade": 0.016,
+  "R_total": 1.7,
+  "R_ci95": [
+   -0.242,
+   0.304
+  ],
+  "win_%": 31.5,
+  "net_pips": 220.1,
+  "median_stop": 54.5,
+  "costs_R": 0.028
+ },
+ "2022_long": {
+  "trades": 112,
+  "R_per_trade": 0.202,
+  "R_total": 22.6,
+  "R_ci95": [
+   0.003,
+   0.409
+  ],
+  "win_%": 43.8,
+  "net_pips": 2241.8,
+  "median_stop": 86.6,
+  "costs_R": 0.018
+ },
+ "2022_short": {
+  "trades": 140,
+  "R_per_trade": 0.095,
+  "R_total": 13.3,
+  "R_ci95": [
+   -0.093,
+   0.303
+  ],
+  "win_%": 37.9,
+  "net_pips": 1233.0,
+  "median_stop": 90.3,
+  "costs_R": 0.017
+ },
+ "ftmo": {
+  "strategy": {
+   "firm": "FTMO 1-step $10k",
+   "risk_challenge": 1.0,
+   "risk_funded": 1.0,
+   "day_stop": 1.2000000000000002,
+   "fee": 89.0,
+   "commission_usd": 5.0,
+   "pass_%": 85.3,
+   "expected_gross": 2677.9,
+   "EV_net": 2588.9,
+   "value_per_fee": 30.09,
+   "P(net>0)_%": 82.8,
+   "trades_to_pass": 36,
+   "days_to_pass": 53,
+   "trades_to_first_payout": 49,
+   "days_to_first_payout": 73,
+   "trades_to_profit": 50,
+   "days_to_profit": 73
+  },
+  "twin": {
+   "firm": "FTMO 1-step $10k",
+   "risk_challenge": 1.0,
+   "risk_funded": 1.0,
+   "day_stop": 1.2000000000000002,
+   "fee": 89.0,
+   "commission_usd": 5.0,
+   "pass_%": 52.1,
+   "expected_gross": 599.4,
+   "EV_net": 510.4,
+   "value_per_fee": 6.73,
+   "P(net>0)_%": 42.0,
+   "trades_to_pass": 35,
+   "days_to_pass": 53,
+   "trades_to_first_payout": 48,
+   "days_to_first_payout": 77,
+   "trades_to_profit": 52,
+   "days_to_profit": 81
+  },
+  "beats_twin": true
+ },
+ "PASS": true,
+ "five_years": {
+  "2021": {
+   "trades": 214,
+   "R_per_trade": 0.144,
+   "R_total": 30.8,
+   "always_long_twin": 0.1
+  },
+  "2022": {
+   "trades": 252,
+   "R_per_trade": 0.143,
+   "R_total": 35.9,
+   "always_long_twin": 0.018
+  },
+  "2023": {
+   "trades": 198,
+   "R_per_trade": 0.135,
+   "R_total": 26.6,
+   "always_long_twin": 0.135
+  },
+  "2024": {
+   "trades": 212,
+   "R_per_trade": 0.131,
+   "R_total": 27.8,
+   "always_long_twin": 0.009
+  },
+  "2025": {
+   "trades": 209,
+   "R_per_trade": 0.045,
+   "R_total": 9.5,
+   "always_long_twin": -0.04
+  },
+  "all": {
+   "trades": 1085,
+   "R_per_trade": 0.12,
+   "R_total": 130.7,
+   "R_ci95": [
+    0.049,
+    0.197
+   ],
+   "win_%": 40.4,
+   "net_pips": 9783.8,
+   "median_stop": 72.9,
+   "costs_R": 0.022
+  }
+ }
+}

@@ -38,3 +38,5 @@ Still clean: EURGBP 2025, and 2021/2022/2025 for every other cross.
 - 2026-10-09, run 091 (**user named it**: "ok test on 2025 now just nasdaq"): NAS100 **2025** used once for the
   frozen 079 noise-area rules. NAS100 2025 is now **seen**. USD news after 2025-04-07 rebuilt from official schedules.
   Still unseen: NAS100 2021/2022 (downloaded by the user, untouched), GER40/JPN225 2021/2022/2025, 2026.
+- 2026-10-09, run 092 (**user named them**: "do 2021 and 2022"): NAS100 **2021 + 2022** used once for the frozen 079
+  noise-area rules. All NAS100 years 2021–2025 are now seen. Still unseen: GER40/JPN225 2021/2022/2025, 2026.
