@@ -25,8 +25,8 @@ SESSIONS = {"NAS100": ("America/New_York", 570, 960, 955), "GER40": ("Europe/Ber
             "JPN225": ("Asia/Tokyo", 540, 900, 895)}
 
 
-def table_path(pair: str) -> Path:
-    return ROOT / "data" / "derived" / f"{pair.lower()}_noise_2023_2024.parquet"
+def table_path(pair: str, years=(2023, 2024)) -> Path:
+    return ROOT / "data" / "derived" / f"{pair.lower()}_noise_{years[0]}_{years[-1]}.parquet"
 
 
 def build_noise_table(pair: str, years=(2023, 2024), lookback: int = 14) -> Path:
@@ -50,7 +50,7 @@ def build_noise_table(pair: str, years=(2023, 2024), lookback: int = 14) -> Path
     w = s.select("day", "cmin", "move").sort("day").with_columns(
         sigma=pl.col("move").shift(1).rolling_mean(lookback, min_samples=lookback).over("cmin"))
     tab = w.join(day.select("day", "open", "prev_close"), on="day").select("day", "cmin", "sigma", "open", "prev_close")
-    p = table_path(pair)
+    p = table_path(pair, years)
     p.parent.mkdir(parents=True, exist_ok=True)
     tab.write_parquet(p)
     return p
@@ -63,21 +63,21 @@ class NoiseAreaIndex(Strategy):
     marker_columns = ["long_signal", "short_signal"]
     region_columns = ["in_window"]
 
-    def __init__(self, pair: str, *, stop_widths: float = 1.0) -> None:
+    def __init__(self, pair: str, *, stop_widths: float = 1.0, years=(2023, 2024)) -> None:
         super().__init__(100.0, 1000.0, "1m")
-        self.pair, self.stop_widths = pair, stop_widths
+        self.pair, self.stop_widths, self.years = pair, stop_widths, tuple(years)
         self.currencies = tuple(pair_currencies(pair))
         self.pip = 1.0
 
     def generate_signals(self, df: pl.DataFrame) -> pl.DataFrame:
         tz, o, c, flat = SESSIONS[self.pair]
-        if not table_path(self.pair).exists():
-            build_noise_table(self.pair)
+        if not table_path(self.pair, self.years).exists():
+            build_noise_table(self.pair, self.years)
         t = pl.col("close_time").dt.convert_time_zone(tz)
         cm = t.dt.hour().cast(pl.Int32) * 60 + t.dt.minute().cast(pl.Int32)
         out = df.with_columns(day=t.dt.date(), wd=t.dt.weekday(), clock_min=cm, cmin=cm - o,
                               mc=(pl.col("bid_close") + pl.col("ask_close")) / 2)
-        out = out.join(pl.read_parquet(table_path(self.pair)), on=["day", "cmin"], how="left")
+        out = out.join(pl.read_parquet(table_path(self.pair, self.years)), on=["day", "cmin"], how="left")
         up = pl.max_horizontal("open", "prev_close") * (1 + pl.col("sigma"))
         lo = pl.min_horizontal("open", "prev_close") * (1 - pl.col("sigma"))
         out = out.with_columns(upper=up, lower=lo)
@@ -108,3 +108,7 @@ def make_jpn225():
 
 def make_nas100():      # replication check of 079 through the general code
     return NoiseAreaIndex("NAS100")
+
+
+def make_nas100_2025():     # 091: frozen 079 rules on NAS100 2025, noise table from 2024+2025 (late 2024 = warm-up)
+    return NoiseAreaIndex("NAS100", years=(2024, 2025))

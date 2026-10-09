@@ -114,6 +114,15 @@ def red_news_events(currencies: list[str], path: Path = CAL) -> tuple[list[tuple
         local = datetime(r["file_date"].year, r["file_date"].month, r["file_date"].day, h, m,
                          tzinfo=ZoneInfo(HOME_TZ[r["Currency"]]))
         times.append((local.astimezone(ZoneInfo("UTC")), r["Currency"], r["Event"]))
+    if "USD" in currencies and rows:
+        # the ForexFactory file ends 2025-04-07: USD events after it come from official schedules (news_rebuild.py,
+        # validated 99/99 against ForexFactory 2024 - Apr 2025). Never past 2025 (2026 is the holdout).
+        from research.regime.news_rebuild import rebuilt_usd_events
+        last = max(r["file_date"] for r in rows)
+        if last < date(2025, 12, 31):
+            ev, wd = rebuilt_usd_events(last + timedelta(days=1), date(2025, 12, 31))
+            times += ev
+            whole_days |= wd
     return sorted(set(times)), whole_days
 
 
