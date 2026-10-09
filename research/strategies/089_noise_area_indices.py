@@ -112,3 +112,7 @@ def make_nas100():      # replication check of 079 through the general code
 
 def make_nas100_2025():     # 091: frozen 079 rules on NAS100 2025, noise table from 2024+2025 (late 2024 = warm-up)
     return NoiseAreaIndex("NAS100", years=(2024, 2025))
+
+
+def make_nas100_2122():     # 092: frozen 079 rules on NAS100 2021-22, noise table from 2021+2022 (first 14 sessions skipped)
+    return NoiseAreaIndex("NAS100", years=(2021, 2022))
