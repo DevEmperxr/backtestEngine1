@@ -1,0 +1,92 @@
+{
+ "options": 60,
+ "options_positive_every_year": 52,
+ "best_by_EV": {
+  "challenge_%": 0.75,
+  "funded_%": 1.0,
+  "day_stop_%": "1.2",
+  "pass_%": 79.1,
+  "EV_net": 1632.0,
+  "P(net>0)_%": 74.2,
+  "days_to_pass": 91,
+  "days_to_first_payout": 114,
+  "EV_2021": 2507.9,
+  "EV_2022": 3146.0,
+  "EV_2023": 989.4,
+  "EV_2024": 1992.7,
+  "EV_2025": 299.4,
+  "worst_year_EV": 299.4
+ },
+ "within_5pct": [
+  {
+   "challenge_%": 0.5,
+   "funded_%": 1.0,
+   "day_stop_%": "2",
+   "pass_%": 72.0,
+   "EV_net": 1557.4,
+   "P(net>0)_%": 67.2,
+   "days_to_pass": 131,
+   "days_to_first_payout": 153,
+   "EV_2021": 2348.9,
+   "EV_2022": 3106.8,
+   "EV_2023": 1318.1,
+   "EV_2024": 1702.3,
+   "EV_2025": 293.1,
+   "worst_year_EV": 293.1
+  },
+  {
+   "challenge_%": 0.75,
+   "funded_%": 1.0,
+   "day_stop_%": "1.2",
+   "pass_%": 79.1,
+   "EV_net": 1632.0,
+   "P(net>0)_%": 74.2,
+   "days_to_pass": 91,
+   "days_to_first_payout": 114,
+   "EV_2021": 2507.9,
+   "EV_2022": 3146.0,
+   "EV_2023": 989.4,
+   "EV_2024": 1992.7,
+   "EV_2025": 299.4,
+   "worst_year_EV": 299.4
+  },
+  {
+   "challenge_%": 1.0,
+   "funded_%": 1.0,
+   "day_stop_%": "2",
+   "pass_%": 74.4,
+   "EV_net": 1572.5,
+   "P(net>0)_%": 68.8,
+   "days_to_pass": 60,
+   "days_to_first_payout": 79,
+   "EV_2021": 2385.5,
+   "EV_2022": 3170.0,
+   "EV_2023": 1201.1,
+   "EV_2024": 1616.3,
+   "EV_2025": 290.0,
+   "worst_year_EV": 290.0
+  }
+ ],
+ "PICK": {
+  "challenge_%": 0.5,
+  "funded_%": 1.0,
+  "day_stop_%": "2",
+  "pass_%": 72.0,
+  "EV_net": 1557.4,
+  "P(net>0)_%": 67.2,
+  "days_to_pass": 131,
+  "days_to_first_payout": 153,
+  "EV_2021": 2348.9,
+  "EV_2022": 3106.8,
+  "EV_2023": 1318.1,
+  "EV_2024": 1702.3,
+  "EV_2025": 293.1,
+  "worst_year_EV": 293.1
+ },
+ "pick_zero_edge_twin": {
+  "pass_%": 24.7,
+  "EV_net": 105.8,
+  "P(net>0)_%": 17.9,
+  "days_to_pass": 136
+ }
+}
