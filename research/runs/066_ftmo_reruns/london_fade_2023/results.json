@@ -341,8 +341,8 @@
     "net_expectancy_pips": 0.838,
     "avg_spread_paid_pips": 0.297,
     "exit_reasons": {
-      "tp": 98,
       "exit_signal": 5,
+      "tp": 98,
       "sl": 100
     }
   },

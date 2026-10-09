@@ -19,6 +19,8 @@
     "window_start_tz": "Europe/London",
     "window_end": "16:00:00",
     "window_end_tz": "America/New_York",
+    "setup_min": 5,
+    "ctx_min": 60,
     "currencies": [
       "USD",
       "EUR"
