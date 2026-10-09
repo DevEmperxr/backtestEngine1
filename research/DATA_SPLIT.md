@@ -35,3 +35,6 @@ Still clean: EURGBP 2025, and 2021/2022/2025 for every other cross.
   rules, plus EURUSD 2021/2022 reruns. The user had not asked for a reserved-year check. EURUSD 2025 is now **seen**
   (London-fade family and, by exposure, any EURUSD idea judged afterwards); its 2025 trades were also used in 068.
   Still unseen: GBPUSD 2025, AUDUSD 2025, all other pairs' reserved years, 2026.
+- 2026-10-09, run 091 (**user named it**: "ok test on 2025 now just nasdaq"): NAS100 **2025** used once for the
+  frozen 079 noise-area rules. NAS100 2025 is now **seen**. USD news after 2025-04-07 rebuilt from official schedules.
+  Still unseen: NAS100 2021/2022 (downloaded by the user, untouched), GER40/JPN225 2021/2022/2025, 2026.

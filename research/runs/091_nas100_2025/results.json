@@ -1,0 +1,199 @@
+{
+ "2025": {
+  "trades": 209,
+  "R_per_trade": 0.045,
+  "R_total": 9.5,
+  "R_ci95": [
+   -0.112,
+   0.223
+  ],
+  "win_%": 38.8,
+  "net_pips": 1908.7,
+  "median_stop": 98.5,
+  "costs_R": 0.017
+ },
+ "H1": {
+  "trades": 101,
+  "R_per_trade": 0.101,
+  "R_total": 10.2,
+  "R_ci95": [
+   -0.107,
+   0.339
+  ],
+  "win_%": 42.6,
+  "net_pips": 1954.1,
+  "median_stop": 108.7,
+  "costs_R": 0.016
+ },
+ "H2": {
+  "trades": 108,
+  "R_per_trade": -0.007,
+  "R_total": -0.8,
+  "R_ci95": [
+   -0.224,
+   0.261
+  ],
+  "win_%": 35.2,
+  "net_pips": -45.5,
+  "median_stop": 82.7,
+  "costs_R": 0.019
+ },
+ "long": {
+  "trades": 101,
+  "R_per_trade": 0.024,
+  "R_total": 2.4,
+  "R_ci95": [
+   -0.165,
+   0.242
+  ],
+  "win_%": 41.6,
+  "net_pips": 992.6,
+  "median_stop": 93.3,
+  "costs_R": 0.018
+ },
+ "short": {
+  "trades": 108,
+  "R_per_trade": 0.066,
+  "R_total": 7.1,
+  "R_ci95": [
+   -0.172,
+   0.347
+  ],
+  "win_%": 36.1,
+  "net_pips": 916.0,
+  "median_stop": 102.9,
+  "costs_R": 0.017
+ },
+ "gross_R_per_trade": 0.063,
+ "always_long_twin_R_per_trade": -0.04,
+ "edge_over_long_twin": 0.085,
+ "exits": {
+  "sl": 45,
+  "exit_signal": 164
+ },
+ "months": {
+  "1": [
+   15,
+   1.4
+  ],
+  "2": [
+   17,
+   2.2
+  ],
+  "3": [
+   19,
+   1.6
+  ],
+  "4": [
+   25,
+   8.4
+  ],
+  "5": [
+   9,
+   -2.5
+  ],
+  "6": [
+   16,
+   -0.8
+  ],
+  "7": [
+   18,
+   -5.3
+  ],
+  "8": [
+   21,
+   1.8
+  ],
+  "9": [
+   16,
+   -6.3
+  ],
+  "10": [
+   25,
+   7.5
+  ],
+  "11": [
+   15,
+   5.1
+  ],
+  "12": [
+   13,
+   -3.7
+  ]
+ },
+ "ftmo": {
+  "strategy": {
+   "firm": "FTMO 1-step $10k",
+   "risk_challenge": 1.0,
+   "risk_funded": 1.0,
+   "day_stop": 1.2000000000000002,
+   "fee": 89.0,
+   "commission_usd": 5.0,
+   "pass_%": 39.8,
+   "expected_gross": 374.6,
+   "EV_net": 285.6,
+   "value_per_fee": 4.21,
+   "P(net>0)_%": 32.9,
+   "trades_to_pass": 43,
+   "days_to_pass": 75,
+   "trades_to_first_payout": 58,
+   "days_to_first_payout": 99,
+   "trades_to_profit": 62,
+   "days_to_profit": 105
+  },
+  "twin": {
+   "firm": "FTMO 1-step $10k",
+   "risk_challenge": 1.0,
+   "risk_funded": 1.0,
+   "day_stop": 1.2000000000000002,
+   "fee": 89.0,
+   "commission_usd": 5.0,
+   "pass_%": 28.8,
+   "expected_gross": 199.3,
+   "EV_net": 110.3,
+   "value_per_fee": 2.24,
+   "P(net>0)_%": 22.2,
+   "trades_to_pass": 37,
+   "days_to_pass": 67,
+   "trades_to_first_payout": 51,
+   "days_to_first_payout": 91,
+   "trades_to_profit": 54,
+   "days_to_profit": 98
+  },
+  "beats_twin": true
+ },
+ "PASS": false,
+ "sensitivity_A_trump_jan_apr7": {
+  "with_trump_blocked": {
+   "trades": 58,
+   "R_per_trade": 0.081,
+   "R_total": 4.7,
+   "R_ci95": [
+    -0.166,
+    0.347
+   ],
+   "win_%": 44.8,
+   "net_pips": 622.7,
+   "median_stop": 110.0,
+   "costs_R": 0.015
+  },
+  "trump_not_blocked": {
+   "trades": 58,
+   "R_per_trade": 0.078,
+   "R_total": 4.5,
+   "R_ci95": [
+    -0.168,
+    0.341
+   ],
+   "win_%": 44.8,
+   "net_pips": 604.1,
+   "median_stop": 110.0,
+   "costs_R": 0.015
+  }
+ },
+ "sensitivity_B_extra_10am_events": {
+  "trades_affected": 1,
+  "their_R_total": 0.21,
+  "R_per_trade_without_them": 0.045
+ }
+}

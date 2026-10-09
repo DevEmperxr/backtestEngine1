@@ -69,7 +69,7 @@ HOME_TZ = {"USD": "America/New_York", "EUR": "Europe/Berlin", "GBP": "Europe/Lon
            "JPY": "Asia/Tokyo"}
 
 
-def red_news_events(currencies: list[str], path: Path = CAL) -> tuple[list[tuple[datetime, str, str]], set[date]]:
+def red_news_events(currencies: list[str], path: Path = CAL, exclude: tuple[str, ...] = ()) -> tuple[list[tuple[datetime, str, str]], set[date]]:
     """(release time UTC, currency, event) of High-impact events for `currencies`, plus New York dates of events
     whose time cannot be recovered (speeches without a usual time, summits, elections).
 
@@ -80,7 +80,8 @@ def red_news_events(currencies: list[str], path: Path = CAL) -> tuple[list[tuple
     usual time to cover >= 60% of them), else OFFICIAL_TIMES; otherwise the whole day is listed.
     """
     d = pl.read_csv(path, infer_schema_length=0).filter(
-        (pl.col("Impact") == "High Impact Expected") & pl.col("Currency").is_in(currencies))
+        (pl.col("Impact") == "High Impact Expected") & pl.col("Currency").is_in(currencies)
+        & ~pl.col("Event").is_in(list(exclude)))
     wall = pl.col("DateTime").str.slice(0, 19).str.to_datetime("%Y-%m-%dT%H:%M:%S")
     d = d.with_columns(
         wall=wall, file_date=wall.dt.date(),
@@ -126,9 +127,9 @@ def red_news_events(currencies: list[str], path: Path = CAL) -> tuple[list[tuple
     return sorted(set(times)), whole_days
 
 
-def red_news_times(currencies: list[str], path: Path = CAL) -> tuple[list[datetime], set[date]]:
+def red_news_times(currencies: list[str], path: Path = CAL, exclude: tuple[str, ...] = ()) -> tuple[list[datetime], set[date]]:
     """Release times (UTC) of High-impact events for `currencies` (see red_news_events), plus whole-day blocks."""
-    ev, whole_days = red_news_events(currencies, path)
+    ev, whole_days = red_news_events(currencies, path, exclude)
     return sorted({t for t, _, _ in ev}), whole_days
 
 
@@ -138,7 +139,7 @@ FTMO_NEWS_MIN = 2
 
 
 def apply_news_blackout(sig: pl.DataFrame, currencies: list[str], minutes: int = FTMO_NEWS_MIN,
-                        path: Path = CAL) -> pl.DataFrame:
+                        path: Path = CAL, exclude: tuple[str, ...] = ()) -> pl.DataFrame:
     """Prop-firm news rule (standing rule; ±60 min from run 045, FTMO's ±2 min from 2026-10-07): for every red release of
     `currencies`, no entries from `minutes` before to `minutes` after, and any open trade is closed
     `minutes` before (engine exit_signal, filled at the next bar's open = this bar's close_time).
@@ -146,7 +147,7 @@ def apply_news_blackout(sig: pl.DataFrame, currencies: list[str], minutes: int =
     short_signal; adds news_blackout and ORs it into exit_signal (created if absent)."""
     import numpy as np
 
-    times, days = red_news_times(list(currencies), path)
+    times, days = red_news_times(list(currencies), path, exclude)
     ev = np.array([int(t.timestamp() * 1e9) for t in times], dtype=np.int64)
     t = sig["close_time"].dt.epoch("ns").to_numpy()
     w = minutes * 60 * 1_000_000_000

@@ -292,3 +292,8 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
 - Index news rule now includes USD for GER40/JPN225 (user-approved).
 - NAS100 beats its always-long twin by +0.063R/trade pooled (2023: 0.000, 2024: +0.122); shorts' long-twin −0.09.
 - GER40 −0.085R/trade (negative before costs too), JPN225 −0.038R. Not candidates. Noise-area = Nasdaq-specific.
+
+## 2026-10-09 — 091 NAS100 noise-area on 2025 (out-of-sample, user named 2025)
+- News after 2025-04-07 rebuilt from official schedules (validated 99/99 vs ForexFactory); sensitivities negligible.
+- 2025: +0.045R/trade (209 trades, CI −0.11…+0.22), H1 +0.10, H2 −0.01; +0.085R better than always-long; FTMO EV $286 vs
+  twin $110. Pre-registered bar ≥ +0.05: FAIL narrowly. Edge ~1/3 of in-sample; weak / possibly decaying.

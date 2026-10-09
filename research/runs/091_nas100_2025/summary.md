@@ -28,5 +28,27 @@ twin. Reported too: H1 / H2 2025, long vs short, the always-long twin (direction
   preliminary days (2nd Friday) after 7 Apr, which ForexFactory sometimes marks red.
 The verdict follows the main run; a sensitivity only changes it if it flips the sign of R per trade.
 
-## Results
-_(filled after the run)_
+## Results (lookahead audit clean; chart nas100_2025.png; numbers results.json)
+| | trades | R/trade after costs | 95% CI | win % |
+|---|---|---|---|---|
+| **2025** | 209 | **+0.045** | −0.11 … +0.22 | 39 |
+| H1 2025 | 101 | +0.101 | | 43 |
+| H2 2025 | 108 | −0.007 | | 35 |
+| long | 101 | +0.024 | | 42 |
+| short | 108 | +0.066 | | 36 |
+| *2023–24 (in-sample, 079)* | *410* | *+0.133* | *+0.01 … +0.26* | *41* |
+
+- Before costs +0.063R; costs 0.017R. Total +9.5R (+1,909 points). Months: 7 of 12 positive; best Apr (+8.4R, tariff
+  crash) and Oct (+7.5R); worst Sep (−6.3R) and Jul (−5.3R).
+- **Direction check:** being long at the same times made −0.040R per trade in 2025; the strategy +0.045 -> +0.085R
+  better than always-long (2023–24: +0.063). The long/short choice added value again.
+- FTMO 1-step (2025 trades, best at 1% risk): pass 39.8%, EV +$286 per attempt, ~43 trades / 75 days to pass;
+  zero-edge twin 28.8% / +$110 -> beats the twin.
+- Sensitivity A (Trump speeches): Jan–Apr 7 2025 +0.081R with them blocked vs +0.078R without -> negligible.
+- Sensitivity B (extra 10:00 events after April): 1 trade affected (+0.21R) -> negligible. The news rebuild does not
+  drive the result.
+
+**Verdict (pre-registered bar: R/trade ≥ +0.05 and beats the twin): FAIL, narrowly.** +0.045 is just under +0.05; it
+does beat the twin. The edge is still positive out of sample and the direction choice still beats being long, but it
+is about a third of the in-sample size and all of it came in H1 2025 (H2 ≈ 0). Read: weak / possibly decaying edge,
+not a confirmed strategy. The bar is not moved after the fact.
