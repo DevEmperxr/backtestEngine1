@@ -304,3 +304,9 @@ In-sample (idea from 076). Gold_trend +0.009R/trade (2023 −0.012, 2024 +0.022)
   The NAS100 noise-area rule is the programme's first strategy confirmed on unseen data.
 - 093 addendum: post-publication (from Jun 2024) +0.077R/trade vs +0.140 before; not significant (SE ~0.08) but in line
   with the usual ~50% post-publication decay. 1% challenge risk beats 0.5% at every assumed edge (+0.12 … 0).
+
+## 2026-10-09 — MILESTONE: first strategy confirmed on unseen data
+NAS100 noise-area intraday momentum (079 rules, frozen): 2021 +0.144, 2022 +0.143, 2023 +0.135, 2024 +0.131,
+2025 +0.045 R/trade after FTMO costs; 1,085 trades, +0.120 R/trade (CI +0.05…+0.20). Recommended FTMO 1-step settings:
+1% challenge / 1% funded / 2% own daily stop. Possible post-publication decay (+0.077 after Jun 2024, not significant).
+One-page summary: research/notes/STRATEGY_CARD_nas100_noise_area.md. Waiting for the user's next direction.

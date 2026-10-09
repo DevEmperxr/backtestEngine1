@@ -1,0 +1,781 @@
+2011-4Swiss National Bank Working Papers
+Intraday patterns in FX returns and order flow
+Francis Breedon and Angelo Ranaldo
+The views expressed in this paper are those of the author(s) and do not necessarily represent those of the 
+Swiss National Bank. Working Papers describe research in progress. Their aim is to elicit comments and to 
+further debate.
+Copyright ©
+The Swiss National Bank (SNB) respects all third-party rights, in particular rights relating to works protected
+by copyright (information or data, wordings and depictions, to the extent that these are of an individual
+character).
+SNB publications containing a reference to a copyright (© Swiss National Bank/SNB, Zurich/year, or similar) 
+may, under copyright law, only be used (reproduced, used via the internet, etc.) for non-commercial purposes 
+and provided that the source is mentioned. Their use for commercial purposes is only permitted with the 
+prior express consent of the SNB.
+General information and data published without reference to a copyright may be used without mentioning 
+the source.
+To the extent that the information and data clearly derive from outside sources, the users of such information 
+and data are obliged to respect any existing copyrights and to obtain the right of use from the relevant 
+outside source themselves.
+Limitation of liability
+The SNB accepts no responsibility for any information it provides. Under no circumstances will it accept any 
+liability for losses or damage which may result from the use of such information. This limitation of liability 
+applies, in particular, to the topicality, accuracy, validity and availability of the information.
+ISSN 1660-7716 (printed version)
+ISSN 1660-7724 (online version)
+© 2011 by Swiss National Bank, Börsenstrasse 15, P.O. Box, CH-8022 Zurich
+1
+ 
+ 
+Intraday patterns in FX returns 
+ and order flow 
+ 
+Francis Breedon and Angelo Ranaldo 
+ 
+November 2010 
+ 
+ 
+ABSTRACT 
+ 
+Using 10 years of high‐frequency foreign exchange data, we present evidence of time‐of‐day effects in 
+foreign exchange returns through a significant tendency for currencies to depreciate during local trading 
+hours. We confirm this pattern across a range of currencies and find that, in the case of EUR/USD, it can 
+form  a  simple,  profitable  trading  strategy.  We  also  find  that  this  pattern  is  present  in  order  flow  and 
+suggest that both patterns relate to the tendency of market participants to be net purchasers of foreign 
+exchange  in  their  own  trading  hours.  Data  from  alternative  sources  appear  to  corroborate  that 
+interpretation. 
+Keywords: Foreign Exchange, Microstructure, Order Flow, Liquidity. 
+JEL‐keys: G15 
+ 
+ 
+Francis Breedon is at Queen Mary, University of London. Angelo Ranaldo is at the Swiss National Bank. The views 
+expressed herein are those of the authors and not necessarily those of the Swiss National Bank, which does not 
+accept any responsibility for the contents of and opinions expressed in this paper. Corresponding author: 
+f.breedon@qmul.ac.uk. We would like to thank Filip Zikes for excellent research assistance and Philip Clarkson and 
+Nicholas Brown of BNP Paribas for their data. We also thank Richard Lyons and seminar participants at the AEA San 
+Francisco, SNB, Oxford‐MAN institute and FERC conference at Warwick University for comments.  
+2 3
+	 2
+1. Introduction 
+In this paper, we present evidence of a predictable time‐of‐day pattern in FX order flow1 and returns. As 
+well as being important in its own right in explaining high‐frequency exchange rate dynamics and trading 
+behaviour,  this  effect  has  important  implications  for  our  overall  understanding  of  FX  markets.  In 
+particular, if the time‐of‐day pattern in returns is caused by regular patterns in order flow (which is what 
+our  analysis  suggests),  then  our  results  give  support  for  the  traditional  portfolio  balance  effect  in  FX 
+markets  where  uninformative  (and  in  this  case  predictable)  changes  in  net  demand  have  a  significant 
+impact  on  returns.  Thus  the  results  presented  here  make  an  important  contribution  to  the  growing 
+evidence  that  order  flow  in  general,  and  portfolio  balance  effects  in  particular,  are  important  in  FX 
+markets. Recent evidence on liquidity effects has come from a range of sources such as transaction data 
+(Breedon  and  Vitale  (2010)),  institutional  flows  (Froot  and  Ramadorai  (2005)),  events  such  as  equity 
+index rebalancing (Hau, Massa and Peress (2010)) and more recent intervention studies (e.g. Fatum and 
+Hutchinson (2003)) and is beginning to overturn the traditional view that these effects are insignificant 
+(cf.,  for  example,  Rogoff  (1983)).  In  fact,  it  could  be  argued  that  this  intraday  pattern  is  amongst  the 
+strongest evidence yet for liquidity effects since it can be observed in a large sample (rather than one‐off 
+events  like  index  changes)  and  seems  a  clear  case  of  a  deterministic  trading  pattern  that  cannot  be 
+related  to  private  information  so  its  impact  on  prices  is  uncontaminated  by  information  effects. 
+Therefore, our results  provide further evidence of a liquidity effect from order flow in addition to the 
+considerable  evidence  on  its  informational  role  found  in  studies  such  as  Evans  and  Lyons  (2005)  and 
+Rime et al (2010).   
+																																																													
+1 Order flow is the net buying pressure for foreign currency and is signed positive or negative according to whether the 
+initiating party in a transaction is buying or selling (Lyons, 2001).	
+2 3
+	 3
+Despite  an  extensive  literature  on  time‐of‐day  effects  of  other  aspects  of  the  FX  market,  such  as 
+volatility (e.g. Ballie and Bollerslev (1991), Andersen and Bollerslev (1998)) and turnover (e.g. Hartmann 
+(1999), Ito and Hashimoto (2006) ), there are, as far as we know, only two papers on time‐of‐day effects 
+in returns, Cornett et al (1995) and Ranaldo (2009).2 This gap is all the more surprising given that both 
+these  papers  find  very  similar  time‐of‐day  patterns  in  FX  returns  whereby  local  currencies  tend  to 
+depreciate during their own trading hours and appreciate outside them. 
+Cornett et al (1995) studies hourly data for US trading hours of FX futures from the IMM market for the 
+period  1977  to  1991.  Looking  at  the  Deutsche  mark,  British  pound,  Swiss  franc,  Japanese  yen  and 
+Canadian dollar, all against the US dollar, they find a significant tendency for the foreign currency to rise 
+during US trading hours, with the majority of that rise occurring in the first and last two hours of trading. 
+They also find that the foreign currency had a significant tendency to fall outside US trading hours such 
+that the overall daily returns had no significant pattern. Ranaldo (2009) uses indicative quotes from the 
+FX  spot  market  to  construct  hourly  data  across  the  whole  24‐hour  trading  period.  He  uses  the  same 
+exchange  rates  as  in  Cornett  et  al  (1995)  in  addition  to  Deutsche  mark  (euro)  against  the  yen  over  a 
+more  recent  period  (from  1993  to  2005).  He  also  finds  a  statistically  significant  tendency  for  the 
+domestic currency to depreciate in its own trading hours.  
+In this paper, we look in more detail at this phenomenon over the period 1997 to 2007 using data on FX 
+spot rates and order flow from EBS –  the main interdealer electronic  broker  for the major currencies. 
+This EBS data gives us two important advantages over the two studies described above. First, EBS gives 
+data  on  firm  bid  and  offer  prices  throughout  the  trading  day,  ensuring  a  more  accurate  measure  of 
+																																																													
+2  The  issue  of  time‐of‐day  effect  on  returns  has  received  more  attention  in  equity  markets  (cf.,  for  example,  Harris  (1986), 
+Smirlock and Starks (1986) and Yadav and Pope (1992)). This is slightly surprising, given the comparatively short trading hours 
+and  less  promising  results  found  in  this  market.  These  studies  do  not  consistently  find  a  strong  intraday  pattern  in  equity 
+markets except perhaps for lower returns toward the end of the trading day.	
+4 5
+	 4
+returns  and  allowing  us  to  measure  precisely  the  potential  trading  profits  (for  a  member  of  the 
+interdealer market trading at normal market size) from strategies that exploit the predictable intraday 
+pattern discussed above. Second, our dataset also offers information on trades executed through EBS, 
+allowing us to track a significant portion of total order flow in the market, and so allows us to explore 
+the role of order flow in explaining the intraday pattern in returns. We then supplement this data with 
+more  detailed  data  from  a  single  market  maker  as  well  as  capital  flow  data  from  the  US  Treasury 
+international  capital  system.  Our  approach  is  entirely  empirical  and  we  favour  simple  models 
+throughout,  though  the  phenomena  we  discuss  here  could  in  principle  be  modelled  as  some  form  of 
+rational  inattention,  perhaps  incorporating  time‐dependence  and  observation  costs  such  as  in  Abel, 
+Eberly and Panageas (2009).  
+The rest of this paper is organised as follows. Section 2 describes our data and the statistical properties 
+of  the  time‐of‐day  effect  in  returns.  Section  3  then  investigates  whether  this  pattern  is  related  to  FX 
+order flow. Section 4 offers  more insight on this phenomenon from more detailed data provided by a 
+single market maker and capital flow data. Section 5 concludes. 
+2 Data and time‐of‐day effects 
+2.1 Data 
+We employ a detailed transactions data set for the period January 1997 to the beginning of June 2007 
+from EBS the dominant electronic broker in major crosses. Along with Reuters, the EBS electronic order 
+book has now effectively displaced voice brokers and direct dealing between traders. In practice EBS has 
+become dominant in the major currency pairs (EUR/USD and USD/JPY), while Reuters dominates in most 
+of  the  minor  crosses.  In  this  paper  we  analyse  six  crosses  (EUR/USD,  USD/JPY,  GBP/USD,  EUR/JPY, 
+USD/CHF  and  AUD/USD)  in  order  to  give  results  for  a  range  of  different  time  zones,  while  focussing 
+4 5
+	 5
+mainly on the major crosses in which EBS is dominant. By combining data from the BIS triennial survey 
+of foreign exchange turnover with data from Breedon and Vitale (2004) on the relative position of EBS 
+and  Reuters  in  electronic  trading,  we  estimate  that  our  EBS  data  covers  roughly  one  half  of  total 
+turnover  in  EUR/USD,  USD/JPY,  EUR/JPY  and  USD/CHF  but  less  than  5%  of  GBP/USD  and  AUD/USD 
+turnover (where Reuters dominates). 
+Over the whole sample we have the number of customer‐initiated buy and sells and the price at which 
+each trade was undertaken. We also have data on the best bid and offer available over the full sample, 
+barring a few periods when no trading occurs and none is expected (e.g. Saturday morning GMT). For 
+most crosses we exclude weekends from our analysis, from Friday 24:00 to Saturday 24:00 GMT, though 
+in the case of JPY and AUD, the week is extended from Saturday 18:00 GMT to Friday 24:00 GMT.3 For 
+the main results in this paper we include holidays, except where no trading occurs whatsoever4. For the 
+purposes of this paper we aggregate the transaction data into hourly data so that we work with the end‐
+hour bid and ask prices and the cumulative trades over the hour.  
+2.2 Time of Day effects 
+We begin by testing the relationship between both hourly returns and trading session returns over the 
+average trading day for our sample of currencies. Throughout this section we define returns using the 
+prevailing midquote  price  at  the  end  of  each hour/session. Our initial goal is to confirm  the results of 
+Cornett  et  al  (1995)  and  Ranaldo  (2009),  that  local  currencies  tend to  depreciate  in their  own  trading 
+hours  and  to  appreciate  outside  them,  and  to  establish  any  hourly  patterns  that  contribute  to  that 
+effect.  
+																																																													
+3 These definitions of working time match the main trading activity in the different world regions. Other definitions have been 
+considered and the results remain unchanged.	
+4 In particular, we checked all the tests both including and excluding periods of no transactions. This control test guarantees 
+that all the patterns are related to the trading activity and all trading rules are tradable.	
+6 7
+	 6
+Table 1: Estimated trading hours in FX markets 
+Trading centre  Trading hours (local time)  Relative to New York time
+(standard/daylight saving)  
+Futures markets 
+United States  08.00‐16.00   ‐ NYBOT, CME. PHLX 
+Europe  07.00‐15.00   +5 hours† NYBOT(Dublin) 
+Japan  8.00‐15.00   +13/+14 hours TIF (no FX) 
+Australia  10.00‐16.00   +14/+16 hours† ASX (FX Warrant) 
+ † For these regions, daylight saving does not begin/end on the same date as New York; we allow for this in our 
+calculations  
+As  an  OTC  market  that  trades  across  several  time  zones,  the  foreign  exchange  market  does  not  have 
+precise  trading  hours,  though  it  is  clear  that  traders  in particular  locations  tend  to  operate  over  fairly 
+fixed trading hours. We take futures trading hours (FX futures where possible) as our guide and find that 
+these opening hours fit well with distinct increases in trading volume that occur before – and thus are 
+unrelated to –   news releases and standard fixings (and so are presumably related to the initial trading 
+increase as local traders become active). We then convert these hours into New York time which is the 
+universally  accepted  time  zone  for  OTC  FX  transactions (i.e.  the official  end  of  the trading  day  is  5pm 
+New York time, and FX option expiry is at 10am). Table 1 presents our assessment of these hours (note 
+that the results presented below are not substantially affected by the precise choice of trading times). 
+We  present  three  tests  of  the  relationship  between  hourly  returns  and  time  of  day,  a  simple  test  of 
+significant  excess  returns,  an  excess  returns  test  adjusted  for  time‐varying  volatility  and  a  non‐
+parametric sign test of returns. 
+1) Simple test of significant excess returns. We conduct two‐sample t‐tests for the acceptance of the 
+null hypothesis of equality in means. These t‐statistics refer to two‐tail statistics on the difference 
+6 7
+	 7
+between a given intraday return mean over all the returns at the same intraday period. We perform 
+the two‐sample equal variance (homoscedastic) test.5 
+2) Excess returns allowing for heteroscedasticity and autocorrelation. A drawback of a simple test of 
+excess returns is that it does not allow for the fact that the volatility of returns varies markedly over 
+the  trading  day  –  with  volatility  usually  concentrated  in  the  morning  sessions  of  each  of  the 
+currencies  in  a  given  pair.  It  is  also  the  case  that  simple  tests  may  be  biased  in  the  presence  of 
+autocorrelation of returns. To help adjust for these effects we estimate a time of day returns model 
+where  volatility  has  a  simple  time‐of‐day  structure  and  returns  may  be  autocorrelated.  We 
+performed GARCH regressions as follows: 
+24
+, , ,
+1 1
+. .
+k
+t i h h h t i k t i
+h k
+r α d ρ r ε
+ 
+                     (1) 
+24
+2 2 2
+, , 1 , 1
+1
+t i h h t i t i
+h
+σ ω d γε λσ 
+
+                   (2) 
+Where  r  is  the  log  change  of  the  exchange  rate  from  end  hour  i‐1  to  i  on  day  t,  d  is  a  dummy 
+variable  equal  to  one  at  hour  h  and  0  otherwise,  ε  is  the  residual  and  α  and  ρ  are  estimated 
+parameters, and k is chosen according to the Schwarz criterion. The conditional variance σ2 of the 
+error term is defined in equation 2 in which ω, γ and λ are parameters. This GARCH model accounts 
+for  three  main  statistical  characteristics  of  the  time  series  of  intraday  returns:  autocorrelation, 
+heteroscedasticity and non‐Gaussian errors. We also experimented with some other specifications 
+such as including a moving average term, but this did not materially change the results. 
+3)  Sign  test.  As  a  simple  non‐parametric test of the  properties  of hourly returns we  also  assess the 
+probability  of  observing  positive  returns  in  a  given  period  and  test  the  significance  of  that 
+																																																													
+5 The homoscedastic t‐test is a stricter test than the heteroscedastic case. In fact, the probability associated with a Student’s t‐
+test for equality in means has an upward bias and leads to a more likely rejection of the inequality hypothesis.	
+8 9
+	 8
+probability  using  a  binomial  distribution  (we  also  conducted  the  Wilcoxon  signed  ranks  test  – 
+results available from the authors). 
+ 
+Figure 1: Cumulative returns over an average day 1997‐2007 (New York time) 
+ 
+EUR/USD (base currency EUR)  USD/JPY (base currency USD)
+EUR/JPY (base currency EUR)  GBP/USD (base currency GBP) 
+USD/CHF(base currency USD)  AUD/USD (base currency AUD) 
+8 9
+	 9
+Average annualised log returns cumulated over a trading day. Columns in bold indicate hourly return is significantly 
+different from zero at the 5% level (based on simple t‐test described above).  
+ Figure  1  presents  visual  evidence  that  hourly  FX  returns  do  seem  to  follow  significant  time  of  day 
+patterns,  which,  as  predicted,  show  that  local  currencies  tend  to  depreciate  during  their  own  trading 
+hours. Table 2 tests the trading hours phenomenon more precisely by conducting our tests on opening‐
+to‐closing or  opening‐to‐opening  (for  the  cases  when  the  opening  session  of  one  side  of the  currency 
+pair occurs whilst the first market is still open – as in the case of EUR/USD) 
+Table 2: Statistical properties of trading session returns 
+  Trading  session  Mid‐quote 
+return 
+Mid‐quote 
+return GARCH 
+Share positive  Trading return 
+EUR/USD   EUR session  ‐ 0.084** ‐0.095** 0.44** 0.06 
+USD session  0.100** 0.111** 0.53* 0.07 
+USD/JPY   JPY session  0.017** 0.029* 0.51 ‐0.13 
+USD session  0.000 0.018 0.50 ‐0.05 
+EUR/JPY   EUR session  0.029** 0.041* 0.52 ‐0.05 
+JPY session  ‐ 0.057** ‐0.040* 0.48** ‐0.42 
+GBP/USD   GBP session  ‐ 0.071** ‐0.066** 0.45** ‐0.12 
+USD session  0.092** 0.126** 0.55** ‐0.08 
+USD/CHF   CHF session  0.095** 0.108** 0.56** ‐0.08 
+USD session  ‐ 0.088** ‐0.105** 0.48 ‐0.02 
+AUD/USD   AUD session  ‐ 0.028** ‐0.038* 0.50 ‐0.51 
+USD session  0.016** 0.023 0.52** ‐0.50 
+Annualised log returns *,** indicate statistical significance at the 5% and 1% level respectively (t‐test for mid quote 
+return, F‐test for GARCH and Binomial Test for share positive) 
+Starting  with  the  simple  mid‐quote  return,  all  returns  are  of  the  predicted  sign  and  significant  except 
+USD/JPY  in  the  USD  session.  After  adjusting  for  autocorrelation  and  heteroscedasticity  in  returns,  the 
+10 11
+	 10
+results are very similar though less significant with AUD/USD in the USD session becoming insignificant 
+and a number of session returns becoming significant at the 5% level rather than the 1% level Finally, 
+although not all the sign tests are individually conclusive the pattern of probabilities is consistent. 
+The  final  column  of  Table  2  shows  the  returns  from  a  simple  open‐to‐close/open‐to‐open  trading 
+strategy  including  transactions  costs.  Thus  in  this  case  we  measure  returns  using  bid  and  ask  prices 
+rather than the midquotes used in the rest of the table (recall that on EBS the quoted bid and ask prices 
+are  firm  and  thus  could  be  transacted  at  normal  size  by the  interdealer  community)  and go  short  the 
+base currency in its own trading hours and long in the trading hours of the counter currency.   As might 
+be expected, most of these simple time‐of‐day trading strategies are not profitable when trading costs 
+are  included.  However,  the  notable  exception  is  EUR/USD  where  the  significant  intraday  pattern 
+combined  with  narrow  spreads  in  this  cross  means  that  this  basic  strategy  has  been  profitable  on 
+average with Sharpe Ratios of 1.3 and 0.9 respectively for the morning short and  afternoon long. This 
+result is even more surprising when one considers that we have made no allowance for bank holidays or 
+other  simple  adjustments  that  could  presumably  improve  returns6  since  we  wish  to  minimise  the 
+possibility of data‐mining biases.  
+2.3 Stability through time 
+Since  the  time‐of‐day  phenomenon  was  first  documented  some  years  ago  (Cornett  et  al  (1995)),  it  is 
+possible that its impact has diminished more recently. Figure 2 shows the significance of the EUR/USD 
+trading  day  effect  through  time  by  estimating  average  returns  over  the  European  and  US  trading 
+sessions  year  by  year.  Interestingly,  although  the  returns  over  each  session  individually  show 
+																																																													
+6 Bank holiday effects seem quite powerful in practice. For example, the dollar has appreciated against the euro (or DM) over 
+the July 4 Federal holiday on 15 of the last 20 occasions. This is presumably due to the absence of US‐based order flow on that 
+day (see Ranaldo (2009) for further analysis).	
+10 11
+	 11
+considerable variation, the difference in returns between the two sessions remains remarkably stable. 
+Only in 2004 do we find marginally higher returns in the EUR session than in the USD session in almost 
+all  other  years  the  gap  between  returns  is  both  significant  and  of  the  expected  sign.  We  find  similar 
+stability over time for the other currency pairs. 
+Figure 2: Trading day effect over time (EUR/USD) 
+‐0.200
+‐0.150
+‐0.100
+‐0.050
+0.000
+0.050
+0.100
+0.150
+0.200
+1999 2000 2001 2002 2003 2004 2005 2006 2007
+EUR session
+USD session
+ 
+Average annualised log return for each year. Solid borders indicate returns significantly different from zero at 5% level using 
+standard t‐test. 
+ 3 Time of day effects and order flow 
+In section 2, we saw that all the currencies in our sample displayed a significant tendency to depreciate 
+in  local  trading  hours  and  that,  in  the  case  of  EUR/USD,  this  tendency  could  be  exploited to  generate 
+trading profits. In this section, we explore the relationship of this effect to order flow. 
+3.1 Time of day effects in FX order flow 
+Table 3 repeats the time‐of‐day analysis of Table 2, but this time for order flow (number of buy orders 
+minus number of sell orders on EBS). Throughout the table we see a tendency for local currency selling 
+to  occur  in  local  trading  hours  although  the  effect  is  not  always  significant  (perhaps  reflecting  the 
+12 13
+	 12
+incomplete coverage of our order flow data). The one exception is AUD/USD where both the low market 
+share of EBS coupled with AUD buying by larger Asian trading centres such as Tokyo and Singapore (that 
+are, anecdotally, more likely to use EBS) mean there is more AUD buying recorded on EBS in the AUD 
+session  than  in  the  USD  session.   Generally,  however,  we  tend  to  see  a  strong  relationship  between 
+average hourly order flow and average hourly returns (Figure 3).  
+Table 3: Statistical properties of trading session order flow 
+  Time period  Order flow Order flow 
+ GARCH 
+Share positive  Residual returns 
+EUR/USD   EUR session  ‐ 2.190** ‐1.415** 0.457**  0.0098
+USD session  2.284** 3.950** 0.522**  0.0004
+USD/JPY   JPY session  0.374 0.222 0.505  0.0003
+USD session  ‐ 0.278* ‐0.164 0.496  0.0003
+EUR/JPY   EUR session  0.065 0.020 0.487*  ‐ 0.0006
+JPY session  0.308** 0.450* 0.520**  0.0001
+GBP/USD   GBP session  ‐ 0.264** ‐0.284** 0.483**  ‐ 0.0001
+USD session  0.132** 0.213** 0.509*  0.0004
+USD/CHF   CHF session  1.461** 1.500** 0.530**  ‐ 0.0002
+USD session  0.329 1.254* 0.496  ‐0.0005
+AUD/USD   AUD session  0.016 0.449* 0.502  ‐0.0002
+USD session  ‐ 0.500* ‐0.271 0.598  0.0000
+Average  hourly  order  flow  in  number  of  trades  *,**  indicate  statistical  significance  at  the  5%  and  1%  level  respectively.  The 
+statistical  tests  used  are  as  follows:  Column  3  ‐  T‐test  for  assessing  the  difference  in  order  flow  averages  (during  country 
+working hours versus the entire population) Column 4 ‐  Wald test to assess if coefficients related to the dummy variables for 
+each session are different from zero (from GARCH regression as described above). Column 5: Sign tests based on cumulative 
+Bernoulli distribution. Column 6: t‐test of residual seasonality of regression of returns on order flow  
+This result suggests that it is the timing of trades that is largely responsible for the intraday pattern in 
+returns. A plausible explanation for this pattern of order flow (which we discuss further below) is that 
+international  investment  funds  tend  to  conduct  currency  trades  in  their  own  trading  hours  and  that 
+since  they  tend  to  receive  net  inflows  of  domestic  currency  (since  they  tend  to  grow  over  time)  this 
+implies  a  bias  against  the  local  currency  in  domestic  trading  hours.  Additionally,  Cornett  et  al  (1995) 
+highlight  currency  of  invoicing  effects  that  lead  importers  to  be  net  demanders  of  foreign  currency 
+rather  than  exporters,  as  imports  are  more  commonly  invoiced  in  foreign  currency.  Once  again  the 
+tendency of these trades to be conducted in local trading hours gives the pattern we observe here.  
+12 13
+	 13
+Figure 3: Cumulative order flow and returns on an average day (New York time)  
+EUR/USD  USD/JPY
+EUR/JPY  GBP/USD 
+USD/CHF  AUD/USD 
+Columns show cumulative order flow in number of trades (left‐hand scale). Line shows cumulative annualised log 
+returns  (right‐hand scale). Columns in  bold indicate hourly  order  flow significantly  different  from  zero at  the 5% 
+level based on t‐test. Trading sessions as in Figure 1 
+ 
+14 15
+	 14
+3.2 The order flow returns relationship 
+As Figure 3 shows, both FX returns and order flow display a similar intraday pattern. In this section we 
+conduct a simple test to see if pattern in order flow can explain the pattern in returns. 
+To do this we employ the simple model of order flow and returns, like the one proposed by Hasbrouck 
+(1991),  where  returns  are  a  function  of  contemporaneous order flow  and lags of both order  flow and 
+returns.  Although  this  kind  of  model  has  been  criticised  both  for  assuming  that  contemporaneous 
+returns  do  not  influence  order  flow  and  for  not  allowing  for  any  cointegrating  relationship  between 
+cumulative order flow and the asset price (see for example, Love and Payne (2008)), it is adequate for 
+our  purpose  since  we  simply  require  a  straightforward  framework  in  which  to  analyse  the  intraday 
+pattern of order flow and returns.  As is standard in the literature (e.g. Chinn and Moore (2008)), we find 
+a  very  strong  contemporaneous  relationship  between  order  flow  and  returns  with  lagged  effects 
+generally  far  weaker  and  often  insignificant  (details  available  from  the  authors).  The  last  column  of 
+table 3 shows the average cumulative residuals of our simple model over each trading session and tests 
+if they display any residual intraday  pattern. Tests confirm that they is no significant residual intraday 
+pattern  in  returns  for  any  currency  pair  after  order  flow  is  allowed  for,  suggesting  that  the  intraday 
+pattern in order flow is sufficient to explain the intraday pattern in returns.   
+4 Further evidence on order flow  
+Although order flow data from EBS give us an excellent coverage of the interbank market, the dataset 
+we have gives us no information on the geographical location or identity of the counterparties. It is also 
+unclear  if  order  flow  from  this  source  has  any  correspondence  with  macroeconomic  data  on  capital 
+flows. In this section, we look at data from a single market maker and from detailed US capital flow data 
+in order to address these limitations. 
+14 15
+	 15
+4.1 Data from a single market maker 
+We are lucky to have access to order flow data from BNP Paribas on both the geographical location and 
+type of customer  orders.  Paribas  have  kindly supplied  us with data on the size,  sign  and counterparty 
+type and geographical location of all their customer trades over the period January 2005 to May 2007. 
+Although not a key market maker, BNP Paribas is estimated to be one of the top 15 market makers (in 
+terms of market share) for corporations, banks and real money accounts (with estimated market shares 
+of 3.1%, 2.9% and 1.4% respectively), though not for leveraged funds (Euromoney FX poll 2008).  
+Table 4: Average order flow imbalance in local trading hours: BNP Paribas data 
+  EUR/USD  USD/JPY EUR/JPY GBP/USD USD/CHF  AUD/USD
+European‐based  order flow  ‐0.85   ‐0.30  ‐ 0.04  ‐ 0.28    
+US‐based order flow     0.01   ‐ 0.20* 0.03  ‐ 0.06     0.02 
+Asia/Australasia‐based order flow     0.90* 0.07* ‐0.06*
+Average order flow imbalance in millions of dollars is for customers of a given geographic location in their own trading hours. * 
+indicates that imbalance is statistically significant at the 5% level based on a difference in means test versus mean imbalance of 
+aggregate order flow over whole trading day 
+Table 4 shows a more detailed analysis of order flow in different trading periods by different location of 
+customer. Here we see the expected pattern whereby local customers tend to be net sellers of the local 
+currency  in  local  trading  hours,  though  this  effect  is  only  statistically  significant  in  a  few  cases.  The 
+strongest  results  are  for  USD/JPY,  where  both  US  and  Asian  imbalances  are  significant.  This  is  slightly 
+surprising  given  the  mixed  results  we  obtained  for  USD/JPY  with  EBS  data.  The  only  exception  to  the 
+selling in local hours pattern is USD/CHF in European trading hours (which appears to be offset by net 
+out‐of‐hours purchases by European customers for reasons we cannot explain).  
+Further  analysis  by  type  of  customer  (available  from  the  authors)  shows  that  banks  and  investment 
+funds have the strongest tendency to sell their own currency in local trading hours, while this effect is 
+not observed in trades by corporations (though the sample of such trades is small). This suggests that 
+16 17
+	 16
+the  time‐of‐day  pattern  in  order  flow  is  not  restricted  to  currency  of  invoicing  effects  as  implied  by 
+Cornett et al (1995). 
+4.2 Data from the Treasury International Capital System 
+Although the intra‐day effect we have identified is clearly a microstructure phenomenon, it is interesting 
+to  see  if  we  can  find  some  correspondence  between  the  results  we  have  found  here  and 
+macroeconomic capital flow data. Data from the US Treasury International Capital System (TIC) allow us 
+to look in some detail at flows by geographic source and so make some general observations.   We use 
+the  TIC  data  on  equity  flows  (which  are  the  most  likely  to  involve  an  outright  currency  exposure)  to 
+check two propositions 
+1) Is it the case that US investors tend to be net purchasers of foreign equity and vice versa, as our 
+Paribas data suggest? 
+2) Are  the  intra‐day  patterns  we  have  identified  correlated  with  measured  flows  at  the  macro 
+level?  More  precisely,  is  the  average  intraday  fall  in  the  dollar  in  US  hours  over  each  month 
+correlated with the recorded net purchase of foreign equity by US citizens over that month (and 
+vice versa for flows into the US)? 
+Table 5: Evidence from US cross‐border equity flow data  
+  EUR/USD  USD/JPY  GBP/USD  USD/CHF  AUD/USD 
+Average net purchases of US equity by foreigners 
+(% of holdings, AR) 
+6.0%  1.9%  14.3%  3.1%  2.1% 
+Average net purchases of foreign equity by US (% 
+of holdings, AR) 
+0.1%  6.3%  4.2%  0.3%  3.4% 
+Correlation of return in US time with US purchases  0.13ψ  0.04  0.11  0.10  0.09 
+Correlation of return in foreign time with foreign 
+purchases 
+0.18*  0.06  ‐ 0.03  0.07  0.18* 
+Average net purchases shows net purchases by country X of US equity (or US purchases of country X equity) as a percentage of 
+estimated average holdings of US equity by country X (or holding of country X equity by the US) expressed at an annual rate. 
+16 17
+	 17
+Correlations show relationship between the average mid‐quote intraday trading session return over the month with net foreign 
+equity purchases that month. ψ,* indicates significance at 10% and 5% level respectively. All flow and stock data from TIC 
+Table 5 summarises our results using TIC data. It confirms that local investors tend to be net purchasers 
+of  foreign  equity,  as  we  expected,  and  that  the  intraday  pattern  in  returns  is  generally  positively 
+correlated with the scale of these net purchases (significantly so in the case of EUR/USD and AUD/USD) 
+since  the  correlation  shows  that  the  average  time  of  day  effect  is  larger  in  months  when  net  equity 
+outflows are large. 
+5 Conclusion 
+Although the phenomenon we have outlined here is a relatively straightforward one and our empirical 
+approach  has  been  a  deliberately  simple  one,  our  results  have  wide‐ranging  implications.  First,  we 
+provide  possibly  the  strongest  evidence  yet  of  the  importance  of  order  flow  in  driving  FX  returns 
+through  a  mechanism  not  driven  by  asymmetric  information.  Thus  our  results  give  further  support  to 
+the  microstructure  approach  to  FX  in  general  and  the  importance  of  liquidity  effects  in  particular. 
+Second, as a description of intraday dynamics, our results have implications for portfolio management 
+and  the  timing  of  FX  trades  as  well  as  for  the  design  of  profitable  intraday  trading  rules.  Third,  our 
+results  indicate  the  kind  of  mechanism  through  which  FX  dealers  can  make  significant  trading  profits 
+without any informational advantage and despite narrow quoted spreads (see for example, Mende and 
+Menkhoff (2006)), in this case by intermediating between different trading sessions. Of course, we have 
+left a number of important questions unanswered. For example, why do investors not time their trades 
+more  effectively,  and  could  a  more  sophisticated  trading  rule  increase  the  profitability  of  time‐of‐day 
+trading strategies? We leave these questions to future research.   
+18 19
+	 18
+References 
+Abel,  Andrew,  Janice  Eberly  and  Stavros  Panageas.  (2009).  “Optimal  Inattention  to  the  Stock  Market 
+with Information Costs and Transactions Costs”, NBER Working Paper No. w15010.   
+Anderson,  Torben,  and  Tim  Bollerslev.  (1998).  “Deutsche  Mark‐Dollar  volatility:  intraday  activity 
+patterns,  macroeconomic  announcements  and  longer  run  dependences”,  Journal  of  Finance  53,  219‐
+265. 
+Baillie,  Richard,  and  Tim  Bollerslev.  (1991).  “Intra‐day  and  inter‐market  volatility  in  foreign  exchange 
+rates” Review of Economic Studies 58, 565–585. 
+Breedon, Francis, and Paolo Vitale. (2010). “An empirical study of liquidity and information effects of 
+order flow on exchange rates”, Journal of International Money and Finance 29, 504‐524. 
+Chinn, Menzie, and Michael Moore. (2008). “Private Information and a Macro Model of Exchange Rates: 
+Evidence from a Novel Data Set”, NBER WP 14175.  
+Cornett,  Marcia,  Tom  Schwarz,  and  Andrew  Szakmary.  (1995).  “Seasonalities  and  intraday  return 
+patterns in the foreign currency futures markets”, Journal of Banking and Finance 19, 843‐869. 
+Evans, Martin, and Richard Lyons. (2005). “Meese‐Rogoff Redux: Micro‐Based Exchange‐Rate 
+Forecasting”, American Economic Review Papers and Proceedings 95, 405–414. 
+Fatum, Rasmus, and Michael Hutchinson. (2003). ”Is Sterilised Foreign Exchange Intervention  Effective 
+After All? An Event Study Approach”  The Economic Journal 113, 390–411. 
+Froot,  Kenneth,  and  Tarun  Ramadorai.  (2005).  “Currency  returns,  intrinsic  value  and  institutional 
+investor flows”, Journal of Finance 60, 1535‐1566. 
+Hartmann,  Phillip.  (1999).  “Trading  volumes  and  transactions  costs  in  the  foreign  exchange  market: 
+Evidence from daily dollar‐yen spot data”, Journal of Banking and Finance 23, 801‐824. 
+Harris, Lawrence. (1986). “A transaction data study of weekly and intradaily patterns in stock returns”, 
+Journal of Financial Economics 16. 99‐117. 
+Hasbrouck, Joel. (1991). “Measuring the information content of stock trades” Journal of Finance 46, 179‐
+207. 
+Hau, Harald, Massimo Massa, and Joel Perress. (2010). “Do demand curves for currencies slope down? 
+Evidence from the MSCI Global index change”, Review of Financial Studies 23, 1681‐1717. 
+Ito, Takatoshi, and Yuko Hashimoto. (2006). “Intraday seasonality in activities of the foreign exchange 
+markets: Evidence from the electronic broking system”, Journal of the Japanese and International 
+Economics 20, 637‐664.  
+Love, Ryan, and Richard Payne. (2008). "The Adjustment of Exchange Rates to Macroeconomic 
+Information: the role of Order Flow", Journal of Financial and Quantitative Analysis 43, 467‐488. 
+18 19
+	 19
+Mende, Alexander, and Lukas Menkhoff. (2006). "Profits and speculation in intra‐day foreign exchange 
+trading”, Journal of Financial Markets 9, 223‐245. 
+Ranaldo, Angelo. (2009). "Segmentation and time‐of‐day patterns in foreign exchange markets", Journal 
+of Banking & Finance 33, 2199‐2206.  
+Rogoff, Kenneth. (1983). "Time‐series studies of the relationship between exchange rates and 
+intervention: a review of the techniques and literature" , Staff Studies 132, Board of Governors of the 
+Federal Reserve System (U.S.). 
+Rime, Dagfinn, Lucio Sarno, and Elvira Sojli. (2010). “Exchange rate forecasting, order flow and 
+macroeconomic information”, Journal of International Economics 80, 72‐88. 
+Smirlock, Michael, and Laura Starks. (1986). “Day‐Of‐The‐Week and Intraday Effects In Stock Returns”, 
+Journal of Financial Economics 17, 197‐210. 
+Yadav,  Pradeep,  and  Pope  Peter.  (1992).  “Intraweek  and  Intraday  Seasonalities  in  Stock  Market  Risk 
+Premia: Cash vs. Futures”, Journal of Banking and Finance 16, pp 233‐270. 
+ 
+Swiss National Bank Working Papers published since 2004: 
+ 
+2004-1 Samuel Reynard: Financial Market Part icipation and the Apparent Instability of 
+Money Demand 
+ 
+2004-2 Urs W. Birchler and Diana Hancock: What Does the Yield on Subordinated  
+ Bank Debt Measure? 
+  
+2005-1 Hasan Bakhshi, Hashmat Khan and Barbara Rudolf: The Phillips curve under  
+ state-dependent pricing 
+ 
+2005-2 Andreas M. Fischer: On the Inadeq uacy of Newswire Reports for Empirical  
+ Research on Foreign Exchange Interventions 
+ 
+2006-1 Andreas M. Fischer: Measuring Inco me Elasticity for Swiss Money Demand:  
+ What do the Cantons say about Financial Innovation? 
+ 
+2006-2 Charlotte Christiansen and Angelo Rana ldo: Realized Bond-Stock Correlation: 
+Macroeconomic Announcement Effects 
+ 
+2006-3 Martin Brown and Christian Zehnder: Cr edit Reporting, Relationship Banking,  
+ and Loan Repayment 
+ 
+2006-4 Hansjörg Lehmann and Michael Ma nz: The Exposure of Swiss Banks to 
+Macroeconomic Shocks – an Empirical Investigation 
+ 
+2006-5 Katrin Assenmacher-Wesche and Stefan Gerlach: Money Growth, Output Gaps and 
+Inflation at Low and High Frequency: Spectral Estimates for Switzerland 
+ 
+2006-6 Marlene Amstad and Andreas M. Fisc her: Time-Varying Pass-Through from Import 
+Prices to Consumer Prices: Evidence from an Event Study with Real-Time Data 
+ 
+2006-7 Samuel Reynard: Money and the Great Disinflation 
+ 
+2006-8 Urs W. Birchler and Matteo Facchinetti: Can bank supervisors rely on market data? 
+A critical assessment from a Swiss perspective 
+ 
+2006-9 Petra Gerlach-Kristen: A Two-Pillar Phillips Curve for Switzerland 
+ 
+2006-10 Kevin J. Fox and Mathias Zurlinden: On Understanding Sources of Growth and 
+Output Gaps for Switzerland 
+ 
+2006-11 Angelo Ranaldo: Intraday Market Dynamics Around Public Information Arrivals 
+ 
+2007-1 Andreas M. Fischer, Gulzina Isakova and Ulan Termechikov: Do FX traders in 
+Bishkek have similar perceptions to their London colleagues? Survey evidence of 
+market practitioners’ views 
+2007-2 Ibrahim Chowdhury and Andreas Schabert : Federal Reserve Policy viewed through 
+a Money Supply Lens 
+ 
+2007-3 Angelo Ranaldo: Segmentation and Ti me-of-Day Patterns in Foreign Exchange 
+Markets 
+ 
+2007-4 Jürg M. Blum: Why ‘Basel II’ May Need a Leverage Ratio Restriction 
+  
+2007-5 Samuel Reynard: Maintaining Low Inflation: Money, Interest Rates, and Policy 
+Stance 
+ 
+2007-6 Rina Rosenblatt-Wisch: Loss Aversion in Aggregate Macroeconomic Time Series 
+ 
+2007-7 Martin Brown, Maria Rueda Maurer, Tamara Pak and Nurlanbek Tynaev: Banking 
+Sector Reform and Interest Rates in Transition Economies: Bank-Level Evidence 
+from Kyrgyzstan 
+ 
+2007-8 Hans-Jürg Büttler: An Orthogonal Polynomial Approach to Estimate the Term 
+Structure of Interest Rates 
+ 
+2007-9 Raphael Auer: The Colonial Origins Of Comparative Development: Comment. 
+A Solution to the Settler Mortality Debate 
+ 
+2007-10 Franziska Bignasca and Enzo Rossi: Applying the Hirose-Kamada filter to Swiss 
+data: Output gap and exchange rate pass-through estimates 
+ 
+2007-11 Angelo Ranaldo and Enzo Rossi: The reaction of asset markets to Swiss National 
+Bank communication 
+ 
+2007-12 Lukas Burkhard and Andreas M. Fischer: Communicating Policy Options at the Zero 
+Bound 
+ 
+2007-13 Katrin Assenmacher-Wesche, Stefan Gerlach, and Toshitaka Sekine: Monetary 
+Factors and Inflation in Japan 
+ 
+2007-14 Jean-Marc Natal and Nicolas Stoffels: Globalization, markups and the natural rate 
+of interest 
+ 
+2007-15 Martin Brown, Tullio Jappelli and Marco Pagano: Information Sharing and Credit: 
+Firm-Level Evidence from Transition Countries 
+ 
+2007-16 Andreas M. Fischer, Matthias Lutz and Manuel Wälti: Who Prices Locally? Survey 
+Evidence of Swiss Exporters 
+ 
+2007-17 Angelo Ranaldo and Paul Söderlind: Safe Haven Currencies 
+ 
+ 
+2008-1 Martin Brown and Christian Zehnder: The Emergence of Information Sharing in 
+Credit Markets 
+ 
+2008-2 Yvan Lengwiler and Carlos Lenz: Intelligible Factors for the Yield Curve 
+ 
+2008-3 Katrin Assenmacher-Wesche and M. Hashem Pesaran: Forecasting the Swiss 
+Economy Using VECX* Models: An Exercise in Forecast Combination Across Models 
+and Observation Windows 
+ 
+2008-4 Maria Clara Rueda Maurer: Foreign bank entry, institutional development and 
+credit access: firm-level evidence from 22 transition countries 
+ 
+2008-5 Marlene Amstad and Andreas M. Fischer: Are Weekly Inflation Forecasts 
+Informative? 
+ 
+2008-6 Raphael Auer and Thomas Chaney: Cost Pass Through in a Competitive Model of 
+Pricing-to-Market 
+ 
+2008-7 Martin Brown, Armin Falk and Ernst Fehr: Competition and Relational Contracts: 
+The Role of Unemployment as a Disciplinary Device 
+ 
+2008-8 Raphael Auer: The Colonial and Geographic Origins of Comparative Development 
+ 
+2008-9 Andreas M. Fischer and Angelo Ranaldo: Does FOMC News Increase Global FX 
+Trading? 
+ 
+2008-10 Charlotte Christiansen and Angelo Ranaldo: Extreme Coexceedances in New EU 
+Member States’ Stock Markets 
+ 
+2008-11 Barbara Rudolf and Mathias Zurlinden: Measuring capital stocks and capital 
+services in Switzerland 
+ 
+2008-12 Philip Sauré: How to Use Industrial Policy to Sustain Trade Agreements 
+ 
+2008-13 Thomas Bolli and Mathias Zurlinden: Measuring growth of labour quality and the 
+quality-adjusted unemployment rate in Switzerland 
+ 
+2008-14 Samuel Reynard: What Drives the Swiss Franc? 
+ 
+2008-15 Daniel Kaufmann: Price-Setting Behaviour in Switzerland – Evidence from CPI 
+Micro Data 
+ 
+2008-16 Katrin Assenmacher-Wesche and Stefan Gerlach: Financial Structure and the 
+Impact of Monetary Policy on Asset Prices 
+ 
+2008-17 Ernst Fehr, Martin Brown and Christian Zehnder: On Reputation: A 
+Microfoundation of Contract Enforcement and Price Rigidity 
+ 
+2008-18 Raphael Auer and Andreas M. Fischer: The Effect of Low-Wage Import Competition 
+on U.S. Inflationary Pressure 
+ 
+2008-19 Christian Beer, Steven Ongena and Marcel Peter: Borrowing in Foreign Currency: 
+Austrian Households as Carry Traders 
+ 
+2009-1 Thomas Bolli and Mathias Zurlinden: Measurement of labor quality growth caused 
+by unobservable characteristics 
+ 
+2009-2 Martin Brown, Steven Ongena and Pina r Yesin: Foreign Currency Borrowing by 
+Small Firms 
+ 
+2009-3 Matteo Bonato, Massimiliano Caporin and Angelo Ranaldo: Forecasting realized 
+(co)variances with a block structure Wishart autoregressive model 
+ 
+2009-4 Paul Söderlind: Inflation Risk Premia and Survey Evidence on Macroeconomic 
+Uncertainty 
+ 
+2009-5 Christian Hott: Explaining House Price Fluctuations 
+ 
+2009-6 Sarah M. Lein and Eva Köberl: Capac ity Utilisation, Constraints and Price 
+Adjustments under the Microscope 
+ 
+2009-7 Philipp Haene and Andy Sturm: Optima l Central Counterparty Risk Management 
+ 
+2009-8 Christian Hott: Banks and Real Estate Prices 
+ 
+2009-9  Terhi Jokipii and Alistair Mi lne: Bank Capital Buffer and Risk 
+Adjustment Decisions 
+ 
+2009-10  Philip Sauré: Bounded Love  of Variety and Patterns of Trade 
+ 
+2009-11  Nicole Allenspach: Banking and Transparency: Is More Information 
+Always Better? 
+ 
+2009-12  Philip Sauré and Hosny Zoabi: Effects of Trade on Female Labor Force Participation 
+ 
+2009-13 Barbara Rudolf and Mathias Zurlin den: Productivity and economic growth in 
+Switzerland 1991-2005 
+ 
+2009-14 Sébastien Kraenzlin and Martin Schle gel: Bidding Behavior in the SNB's Repo 
+Auctions 
+ 
+2009-15 Martin Schlegel and Sébastien Kraenzl in: Demand for Reserves and the Central 
+Bank's Management of Interest Rates 
+ 
+2009-16 Carlos Lenz and Marcel Savioz: Mone tary determinants of the Swiss franc 
+2010-1 Charlotte Christiansen, Angelo Ranal do and Paul Söderlind: The Time-Varying 
+Systematic Risk of Carry Trade Strategies 
+ 
+2010-2  Daniel Kaufmann: The Timing of Pri ce Changes and the Role of Heterogeneity 
+ 
+2010-3 Loriano Mancini, Angelo Ranaldo and Ja n Wrampelmeyer: Liquidity in the Foreign 
+Exchange Market: Measurement, Commonality, and Risk Premiums 
+ 
+2010-4 Samuel Reynard and Andreas Scha bert: Modeling Monetary Policy 
+ 
+2010-5 Pierre Monnin and Terhi Jokipii: The Impact of Banking Sector Stability on the 
+Real Economy 
+ 
+2010-6 Sébastien Kraenzlin and Tho mas Nellen: Daytime is money 
+ 
+2010-7 Philip Sauré: Overreporting Oil Reserves 
+ 
+2010-8 Elizabeth Steiner: Estimating a stock-flow model for the Swiss housing market 
+ 
+2010-9 Martin Brown, Steven Ongena, Alexander Popov, and Pinar Yesin: Who Needs 
+Credit and Who Gets Credit in Eastern Europe? 
+ 
+2010-10 Jean-Pierre Danthine and André Kurm ann: The Business Cycle Implications of 
+Reciprocity in Labor Relations 
+ 
+2010-11 Thomas Nitschka: Momentum in stock ma rket returns: Implications for risk premia 
+on foreign currencies 
+ 
+2010-12 Petra Gerlach-Kristen and Barbara R udolf: Macroeconomic and interest rate 
+volatility under alternative monetary operating procedures 
+ 
+2010-13 Raphael Auer: Consumer Heterogeneity an d the Impact of Trade Liberalization: 
+How Representative is the Representative Agent Framework? 
+ 
+2010-14 Tommaso Mancini Griffoli and Angelo Ranaldo: Limits to arbitrage during the 
+crisis: funding liquidity constraints and covered interest parity 
+ 
+2010-15 Jean-Marc Natal: Monetary Pol icy Response to Oil Price Shocks 
+ 
+2010-16 Kathrin Degen and Andreas M. Fische r: Immigration and Swiss House Prices 
+ 
+2010-17 Andreas M. Fischer: Immi gration and large banknotes 
+ 
+2010-18 Raphael Auer: Are Imports from Rich Nations Deskilling Emerging Economies? 
+Human Capital and the Dynamic Effects of Trade 
+ 
+2010-19 Jean-Pierre Danthine and John B. Donald son: Executive Compensation: A General 
+Equilibrium Perspective 
+ 
+2011-1 Thorsten Beck and Martin Brown: Which Households Use Banks? Evidence from the 
+Transition Economies 
+ 
+2011-2 Martin Brown, Karolin Kirschenmann and Steven Ongena: Foreign Currency Loans – 
+Demand or Supply Driven? 
+ 
+2011-3 Victoria Galsband and Thomas Nitschka : Foreign currency returns and systematic 
+risks 
+ 
+2011-4 Francis Breedon and Angelo Ranaldo: Intraday patterns in FX returns and order 
+flow 
+ 
+ 
+ 
+Swiss National Bank Working Papers are also available at www.snb.ch, section Publications/Research
+Subscriptions or individual issues can be ordered at Swiss National Bank, Fraumünsterstrasse 8, CH-8022 Zurich, 
+fax +41 44 631 81 14, E-mail library@snb.ch
