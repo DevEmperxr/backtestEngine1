@@ -150,7 +150,8 @@ def test_index_settings():
     assert pip_size("NAS100") == 1.0 and pip_size("GER40") == 1.0 and pip_size("JPN225") == 1.0
     assert prop_config_for("NAS100").commission_usd_per_lot == 0.0 and prop_config_for("NAS100").extra_spread_pips == 0.2
     assert prop_config_for("XAUUSD") is FTMO_GOLD and prop_config_for("EURUSD").commission_usd_per_lot == 5.0
-    assert pair_currencies("NAS100") == ["USD"] and pair_currencies("JPN225") == ["JPY"]
+    assert pair_currencies("NAS100") == ["USD"] and pair_currencies("JPN225") == ["JPY", "USD"]
+    assert pair_currencies("GER40") == ["EUR", "USD"]
     assert pair_currencies("EURUSD") == ["EUR", "USD"]
 
 

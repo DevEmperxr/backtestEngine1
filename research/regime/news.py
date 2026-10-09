@@ -69,8 +69,8 @@ HOME_TZ = {"USD": "America/New_York", "EUR": "Europe/Berlin", "GBP": "Europe/Lon
            "JPY": "Asia/Tokyo"}
 
 
-def red_news_times(currencies: list[str], path: Path = CAL) -> tuple[list[datetime], set[date]]:
-    """Release times (UTC) of High-impact events for `currencies`, plus New York dates of events
+def red_news_events(currencies: list[str], path: Path = CAL) -> tuple[list[tuple[datetime, str, str]], set[date]]:
+    """(release time UTC, currency, event) of High-impact events for `currencies`, plus New York dates of events
     whose time cannot be recovered (speeches without a usual time, summits, elections).
 
     Wall-clock offset: Iran observed DST up to 2022, so the file's own offset label is right up to
@@ -95,11 +95,11 @@ def red_news_times(currencies: list[str], path: Path = CAL) -> tuple[list[dateti
     for r in rows:
         if r["known"] and 2019 <= r["wall"].year <= 2025:
             seen[(r["Currency"], r["Event"])][r["utc"].astimezone(ZoneInfo(HOME_TZ[r["Currency"]])).strftime("%H:%M")] += 1
-    times: list[datetime] = []
+    times: list[tuple[datetime, str, str]] = []
     whole_days: set[date] = set()
     for r in rows:
         if r["known"]:
-            times.append(r["utc"])
+            times.append((r["utc"], r["Currency"], r["Event"]))
             continue
         key = (r["Currency"], r["Event"])
         c = seen.get(key)
@@ -113,8 +113,14 @@ def red_news_times(currencies: list[str], path: Path = CAL) -> tuple[list[dateti
         h, m = map(int, hhmm.split(":"))
         local = datetime(r["file_date"].year, r["file_date"].month, r["file_date"].day, h, m,
                          tzinfo=ZoneInfo(HOME_TZ[r["Currency"]]))
-        times.append(local.astimezone(ZoneInfo("UTC")))
+        times.append((local.astimezone(ZoneInfo("UTC")), r["Currency"], r["Event"]))
     return sorted(set(times)), whole_days
+
+
+def red_news_times(currencies: list[str], path: Path = CAL) -> tuple[list[datetime], set[date]]:
+    """Release times (UTC) of High-impact events for `currencies` (see red_news_events), plus whole-day blocks."""
+    ev, whole_days = red_news_events(currencies, path)
+    return sorted({t for t, _, _ in ev}), whole_days
 
 
 # FTMO Standard (funded) account: no opening or closing of trades from 2 minutes before to 2 minutes after
